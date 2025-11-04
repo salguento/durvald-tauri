@@ -1,6 +1,92 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+use serde::Serialize;
+use std::fs;
+use std::path::PathBuf;
+use tauri::{command};
+
+#[derive(Serialize)]
+pub struct FileInfo {
+    name: String,
+    path: String,
+    size: u64,
+    is_directory: bool,
+    extension: String,
+}
+
+#[command]
+async fn select_folder() -> Result<String, String> {
+    let handle = tauri::async_runtime::spawn(async move {
+        if let Some(folder) = rfd::AsyncFileDialog::new()
+            .set_title("Select folder to scan")
+            .pick_folder()
+            .await
+        {
+            Ok(folder.path().to_string_lossy().to_string())
+        } else {
+            Err("No folder selected".to_string())
+        }
+    });
+
+    handle.await.unwrap()
+}
+
+#[command]
+async fn scan_folder(folder_path: String) -> Result<Vec<FileInfo>, String> {
+    let path = PathBuf::from(folder_path);
+
+    if !path.exists() {
+        return Err("Folder does not exist".to_string());
+    }
+
+    if !path.is_dir() {
+        return Err("Path is not a directory".to_string());
+    }
+
+    let mut files = Vec::new();
+
+    fn scan_directory(dir: &PathBuf, files: &mut Vec<FileInfo>) -> Result<(), String> {
+        let entries = fs::read_dir(dir).map_err(|e| e.to_string())?;
+
+        for entry in entries {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let path = entry.path();
+            let metadata = fs::metadata(&path).map_err(|e| e.to_string())?;
+
+            let file_info = FileInfo {
+                name: path
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string(),
+                path: path.to_string_lossy().to_string(),
+                size: metadata.len(),
+                is_directory: metadata.is_dir(),
+                extension: path
+                    .extension()
+                    .map(|ext| ext.to_string_lossy().to_string())
+                    .unwrap_or_default(),
+            };
+
+            files.push(file_info);
+
+            // Recursively scan subdirectories
+            if metadata.is_dir() {
+                scan_directory(&path, files)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    scan_directory(&path, &mut files)?;
+    Ok(files)
+}
 
 fn main() {
-    durvald_lib::run()
+    tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .invoke_handler(tauri::generate_handler![select_folder, scan_folder])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
