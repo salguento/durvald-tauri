@@ -77,61 +77,6 @@ function App() {
   return (
     <main class=" w-screen h-screen min-w-screen  bg-white dark:bg-black overflow-hidden">
       {/* <div>
-      <div class="titlebar">
-        <div data-tauri-drag-region></div>
-        <div class="controls">
-          <button
-            id="titlebar-minimize"
-            title="minimize"
-            onclick={async () => await appWindow.minimize()}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-            >
-              <path fill="currentColor" d="M19 13H5v-2h14z" />
-            </svg>
-          </button>
-          <button
-            id="titlebar-maximize"
-            title="maximize"
-            onclick={async () => {
-              if (await appWindow.isMaximized()) {
-                await appWindow.unmaximize();
-              } else {
-                await appWindow.maximize();
-              }
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-            >
-              <path fill="currentColor" d="M4 4h16v16H4zm2 4v10h12V8z" />
-            </svg>
-          </button>
-          <button
-            id="titlebar-close"
-            title="close"
-            onclick={async () => appWindow.close()}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-            >
-              <path
-                fill="currentColor"
-                d="M13.46 12L19 17.54V19h-1.46L12 13.46L6.46 19H5v-1.46L10.54 12L5 6.46V5h1.46L12 10.54L17.54 5H19v1.46z"
-              />
-            </svg>
-          </button>
-        </div>
       </div>
         <div class="max-h-svh pt-24 px-24">
           <div class="max-w-screen max-h-svh  mx-auto overflow-auto pb-32">
@@ -278,74 +223,259 @@ function App() {
           </div>
         </div>
         </div> */}
-      <div class="flex flex-col w-screen p-4 gap-4 h-screen">
-        <div class="flex flex-row gap-4 h-full overflow-hidden">
+      <div class="flex flex-col w-screen p-3 gap-3 h-screen">
+        <div class="flex flex-row gap-3 h-full overflow-hidden">
+          {/*MENU BAR*/}
           <div class="bg-zinc-900 xl:size-1/6 lg:size-1/4 min-h-full rounded-3xl box-border p-4">
             <div class="flex flex-col gap-6">
-              <div class="flex w-full flex-row pl-2 flex-wrap justify-between items-center ">
+              <div class="flex w-full flex-row flex-wrap justify-between items-center ">
                 <img
                   src="/assets/images/logotype.svg"
                   class="h-6"
                   alt="durvald logotype"
                 />
-                <button class="hover:text-zinc-200 text-zinc-600 h-6 w-6 hover:cursor-pointer active:cursor-text">
+                <button
+                  class="hover:text-zinc-200 text-zinc-600 h-6 w-6 hover:cursor-pointer active:cursor-text"
+                  title="Collapse"
+                >
                   <span class="icon-[solar--square-alt-arrow-left-linear] h-6 w-6 "></span>
                 </button>
               </div>
-              <div class="relative">
+              <div class="relative w-full">
                 <input
                   type="text"
-                  class="rounded-lg w-full border border-transparent bg-zinc-800 focus:bg-zinc-900 hover:border-zinc-600 pl-10 placeholder:text-zinc-600 text-base h-10 font-medium text-white inline-block align-middle pt-0.5"
+                  class="rounded-lg w-full border border-transparent bg-zinc-800 focus:bg-zinc-900 hover:border-zinc-600 pl-10 placeholder:text-zinc-600 text-base h-10 font-medium text-white inline-block align-middle pt-1"
                   placeholder="Search"
                 ></input>
                 <span class="absolute left-2.5 top-2.5 icon-[solar--magnifer-linear] h-5 w-5 text-zinc-600 :text-white"></span>
               </div>
               <div class="flex flex-col ">
-                <button class="flex flex-row w-full px-2.5 pt-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+                <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
                   <span class="icon-[solar--home-angle-2-linear] h-5 w-5 "></span>
                   Home
                 </button>
-                <button class="flex flex-row w-full px-2.5 pt-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+                <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
                   <span class="icon-[solar--bell-linear] h-5 w-5 "></span>
                   New
                 </button>
-                <button class="flex flex-row w-full px-2.5 pt-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+                <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
                   <span class="icon-[solar--clock-circle-linear] h-5 w-5 "></span>
                   Recently Added
                 </button>
               </div>
               <div class="flex flex-col">
-                <div class="flex flex-row w-full  pt-2.5 rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500">
+                <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500 items-center">
                   <span class="icon-[solar--music-library-2-linear] h-5 w-5 "></span>
-                  Library
+                  <p class="pt-1">Library</p>
                 </div>
-                <button class="flex flex-row w-full px-2.5 pt-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+                <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
                   <span class="icon-[solar--microphone-2-linear] h-5 w-5 "></span>
                   Artists
                 </button>
-                <button class="flex flex-row w-full px-2.5 pt-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+                <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
                   <span class="icon-[solar--library-linear] h-5 w-5 "></span>
                   Albuns
                 </button>
-                <button class="flex flex-row w-full px-2.5 pt-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+                <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
                   <span class="icon-[solar--music-notes-linear] h-5 w-5 "></span>
                   Songs
                 </button>
-                <button class="flex flex-row w-full px-2.5 pt-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+                <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
                   <span class="icon-[solar--music-note-slider-linear] h-5 w-5 "></span>
                   Genres
                 </button>
               </div>
               <div class="flex flex-col">
-                <div class="flex flex-row w-full  pt-2.5 rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500">
+                <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500 items-center">
                   <span class="icon-[solar--playlist-minimalistic-2-bold] h-5 w-5 "></span>
-                  Playlists
+                  <p class="pt-1">Playlists</p>
                 </div>
               </div>
             </div>
           </div>
+          {/*CONTENT*/}
           <div class="bg-blue-500 size-7/12 h-full rounded-3xl grow"></div>
-          <div class="bg-amber-500 size-3/12  h-full rounded-3xl"></div>
+          {/*SIDE BAR*/}
+          <div class="bg-zinc-900 size-3/12 h-full rounded-3xl p-4">
+            <div class="flex flex-col gap-4">
+              <div class="w-full justify-between flex" data-tauri-drag-region>
+                <div class="flex flex-row gap-3">
+                  <button
+                    id="titlebar-minimize"
+                    class="text-zinc-400 hover:text-white h-6 hover:cursor-pointer"
+                    title="Settings"
+                  >
+                    <span class="icon-[solar--settings-linear] h-6 w-6 "></span>
+                  </button>
+                </div>
+                <div class="flex flex-row gap-3">
+                  <button
+                    id="titlebar-minimize"
+                    class="text-zinc-600 hover:text-white h-6"
+                    title="Minimize"
+                    onclick={async () => await appWindow.minimize()}
+                  >
+                    <span class="icon-[solar--minimize-square-linear] h-6 w-6 "></span>
+                  </button>
+                  <button
+                    id="titlebar-maximize"
+                    class="text-zinc-600 hover:text-white h-6"
+                    title="Maximize"
+                    onclick={async () => {
+                      if (await appWindow.isMaximized()) {
+                        await appWindow.unmaximize();
+                      } else {
+                        await appWindow.maximize();
+                      }
+                    }}
+                  >
+                    <span class="icon-[solar--maximize-square-linear] h-6 w-6 "></span>
+                  </button>
+                  <button
+                    id="titlebar-close"
+                    class="text-zinc-600 hover:text-white h-6"
+                    title="Close"
+                    onclick={async () => appWindow.close()}
+                  >
+                    <span class="icon-[solar--close-square-linear] h-6 w-6 "></span>
+                  </button>
+                </div>
+              </div>
+              <div class="flex flex-row justify-between">
+                <button
+                  id="titlebar-minimize"
+                  title="Playing"
+                  class="text-zinc-200 hover:text-white flex items-center gap-2 px-4  p-2.5 hover:bg-zinc-700 rounded-2xl hover:cursor-pointer"
+                >
+                  <span class="icon-[solar--play-stream-linear] h-6 w-6 "></span>
+                  <p class="pt-1 hidden xl:inline">Playing</p>
+                </button>
+                <button
+                  id="titlebar-minimize"
+                  class="text-zinc-200 hover:text-white flex items-center gap-2 px-4 py-2.5 hover:bg-zinc-700 rounded-2xl hover:cursor-pointer"
+                  title="Lyrics"
+                >
+                  <span class="icon-[solar--document-add-linear] h-6 w-6 "></span>
+                  <p class="pt-1 hidden xl:inline-block">Lyrics</p>
+                </button>
+                <button
+                  id="titlebar-minimize"
+                  class="text-zinc-200 hover:text-white flex items-center gap-2 px-4 py-2.5 hover:bg-zinc-700 rounded-2xl hover:cursor-pointer"
+                  title="Queue"
+                >
+                  <span class="icon-[solar--playlist-linear] h-6 w-6 "></span>
+                  <p class="pt-1 hidden xl:inline-block">Queue</p>
+                </button>
+              </div>
+              <div>
+                <div class="flex flex-col gap-3">
+                  <img
+                    src="/assets/images/britpop-agcook.jpg"
+                    class="rounded-2xl w-full"
+                  />
+                  <div class="flex flex-row justify-between w-full items-center">
+                    <span class="text-base lg:text-xl text-white font-semibold truncate hover:underline hover:cursor-pointer">
+                      Britpop
+                    </span>
+                    <div class="flex flex-row gap-4">
+                      <button
+                        class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                        title="favorite"
+                      >
+                        <span class="icon-[solar--heart-linear] h-5 w-5 "></span>
+                      </button>
+                      <button
+                        class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                        title="Add"
+                      >
+                        <span class="icon-[solar--add-circle-linear] h-5 w-5 "></span>
+                      </button>
+                      <button
+                        class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                        title="Options"
+                      >
+                        <span class="icon-[solar--menu-dots-bold] h-5 w-5 "></span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="flex flex-row">
+                    <span class="text-sm lg:text-base  text-zinc-500 hover:cursor-pointer hover:text-white hover:underline">
+                      Genre
+                    </span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xs text-zinc-600 font-semibold">
+                      23 February 2024
+                    </span>
+                    <span class="text-xs text-zinc-600 font-semibold">
+                      24 songs, 1 hour and 40 minutes
+                    </span>
+                    <span class="text-xs text-zinc-600 font-semibold">
+                      New Alias
+                    </span>
+                  </div>
+                  <div class="flex flex-row p-4 bg-zinc-800 rounded-2xl items-center gap-3 hover:cursor-pointer">
+                    <div class="w-fit">
+                      <img
+                        src="/assets/images/ag-cook.jpg"
+                        class="h-10 min-w-10 xl:h-16 xl:min-w-16 rounded-full"
+                      ></img>
+                    </div>
+                    <div class="flex flex-row justify-between w-full">
+                      <span class="text-base pt-1 lg:text-xl font-semibold text-zinc-400 truncate hover:underline hover:text-white hover:cursor-pointer">
+                        AG Cook
+                      </span>
+                      <button
+                        class="flex flex-row  rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer items-center"
+                        title="Follow"
+                      >
+                        <span class="icon-[solar--add-square-linear] h-6 w-6 "></span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class=" bg-zinc-800 p-4 rounded-2xl relative max-h-32 overflow-auto">
+                    <div class="flex flex-col gap-3">
+                      <span class="text-sm text-zinc-400">
+                        Britpop is the third album by British singer,
+                        songwriter, and producer A. G. Cook. This 100-minute
+                        album is split into three discs: Past, Present, and
+                        Future.
+                      </span>
+                      <span class="text-sm text-zinc-400">
+                        — Past (tracks 1 to 8): This disc features fast-paced,
+                        playful electronic sounds and vocal chops. The tracks
+                        reference the mindset and idealism of a certain era, but
+                        the sound is more advanced, reflecting the work A.G.
+                        Cook has done since then. It includes the album’s lead
+                        single Silver Thread Golden Needle and the title track
+                        Britpop.
+                      </span>
+                      <span class="text-sm text-zinc-400">
+                        — Present (tracks 9 to 16): This is the most lyrical
+                        disc, dedicated to a more traditional approach to
+                        songwriting. It features the use of guitar and lo-fi
+                        vocal treatment. Notably, it includes Without, an ode to
+                        the late producer SOPHIE, one of Cook’s closest friends
+                        and collaborators.
+                      </span>
+                      <span class="text-sm text-zinc-400">
+                        — Future (tracks 17 to 24): This disc showcases
+                        avant-garde and chaotic sound designs. As A. G. Cook
+                        said, Future includes all the tracks that almost make
+                        him feel uncomfortable, where he questions the tempo or
+                        genre. It includes the album’s third single and oldest
+                        song, Soulbreaker.
+                      </span>
+                      <span class="text-sm text-zinc-400">
+                        This album was released via New Alias, A. G. Cook’s new
+                        label, founded after PC Music’s wind down.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="bg-emerald-500 w-full h-24 rounded-3xl"></div>
       </div>
