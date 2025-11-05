@@ -1,5 +1,9 @@
 @import "tailwindcss";
 @plugin "@iconify/tailwind4";
+@plugin 'tailwind-scrollbar' {
+  nocompatible: true;
+  preferredstrategy: "pseudoelements";
+}
 
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;

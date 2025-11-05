@@ -223,12 +223,18 @@ function App() {
           </div>
         </div>
         </div> */}
-      <div class="flex flex-col w-screen p-3 gap-3 h-screen">
+      <div
+        class="flex flex-col w-screen p-3 gap-3 h-screen"
+        data-tauri-drag-region
+      >
         <div class="flex flex-row gap-3 h-full overflow-hidden">
           {/*MENU BAR*/}
           <div class="bg-zinc-900 xl:size-1/6 lg:size-1/4 min-h-full rounded-3xl box-border p-4">
             <div class="flex flex-col gap-6">
-              <div class="flex w-full flex-row flex-wrap justify-between items-center ">
+              <div
+                class="flex w-full flex-row flex-wrap justify-between items-center"
+                data-tauri-drag-region
+              >
                 <img
                   src="/assets/images/logotype.svg"
                   class="h-6"
@@ -266,7 +272,7 @@ function App() {
               <div class="flex flex-col">
                 <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500 items-center">
                   <span class="icon-[solar--music-library-2-linear] h-5 w-5 "></span>
-                  <p class="pt-1">Library</p>
+                  <span>Library</span>
                 </div>
                 <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
                   <span class="icon-[solar--microphone-2-linear] h-5 w-5 "></span>
@@ -288,13 +294,172 @@ function App() {
               <div class="flex flex-col">
                 <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500 items-center">
                   <span class="icon-[solar--playlist-minimalistic-2-bold] h-5 w-5 "></span>
-                  <p class="pt-1">Playlists</p>
+                  <span class="">Playlists</span>
                 </div>
               </div>
             </div>
           </div>
           {/*CONTENT*/}
-          <div class="bg-blue-500 size-7/12 h-full rounded-3xl grow"></div>
+          <div class="bg-zinc-900 size-7/12 h-full rounded-3xl grow overflow-hidden">
+            <div class="h-full w-full flex flex-col gap-4">
+              <div class="flex flex-row items-center gap-2 pt-3 px-8 text-white">
+                <span class="icon-[solar--home-angle-2-linear] h-6 w-6 "></span>
+                <span class="text-xl font-semibold">Home</span>
+              </div>
+              <div class="flex flex-col gap-2 w-full">
+                <div class="flex flex-row justify-between items-center px-8">
+                  <span class="text-base text-zinc-300 font-medium">
+                    Top Picks
+                  </span>
+                  <span class="text-xs text-zinc-300 hover:underline hover:cursor-pointer hover:text-white">
+                    See all
+                  </span>
+                </div>
+                <div class="w-full overflow-hidden">
+                  <div class="scrollbar-none overflow-auto px-8">
+                    <div class="flex flex-row gap-3 w-[1364px]">
+                      <div class="flex flex-col gap-2">
+                        <div>
+                          <img
+                            src="/assets/images/britpop-agcook.jpg"
+                            alt=""
+                            class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
+                          />
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
+                            Britpop
+                          </span>
+                          <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
+                            AG Cook
+                          </span>
+                        </div>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <div>
+                          <img
+                            src="/assets/images/britpop-agcook.jpg"
+                            alt=""
+                            class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
+                          />
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
+                            Britpop
+                          </span>
+                          <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
+                            AG Cook
+                          </span>
+                        </div>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <div>
+                          <img
+                            src="/assets/images/britpop-agcook.jpg"
+                            alt=""
+                            class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
+                          />
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
+                            Britpop
+                          </span>
+                          <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
+                            AG Cook
+                          </span>
+                        </div>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <div>
+                          <img
+                            src="/assets/images/britpop-agcook.jpg"
+                            alt=""
+                            class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
+                          />
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
+                            Britpop
+                          </span>
+                          <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
+                            AG Cook
+                          </span>
+                        </div>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <div>
+                          <img
+                            src="/assets/images/britpop-agcook.jpg"
+                            alt=""
+                            class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
+                          />
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
+                            Britpop
+                          </span>
+                          <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
+                            AG Cook
+                          </span>
+                        </div>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <div>
+                          <img
+                            src="/assets/images/britpop-agcook.jpg"
+                            alt=""
+                            class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
+                          />
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
+                            Britpop
+                          </span>
+                          <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
+                            AG Cook
+                          </span>
+                        </div>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <div>
+                          <img
+                            src="/assets/images/britpop-agcook.jpg"
+                            alt=""
+                            class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
+                          />
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
+                            Britpop
+                          </span>
+                          <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
+                            AG Cook
+                          </span>
+                        </div>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <div>
+                          <img
+                            src="/assets/images/britpop-agcook.jpg"
+                            alt=""
+                            class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
+                          />
+                        </div>
+                        <div class="flex flex-col">
+                          <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
+                            Britpop
+                          </span>
+                          <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
+                            AG Cook
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           {/*SIDE BAR*/}
           <div class="bg-zinc-900 size-3/12 h-full rounded-3xl p-4">
             <div class="flex flex-col gap-4">
@@ -477,7 +642,120 @@ function App() {
             </div>
           </div>
         </div>
-        <div class="bg-emerald-500 w-full h-24 rounded-3xl"></div>
+        {/* PLAY CONTROLS */}
+        <div class="bg-zinc-900 w-full h-24 rounded-3xl p-4">
+          <div class="flex flex-row gap-4">
+            <div class="size-1/4 ">
+              <div class="flex flex-row items-center justify-between">
+                <div class="flex flex-row relative h-full items-center gap-3">
+                  <img
+                    src="/assets/images/britpop-agcook.jpg"
+                    alt=""
+                    class="h-16 rounded-lg bg-white"
+                  />
+                  <div class="flex flex-col">
+                    <span class="text-xs font-semibold text-white hover:underline hover:cursor-pointer">
+                      You Know Me
+                    </span>
+                    <span class="text-xs font-medium text-zinc-400 hover:text-white hover:underline hover:cursor-pointer">
+                      AG Cook
+                    </span>
+                  </div>
+                </div>
+                <div class="flex flex-row gap-3">
+                  <button
+                    class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                    title="favorite"
+                  >
+                    <span class="icon-[solar--heart-linear] h-5 w-5 "></span>
+                  </button>
+                  <button
+                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                    title="Add"
+                  >
+                    <span class="icon-[solar--add-circle-linear] h-5 w-5 "></span>
+                  </button>
+                  <button
+                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                    title="Options"
+                  >
+                    <span class="icon-[solar--menu-dots-bold] h-5 w-5 "></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="size-1/2 ">
+              <div class="flex flex-col items-center justify-center h-full">
+                <div class="flex flex-row items-center gap-4">
+                  <button
+                    class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                    title="Shuffle"
+                  >
+                    <span class="icon-[solar--shuffle-linear] h-6 w-6 "></span>
+                  </button>
+                  <button
+                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                    title="Backwards"
+                  >
+                    <span class="icon-[solar--rewind-back-bold] h-6 w-6"></span>
+                  </button>
+                  <button
+                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                    title="Play"
+                  >
+                    <span class="icon-[solar--play-circle-bold] h-8 w-8 "></span>
+                  </button>
+                  <button
+                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                    title="Foward"
+                  >
+                    <span class="icon-[solar--rewind-forward-bold] h-6 w-6 "></span>
+                  </button>
+                  <button
+                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                    title="Repeat"
+                  >
+                    <span class="icon-[solar--repeat-linear] h-6 w-6 "></span>
+                  </button>
+                </div>
+                <div class="flex flex-col gap-1">
+                  <div class="flex flex-row justify-between text-xs text-zinc-600">
+                    <span>0:00</span>
+                    <span>5:15</span>
+                  </div>
+                  <div class="bg-white h-1 w-[396px] xl:w-lg rounded-full"></div>
+                </div>
+              </div>
+            </div>
+            <div class="size-1/4 h-16">
+              <div class="flex flex-row w-full h-full items-center justify-between">
+                <div class="flex flex-row items-center gap-3">
+                  <button
+                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                    title="Mute"
+                  >
+                    <span class="icon-[solar--volume-loud-linear] h-6 w-6 "></span>
+                  </button>
+                  <div class="w-24 h-1 bg-white rounded-full"></div>
+                </div>
+                <div class="flex flex-row gap-4">
+                  <button
+                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                    title="Repeat"
+                  >
+                    <span class="icon-[solar--minimize-square-3-linear] h-6 w-6 "></span>
+                  </button>
+                  <button
+                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                    title="Repeat"
+                  >
+                    <span class="icon-[solar--full-screen-square-linear] h-6 w-6 "></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   );
