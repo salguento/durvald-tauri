@@ -3,7 +3,12 @@
 use serde::Serialize;
 use std::fs;
 use std::path::PathBuf;
-use tauri::{command};
+use tauri::command;
+
+// Rodio
+use std::fs::File;
+use rodio::{Decoder};
+
 
 #[derive(Serialize)]
 pub struct FileInfo {
@@ -12,6 +17,25 @@ pub struct FileInfo {
     size: u64,
     is_directory: bool,
     extension: String,
+}
+
+#[command]
+async fn play_song(path: String){
+// Get an output stream handle to the default physical sound device.
+// Note that the playback stops when the stream_handle is dropped.//!
+let stream_handle = rodio::OutputStreamBuilder::open_default_stream()
+        .expect("open default audio stream");
+let _sink = rodio::Sink::connect_new(&stream_handle.mixer());
+// Load a sound from a file, using a path relative to Cargo.toml
+let file = File::open(path).unwrap();
+// Decode that sound file into a source
+let source = Decoder::try_from(file).unwrap();
+// Play the sound directly on the device
+stream_handle.mixer().add(source);
+
+// The sound plays in a separate audio thread,
+// so we need to keep the main thread alive while it's playing.
+std::thread::sleep(std::time::Duration::from_secs(5));
 }
 
 #[command]
@@ -83,10 +107,12 @@ async fn scan_folder(folder_path: String) -> Result<Vec<FileInfo>, String> {
     Ok(files)
 }
 
+
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![select_folder, scan_folder])
+        .invoke_handler(tauri::generate_handler![select_folder, scan_folder, play_song])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

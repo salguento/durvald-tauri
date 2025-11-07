@@ -1,4 +1,14 @@
+import { invoke } from "@tauri-apps/api/core";
+
 export default function PlayBar() {
+  async function playMusic(path: string) {
+    try {
+      await invoke("play_song", { path: path });
+    } catch (error) {
+      console.error("Failed to play audio:", error);
+    }
+  }
+
   return (
     <div class="bg-zinc-900 w-full h-24 rounded-3xl p-4">
       <div class="flex flex-row gap-4">
@@ -59,6 +69,7 @@ export default function PlayBar() {
               <button
                 class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                 title="Play"
+                onclick={async () => playMusic("./assets/audio/song.wav")}
               >
                 <span class="icon-[solar--play-circle-bold] h-8 w-8 "></span>
               </button>
