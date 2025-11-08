@@ -4,6 +4,8 @@ export default function PlayBar() {
   async function playMusic(path: string) {
     try {
       await invoke("play_song", { path: path });
+      let obj = await invoke("get_audio_metadata", { path: path });
+      console.log(await obj);
     } catch (error) {
       console.error("Failed to play audio:", error);
     }
