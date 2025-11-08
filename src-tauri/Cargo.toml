@@ -26,4 +26,5 @@ tauri-plugin-fs = "2"
 rfd = "0.14"
 tauri-plugin-dialog = "2"
 rodio = "0.21.1"
+lofty = "0.22.4"
 
