@@ -2,7 +2,7 @@
 
 use serde::Serialize;
 use std::fs;
-use std::path::{PathBuf, Path};
+use std::path::PathBuf;
 use tauri::command;
 
 // Rodio
