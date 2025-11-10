@@ -69,8 +69,8 @@ export default function FolderSelector() {
   };
   return (
     <div>
-      <div class="max-h-svh pt-24 px-24">
-        <div class="max-w-screen max-h-svh  mx-auto overflow-auto pb-32">
+      <div class="max-h-svh pl-8 pt-8">
+        <div class="max-w-full max-h-svh  mx-auto  pb-32">
           <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-8">
             Folder Scanner
           </h1>

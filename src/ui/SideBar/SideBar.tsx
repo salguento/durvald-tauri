@@ -1,11 +1,15 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 
 export default function SideBar() {
   const appWindow = getCurrentWindow();
   return (
-    <div class="bg-zinc-900 size-3/12 h-full rounded-3xl p-4">
-      <div class="flex flex-col gap-4">
-        <div class="w-full justify-between flex" data-tauri-drag-region>
+    <div class="bg-zinc-900 size-3/12 h-full rounded-3xl border border-zinc-700/50">
+      <div class="flex flex-col gap-4 h-full relative">
+        <div
+          class="w-full justify-between flex absolute p-4"
+          data-tauri-drag-region
+        >
           <div class="flex flex-row gap-3">
             <button
               id="titlebar-minimize"
@@ -48,33 +52,43 @@ export default function SideBar() {
             </button>
           </div>
         </div>
-        <div class="flex flex-row justify-between">
+        <div class="flex flex-row justify-between w-full absolute mt-13 bg-zinc-900/50 backdrop-blur-3xl z-10 p-4">
           <button
             id="titlebar-minimize"
             title="Playing"
-            class="text-zinc-200 hover:text-white flex items-center gap-2 px-4  p-2.5 hover:bg-zinc-700 rounded-2xl hover:cursor-pointer"
+            class="text-zinc-200 hover:text-white flex items-center gap-2 px-4  py-2.5 backdrop-blur-xl border border-white bg-zinc-800/50 hover:border-white rounded-full hover:cursor-pointer"
           >
             <span class="icon-[solar--play-stream-linear] h-6 w-6 "></span>
-            <p class="pt-1 hidden xl:inline">Playing</p>
+            <p class=" hidden xl:inline">Playing</p>
           </button>
           <button
             id="titlebar-minimize"
-            class="text-zinc-200 hover:text-white flex items-center gap-2 px-4 py-2.5 hover:bg-zinc-700 rounded-2xl hover:cursor-pointer"
+            class="text-zinc-400 hover:text-white flex items-center gap-2 px-4 py-2.5 border border-transparent hover:border-white backdrop-blur-xl  rounded-full hover:cursor-pointer"
             title="Lyrics"
           >
             <span class="icon-[solar--document-add-linear] h-6 w-6 "></span>
-            <p class="pt-1 hidden xl:inline-block">Lyrics</p>
+            <p class=" hidden xl:inline-block">Lyrics</p>
           </button>
           <button
             id="titlebar-minimize"
-            class="text-zinc-200 hover:text-white flex items-center gap-2 px-4 py-2.5 hover:bg-zinc-700 rounded-2xl hover:cursor-pointer"
+            class="text-zinc-400 hover:text-white flex items-center gap-2 px-4 py-2.5  rounded-full border border-transparent hover:border-white hover:cursor-pointer"
             title="Queue"
           >
             <span class="icon-[solar--playlist-linear] h-6 w-6 "></span>
-            <p class="pt-1 hidden xl:inline-block">Queue</p>
+            <p class=" hidden xl:inline-block">Queue</p>
           </button>
         </div>
-        <div>
+        <OverlayScrollbarsComponent
+          element="div"
+          options={{ scrollbars: { autoHide: "scroll" } }}
+          events={{
+            scroll: () => {
+              /* ... */
+            },
+          }}
+          defer
+          class="h-full  rounded-2xl relative overflow-auto p-4 pt-24 mt-13 "
+        >
           <div class="flex flex-col gap-3">
             <img
               src="/assets/images/britpop-agcook.jpg"
@@ -138,7 +152,17 @@ export default function SideBar() {
                 </button>
               </div>
             </div>
-            <div class=" bg-zinc-800 p-4 rounded-2xl relative max-h-32 overflow-auto">
+            <OverlayScrollbarsComponent
+              element="div"
+              options={{ scrollbars: { autoHide: "scroll" } }}
+              events={{
+                scroll: () => {
+                  /* ... */
+                },
+              }}
+              defer
+              class="h-full  bg-zinc-800 p-4 rounded-2xl relative max-h-48 overflow-auto"
+            >
               <div class="flex flex-col gap-3">
                 <span class="text-sm text-zinc-400">
                   Britpop is the third album by British singer, songwriter, and
@@ -172,9 +196,9 @@ export default function SideBar() {
                   founded after PC Music’s wind down.
                 </span>
               </div>
-            </div>
+            </OverlayScrollbarsComponent>
           </div>
-        </div>
+        </OverlayScrollbarsComponent>
       </div>
     </div>
   );
