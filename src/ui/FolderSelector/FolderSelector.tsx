@@ -8,6 +8,22 @@ interface FileInfo {
   size: number;
   is_directory: boolean;
   extension: string;
+  metadata: Metadata;
+}
+
+interface Metadata {
+  title: string;
+  artist: string;
+  album: string;
+  genre: string;
+  year: number;
+  track: number;
+  disc: string | null;
+  duration: number;
+  bitrate: number;
+  sample_rate: number;
+  channels: number;
+  all_fields: [string];
 }
 
 export default function FolderSelector() {
@@ -50,12 +66,25 @@ export default function FolderSelector() {
       setLoading(true);
       setError("");
       const result: FileInfo[] = await invoke("scan_folder", { folderPath });
-      setFiles(result);
+      const filesWithMetadata = await Promise.all(
+        result.map(async (i) => {
+          const metadata: Metadata = await invoke("get_audio_metadata", {
+            path: i.path,
+          });
+          return {
+            ...i,
+            metadata,
+          };
+        })
+      );
+      setFiles(filesWithMetadata);
+      console.log(result);
     } catch (err) {
       setError(`Error scanning folder: ${err}`);
       setFiles([]);
     } finally {
       setLoading(false);
+      console.log("Done");
     }
   };
 
@@ -69,7 +98,7 @@ export default function FolderSelector() {
   };
   return (
     <div>
-      <div class="max-h-svh pl-8 pt-8">
+      <div class="max-h-svh p-8 pt-8">
         <div class="max-w-full max-h-svh  mx-auto  pb-32">
           <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-8">
             Folder Scanner
@@ -133,15 +162,15 @@ export default function FolderSelector() {
           </Show>
 
           <Show when={!loading() && files().length > 0}>
-            <div class="mt-8">
+            <div class="mt-8 pb-10">
               <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-semibold text-gray-800">
+                <h2 class="text-2xl font-semibold text-zinc-300">
                   Files ({files().length})
                 </h2>
               </div>
 
               <div class="bg-white rounded-lg shadow overflow-hidden">
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="w-full divide-y divide-gray-200">
                   <thead class="bg-gray-50">
                     <tr>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -152,9 +181,6 @@ export default function FolderSelector() {
                       </th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Size
-                      </th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Path
                       </th>
                     </tr>
                   </thead>
@@ -172,7 +198,7 @@ export default function FolderSelector() {
                                 }`}
                               ></div>
                               <div class="text-sm font-medium text-gray-900">
-                                {file.name}
+                                {file.metadata.title}
                               </div>
                             </div>
                           </td>
@@ -194,9 +220,6 @@ export default function FolderSelector() {
                             {file.is_directory
                               ? "-"
                               : formatFileSize(file.size)}
-                          </td>
-                          <td class="px-6 py-4 text-sm text-gray-500 break-all">
-                            {file.path}
                           </td>
                         </tr>
                       )}

@@ -2,7 +2,7 @@
 
 use serde::Serialize;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use tauri::command;
 
 // Rodio
@@ -141,6 +141,13 @@ async fn scan_folder(folder_path: String) -> Result<Vec<FileInfo>, String> {
             let path = entry.path();
             let metadata = fs::metadata(&path).map_err(|e| e.to_string())?;
 
+            // If it's a directory, scan recursively
+            if metadata.is_dir() {
+                scan_directory(&path, files)?;
+                continue; // Skip adding directories to the files list
+            }
+
+            // Only process files (not directories)
             let file_info = FileInfo {
                 name: path
                     .file_name()
@@ -149,18 +156,16 @@ async fn scan_folder(folder_path: String) -> Result<Vec<FileInfo>, String> {
                     .to_string(),
                 path: path.to_string_lossy().to_string(),
                 size: metadata.len(),
-                is_directory: metadata.is_dir(),
+                is_directory: false, // We're only adding files now
                 extension: path
                     .extension()
                     .map(|ext| ext.to_string_lossy().to_string())
                     .unwrap_or_default(),
             };
 
-            files.push(file_info);
-
-            // Recursively scan subdirectories
-            if metadata.is_dir() {
-                scan_directory(&path, files)?;
+            // Check if it's an audio file
+            if is_audio_file(&file_info.extension) {
+                files.push(file_info);
             }
         }
 
@@ -169,6 +174,16 @@ async fn scan_folder(folder_path: String) -> Result<Vec<FileInfo>, String> {
 
     scan_directory(&path, &mut files)?;
     Ok(files)
+}
+
+fn is_audio_file(extension: &str) -> bool {
+    let audio_extensions = [
+        "mp3", "wav", "flac", "aac", "ogg", "m4a", "wma", "aiff", "aif", 
+        "ape", "opus", "dsd", "dsf", "dff", "alac", "mp4", "m4b", "m4p",
+        "amr", "3gp", "aa", "aax", "aac", "webm", "ra", "rm", "mid", "midi"
+    ];
+    
+    audio_extensions.contains(&extension.to_lowercase().as_str())
 }
 
 fn main() {
