@@ -97,7 +97,7 @@ export default function FolderSelector() {
     setError("");
   };
   return (
-    <div>
+    <div class="">
       <div class="max-h-svh p-8 pt-8">
         <div class="max-w-full max-h-svh  mx-auto  pb-32">
           <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-8">
@@ -119,37 +119,39 @@ export default function FolderSelector() {
           </Show>
 
           <Show when={showPopup()}>
-            <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-              <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">
-                  Select Folder to Scan
-                </h2>
+            <div class="absolute inset-0 z-500">
+              <div class="w-full h-full bg-zinc-900/50 backdrop-blur-3xl flex items-center justify-center p-4 z-100">
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                  <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    Select Folder to Scan
+                  </h2>
 
-                <p class="text-gray-600 mb-6">
-                  Choose a folder to scan for all files and subdirectories.
-                </p>
+                  <p class="text-gray-600 mb-6">
+                    Choose a folder to scan for all files and subdirectories.
+                  </p>
 
-                <div class="flex gap-3">
-                  <button
-                    onClick={selectFolder}
-                    class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition-colors duration-200"
-                  >
-                    Browse Folder
-                  </button>
+                  <div class="flex gap-3">
+                    <button
+                      onClick={selectFolder}
+                      class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded transition-colors duration-200"
+                    >
+                      Browse Folder
+                    </button>
 
-                  <button
-                    onClick={closePopup}
-                    class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition-colors duration-200"
-                  >
-                    Cancel
-                  </button>
-                </div>
-
-                <Show when={error()}>
-                  <div class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                    {error()}
+                    <button
+                      onClick={closePopup}
+                      class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition-colors duration-200"
+                    >
+                      Cancel
+                    </button>
                   </div>
-                </Show>
+
+                  <Show when={error()}>
+                    <div class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                      {error()}
+                    </div>
+                  </Show>
+                </div>
               </div>
             </div>
           </Show>

@@ -4,7 +4,7 @@ import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 export default function SideBar() {
   const appWindow = getCurrentWindow();
   return (
-    <div class="bg-zinc-900 size-3/12 h-full rounded-3xl border border-zinc-700/50">
+    <div class="bg-zinc-900 size-3/12 h-full rounded-3xl border border-zinc-700/50 z-1">
       <div class="flex flex-col gap-4 h-full relative">
         <div
           class="w-full justify-between flex absolute p-4"
@@ -52,30 +52,30 @@ export default function SideBar() {
             </button>
           </div>
         </div>
-        <div class="flex flex-row justify-between w-full absolute mt-13 bg-zinc-900/50 backdrop-blur-3xl z-10 p-4">
+        <div class="flex flex-row justify-between w-full absolute mt-13 bg-zinc-900/50 backdrop-blur-3xl p-4 z-1  border-t border-b border-zinc-700/50">
           <button
             id="titlebar-minimize"
             title="Playing"
-            class="text-zinc-200 hover:text-white flex items-center gap-2 px-4  py-2.5 backdrop-blur-xl border border-white bg-zinc-800/50 hover:border-white rounded-full hover:cursor-pointer"
+            class="text-zinc-200 hover:text-white flex items-center gap-2 2xl:px-4 px-2.5  py-2.5 backdrop-blur-xl border border-white bg-zinc-800/50 hover:border-white rounded-full hover:cursor-pointer"
           >
             <span class="icon-[solar--play-stream-linear] h-6 w-6 "></span>
-            <p class=" hidden xl:inline">Playing</p>
+            <p class=" hidden 2xl:inline">Playing</p>
           </button>
           <button
             id="titlebar-minimize"
-            class="text-zinc-400 hover:text-white flex items-center gap-2 px-4 py-2.5 border border-transparent hover:border-white backdrop-blur-xl  rounded-full hover:cursor-pointer"
+            class="text-zinc-400 hover:text-white flex items-center gap-2 2xl:px-4 px-2.5 py-2.5 border border-transparent hover:border-white backdrop-blur-xl  rounded-full hover:cursor-pointer"
             title="Lyrics"
           >
             <span class="icon-[solar--document-add-linear] h-6 w-6 "></span>
-            <p class=" hidden xl:inline-block">Lyrics</p>
+            <p class=" hidden 2xl:inline-block">Lyrics</p>
           </button>
           <button
             id="titlebar-minimize"
-            class="text-zinc-400 hover:text-white flex items-center gap-2 px-4 py-2.5  rounded-full border border-transparent hover:border-white hover:cursor-pointer"
+            class="text-zinc-400 hover:text-white flex items-center gap-2 2xl:px-4 px-2.5 py-2.5  rounded-full border border-transparent hover:border-white hover:cursor-pointer"
             title="Queue"
           >
             <span class="icon-[solar--playlist-linear] h-6 w-6 "></span>
-            <p class=" hidden xl:inline-block">Queue</p>
+            <p class=" hidden 2xl:inline-block">Queue</p>
           </button>
         </div>
         <OverlayScrollbarsComponent
