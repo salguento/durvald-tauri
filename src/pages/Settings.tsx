@@ -32,7 +32,7 @@ export default function Settings() {
         defer
         class="w-full flex flex-col gap-4 h-full"
       >
-        <div class="flex flex-col gap-2 w-full pt-18 relative z-1000">
+        <div class="flex flex-col gap-2 w-full pt-18 relative">
           <div class="flex flex-row justify-between items-center px-12">
             <span class="text-base text-zinc-300 font-medium">Top Picks</span>
             <span class="text-xs text-zinc-300 hover:underline hover:cursor-pointer hover:text-white">

@@ -1,5 +1,6 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
+import { A } from "@solidjs/router";
 
 export default function Page() {
   return (
@@ -26,7 +27,7 @@ export default function Page() {
         defer
         class="w-full flex flex-col gap-4 h-full"
       >
-        <div class="flex flex-col gap-2 w-full pt-18 relative z-1000">
+        <div class="flex flex-col gap-2 w-full pt-18 relative">
           <div class="flex flex-row justify-between items-center px-12">
             <span class="text-base text-zinc-300 font-medium">Top Picks</span>
             <span class="text-xs text-zinc-300 hover:underline hover:cursor-pointer hover:text-white">
@@ -55,9 +56,11 @@ export default function Page() {
                     />
                   </div>
                   <div class="flex flex-col">
-                    <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
-                      Britpop
-                    </span>
+                    <A href="/album/13">
+                      <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
+                        Britpop
+                      </span>
+                    </A>
                     <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
                       AG Cook
                     </span>
