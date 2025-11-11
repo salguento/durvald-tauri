@@ -1,26 +1,27 @@
+// Dependencies
 import "./App.css";
-
-// UI
-import MenuBar from "./ui/MenuBar/MenuBar";
-import SideBar from "./ui/SideBar/SideBar";
-import PlayBar from "./ui/PlayBar/PlayBar";
-import Page from "./ui/Page/Page";
+import { Router, Route } from "@solidjs/router";
+import "overlayscrollbars/overlayscrollbars.css";
+// Pages
+import Routes from "./Routes";
+import Layout from "./pages/Layout";
+// Components
+import { ErrorBoundary } from "solid-js";
 
 function App() {
   return (
-    <main class=" w-screen h-screen min-w-screen  bg-white dark:bg-black overflow-hidden relative">
-      <div
-        class="flex flex-col w-screen p-3 gap-3 h-screen"
-        data-tauri-drag-region
-      >
-        <div class="flex flex-row gap-3 h-full overflow-hidden">
-          <MenuBar />
-          <Page />
-          <SideBar />
-        </div>
-        <PlayBar />
-      </div>
-    </main>
+    <ErrorBoundary
+      fallback={(err) => {
+        console.error("Error:", err);
+        return <div>Something went wrong: {err.toString()}</div>;
+      }}
+    >
+      <Router>
+        <Route path="/" component={Layout}>
+          <Routes />
+        </Route>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

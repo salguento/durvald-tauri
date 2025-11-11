@@ -1,8 +1,9 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
-
+import { A } from "@solidjs/router";
 export default function SideBar() {
   const appWindow = getCurrentWindow();
+
   return (
     <div class="bg-zinc-900 size-3/12 h-full rounded-3xl border border-zinc-700/50 z-1">
       <div class="flex flex-col gap-4 h-full relative">
@@ -16,7 +17,9 @@ export default function SideBar() {
               class="text-zinc-400 hover:text-white h-6 hover:cursor-pointer"
               title="Settings"
             >
-              <span class="icon-[solar--settings-linear] h-6 w-6 "></span>
+              <A href="/settings">
+                <span class="icon-[solar--settings-linear] h-6 w-6 "></span>
+              </A>
             </button>
           </div>
           <div class="flex flex-row gap-3">
