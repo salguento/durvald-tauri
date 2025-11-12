@@ -12,7 +12,13 @@ use tauri::command;
 use rodio::Decoder;
 use std::fs::File;
 
-use commands::{get_audio_metadata};
+use tauri::{Manager, State};
+use rusqlite::{Connection};
+use std::sync::Mutex;
+
+
+use commands::{get_audio_metadata, get_all_songs, add_song};
+use commands::database_commands::{DbConnection, create_tables};
 
 #[command]
 async fn play_song(path: String) {
@@ -128,13 +134,37 @@ fn is_audio_file(extension: &str) -> bool {
 
 fn main() {
     tauri::Builder::default()
+.setup(|app| {
+    // Initialize database connection
+    let app_dir = app.path()
+        .app_data_dir()
+        .expect("failed to get app data dir");
+    
+    std::fs::create_dir_all(&app_dir).expect("failed to create app data dir");
+    
+    let db_path = app_dir.join("music.db");
+    let conn = Connection::open(db_path).expect("failed to open database");
+    
+    // Store connection in Tauri state first
+    app.manage(DbConnection(Mutex::new(conn)));
+    
+    // Now get the state and create tables
+    let db_state: State<DbConnection> = app.state();
+    create_tables(db_state).expect("failed to create tables");
+    
+    Ok(())
+})
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             select_folder,
             scan_folder,
             play_song,
-            get_audio_metadata
+            get_audio_metadata,
+            get_all_songs,
+            add_song,
+            create_tables
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
