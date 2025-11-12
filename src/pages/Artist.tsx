@@ -84,7 +84,7 @@ export default function Album() {
                 <span class="icon-[solar--arrow-left-linear] h-6 w-6 "></span>
               </A>
             </button>
-            <span class="text-xl font-semibold">Album</span>
+            <span class="text-xl font-semibold">Artist</span>
           </div>
         </div>
       </div>
@@ -124,7 +124,7 @@ export default function Album() {
               </div>
             </div>
           </div>
-          <div class="  shadow overflow-hidden">
+          <div class=" rounded-lg shadow overflow-hidden">
             <table class="w-full divide-y divide-zinc-700">
               <thead class="">
                 <tr>

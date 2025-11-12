@@ -1,4 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+mod commands;
 
 use serde::Serialize;
 use std::fs;
@@ -10,11 +13,13 @@ use rodio::Decoder;
 use std::fs::File;
 
 // Lofty
-use lofty::file::AudioFile;
-use lofty::file::TaggedFileExt;
-use lofty::read_from_path;
-use lofty::tag::Accessor;
+// use lofty::file::AudioFile;
+// use lofty::file::TaggedFileExt;
+// use lofty::read_from_path;
+// use lofty::tag::Accessor;
 use std::collections::HashMap;
+
+use commands::{get_audio_metadata};
 
 #[derive(Serialize)]
 pub struct AudioMetadata {
@@ -32,47 +37,47 @@ pub struct AudioMetadata {
     pub all_fields: HashMap<String, String>,
 }
 
-#[command]
-fn get_audio_metadata(path: String) -> Result<AudioMetadata, String> {
-    let tagged_file = read_from_path(&path).map_err(|e| format!("Failed to read file: {}", e))?;
+// #[command]
+// fn get_audio_metadata(path: String) -> Result<AudioMetadata, String> {
+//     let tagged_file = read_from_path(&path).map_err(|e| format!("Failed to read file: {}", e))?;
 
-    let properties = tagged_file.properties();
-    let mut metadata = AudioMetadata {
-        title: None,
-        artist: None,
-        album: None,
-        genre: None,
-        year: None,
-        track: None,
-        disc: None,
-        duration: properties.duration().as_secs_f64(),
-        bitrate: properties.audio_bitrate(),
-        sample_rate: properties.sample_rate(),
-        channels: properties.channels(),
-        all_fields: HashMap::new(),
-    };
+//     let properties = tagged_file.properties();
+//     let mut metadata = AudioMetadata {
+//         title: None,
+//         artist: None,
+//         album: None,
+//         genre: None,
+//         year: None,
+//         track: None,
+//         disc: None,
+//         duration: properties.duration().as_secs_f64(),
+//         bitrate: properties.audio_bitrate(),
+//         sample_rate: properties.sample_rate(),
+//         channels: properties.channels(),
+//         all_fields: HashMap::new(),
+//     };
 
-    if let Some(tag) = tagged_file.primary_tag() {
-        // Standard fields
-        metadata.title = tag.title().map(|s| s.to_string());
-        metadata.artist = tag.artist().map(|s| s.to_string());
-        metadata.album = tag.album().map(|s| s.to_string());
-        metadata.genre = tag.genre().map(|s| s.to_string());
-        metadata.year = tag.year();
-        metadata.track = tag.track();
-        metadata.track = tag.disk();
+//     if let Some(tag) = tagged_file.primary_tag() {
+//         // Standard fields
+//         metadata.title = tag.title().map(|s| s.to_string());
+//         metadata.artist = tag.artist().map(|s| s.to_string());
+//         metadata.album = tag.album().map(|s| s.to_string());
+//         metadata.genre = tag.genre().map(|s| s.to_string());
+//         metadata.year = tag.year();
+//         metadata.track = tag.track();
+//         metadata.track = tag.disk();
 
-        // All fields as key-value pairs
-        for item in tag.items() {
-            metadata.all_fields.insert(
-                format!("{:?}", item.key()),
-                format!("{:?}", item.value()), // Use Debug formatting instead of to_string()
-            );
-        }
-    }
+//         // All fields as key-value pairs
+//         for item in tag.items() {
+//             metadata.all_fields.insert(
+//                 format!("{:?}", item.key()),
+//                 format!("{:?}", item.value()), // Use Debug formatting instead of to_string()
+//             );
+//         }
+//     }
 
-    Ok(metadata)
-}
+//     Ok(metadata)
+// }
 
 #[command]
 async fn play_song(path: String) {

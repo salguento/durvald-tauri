@@ -1,4 +1,6 @@
 import { createSignal, For, Show } from "solid-js";
+import { A } from "@solidjs/router";
+
 const { invoke } = await import("@tauri-apps/api/core");
 const { open } = await import("@tauri-apps/plugin-dialog");
 
@@ -9,6 +11,7 @@ interface FileInfo {
   is_directory: boolean;
   extension: string;
   metadata: Metadata;
+  img: string | null;
 }
 
 interface Metadata {
@@ -23,6 +26,7 @@ interface Metadata {
   bitrate: number;
   sample_rate: number;
   channels: number;
+  cover_image_base64: string;
   all_fields: [string];
 }
 
@@ -30,6 +34,9 @@ export default function FolderSelector() {
   // File System
   const [selectedFolder, setSelectedFolder] = createSignal<string>("");
   const [files, setFiles] = createSignal<FileInfo[]>([]);
+  const [groupedFiles, setGroupedFiles] = createSignal<
+    { album: string; files: FileInfo[] }[]
+  >([]);
   const [loading, setLoading] = createSignal(false);
   const [error, setError] = createSignal("");
   const [showPopup, setShowPopup] = createSignal(false);
@@ -61,6 +68,20 @@ export default function FolderSelector() {
     }
   };
 
+  const groupByAlbum = async (array: FileInfo[]) => {
+    const grouped = array.reduce((groups: Record<string, FileInfo[]>, item) => {
+      const album = item.metadata.album;
+      (groups[album] = groups[album] || []).push(item);
+      return groups;
+    }, {});
+
+    // Convert to array of groups
+    return Object.entries(grouped).map(([album, files]) => ({
+      album,
+      files,
+    }));
+  };
+
   const scanFolder = async (folderPath: string) => {
     try {
       setLoading(true);
@@ -78,13 +99,14 @@ export default function FolderSelector() {
         })
       );
       setFiles(filesWithMetadata);
-      console.log(result);
+      const grouped = await groupByAlbum(filesWithMetadata);
+      setGroupedFiles(grouped);
+      console.log(grouped);
     } catch (err) {
       setError(`Error scanning folder: ${err}`);
       setFiles([]);
     } finally {
       setLoading(false);
-      console.log("Done");
     }
   };
 
@@ -170,6 +192,31 @@ export default function FolderSelector() {
                   Files ({files().length})
                 </h2>
               </div>
+              <For each={groupedFiles()}>
+                {(groupedFiles) => (
+                  <div class="flex flex-col gap-2">
+                    <div>
+                      <img
+                        src={groupedFiles.files[0].metadata.cover_image_base64}
+                        alt=""
+                        class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
+                      />
+                    </div>
+                    <div class="flex flex-col">
+                      <A href="/album/13">
+                        <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
+                          {groupedFiles.album}
+                        </span>
+                      </A>
+                      <A href="/artist/13">
+                        <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
+                          {groupedFiles.files[0].metadata.artist}
+                        </span>
+                      </A>
+                    </div>
+                  </div>
+                )}
+              </For>
 
               <div class="bg-white rounded-lg shadow overflow-hidden">
                 <table class="w-full divide-y divide-gray-200">
