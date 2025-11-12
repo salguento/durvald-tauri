@@ -186,7 +186,7 @@ export default function FolderSelector() {
           </Show>
 
           <Show when={!loading() && files().length > 0}>
-            <div class="mt-8 pb-10">
+            <div class="mt-8 pb-10 flex flex-col gap-4">
               <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-semibold text-zinc-300">
                   Files ({files().length})
@@ -203,12 +203,12 @@ export default function FolderSelector() {
                       />
                     </div>
                     <div class="flex flex-col">
-                      <A href="/album/13">
+                      <A href="/album/13" class="h-4">
                         <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
                           {groupedFiles.album}
                         </span>
                       </A>
-                      <A href="/artist/13">
+                      <A href="/artist/13" class="h-4">
                         <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
                           {groupedFiles.files[0].metadata.artist}
                         </span>

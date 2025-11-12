@@ -144,7 +144,7 @@ export default function SideBar() {
                 ></img>
               </div>
               <div class="flex flex-row justify-between w-full">
-                <span class="text-base pt-1 lg:text-xl font-semibold text-zinc-400 truncate hover:underline hover:text-white hover:cursor-pointer">
+                <span class="text-base lg:text-lg font-semibold text-zinc-400 truncate hover:underline hover:text-white hover:cursor-pointer">
                   AG Cook
                 </span>
                 <button

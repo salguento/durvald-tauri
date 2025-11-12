@@ -146,13 +146,24 @@ export default function Album() {
               <tbody class="bg-zinc-900 divide-y divide-zinc-700">
                 <For each={album}>
                   {(song: SongInfo) => (
-                    <tr class="hover:bg-zinc-700">
+                    <tr class="hover:bg-zinc-700 ">
                       <td class="px-4 py-2 whitespace-nowrap">
-                        <div
-                          class={`w-3 h-3 rounded-full mr-3 ${
-                            song.isFavorite ? "bg-yellow-400" : "bg-blue-400"
+                        <button
+                          class="text-zinc-400 hover:text-white hover:cursor-pointer"
+                          title={`${
+                            song.isFavorite
+                              ? "Unfavorite song"
+                              : "Favorite song"
                           }`}
-                        ></div>
+                        >
+                          <span
+                            class={`w-4 h-4 rounded-full mr-3 ${
+                              song.isFavorite
+                                ? "icon-[solar--heart-bold]"
+                                : "icon-[solar--heart-linear]"
+                            }`}
+                          ></span>
+                        </button>
                       </td>
                       <td class="px-4 py-2 whitespace-nowrap">
                         <div class="text-sm font-medium text-zinc-400">

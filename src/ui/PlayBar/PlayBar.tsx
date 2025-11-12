@@ -98,11 +98,11 @@ export default function PlayBar() {
                   </button>
                 </div>
                 <div class="flex flex-col gap-1">
-                  <div class="flex flex-row justify-between text-xs text-zinc-400">
+                  <div class="flex flex-row justify-between items-center gap-2 text-xs text-zinc-400">
                     <span>0:00</span>
+                    <div class="bg-white h-1 w-[396px] xl:w-lg rounded-full"></div>
                     <span>5:15</span>
                   </div>
-                  <div class="bg-white h-1 w-[396px] xl:w-lg rounded-full"></div>
                 </div>
               </div>
             </div>

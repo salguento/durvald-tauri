@@ -12,72 +12,7 @@ use tauri::command;
 use rodio::Decoder;
 use std::fs::File;
 
-// Lofty
-// use lofty::file::AudioFile;
-// use lofty::file::TaggedFileExt;
-// use lofty::read_from_path;
-// use lofty::tag::Accessor;
-use std::collections::HashMap;
-
 use commands::{get_audio_metadata};
-
-#[derive(Serialize)]
-pub struct AudioMetadata {
-    pub title: Option<String>,
-    pub artist: Option<String>,
-    pub album: Option<String>,
-    pub genre: Option<String>,
-    pub year: Option<u32>,
-    pub track: Option<u32>,
-    pub disc: Option<u32>,
-    pub duration: f64,
-    pub bitrate: Option<u32>,
-    pub sample_rate: Option<u32>,
-    pub channels: Option<u8>,
-    pub all_fields: HashMap<String, String>,
-}
-
-// #[command]
-// fn get_audio_metadata(path: String) -> Result<AudioMetadata, String> {
-//     let tagged_file = read_from_path(&path).map_err(|e| format!("Failed to read file: {}", e))?;
-
-//     let properties = tagged_file.properties();
-//     let mut metadata = AudioMetadata {
-//         title: None,
-//         artist: None,
-//         album: None,
-//         genre: None,
-//         year: None,
-//         track: None,
-//         disc: None,
-//         duration: properties.duration().as_secs_f64(),
-//         bitrate: properties.audio_bitrate(),
-//         sample_rate: properties.sample_rate(),
-//         channels: properties.channels(),
-//         all_fields: HashMap::new(),
-//     };
-
-//     if let Some(tag) = tagged_file.primary_tag() {
-//         // Standard fields
-//         metadata.title = tag.title().map(|s| s.to_string());
-//         metadata.artist = tag.artist().map(|s| s.to_string());
-//         metadata.album = tag.album().map(|s| s.to_string());
-//         metadata.genre = tag.genre().map(|s| s.to_string());
-//         metadata.year = tag.year();
-//         metadata.track = tag.track();
-//         metadata.track = tag.disk();
-
-//         // All fields as key-value pairs
-//         for item in tag.items() {
-//             metadata.all_fields.insert(
-//                 format!("{:?}", item.key()),
-//                 format!("{:?}", item.value()), // Use Debug formatting instead of to_string()
-//             );
-//         }
-//     }
-
-//     Ok(metadata)
-// }
 
 #[command]
 async fn play_song(path: String) {
