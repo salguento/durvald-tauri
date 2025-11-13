@@ -12,13 +12,9 @@ use tauri::command;
 use rodio::Decoder;
 use std::fs::File;
 
-use tauri::{Manager, State};
-use rusqlite::{Connection};
-use std::sync::Mutex;
 
-
-use commands::{get_audio_metadata, get_all_songs, add_song};
-use commands::database_commands::{DbConnection, create_tables};
+use commands::{get_audio_metadata};
+use commands::database_commands::{create_tables};
 
 #[command]
 async fn play_song(path: String) {
@@ -124,7 +120,7 @@ async fn scan_folder(folder_path: String) -> Result<Vec<FileInfo>, String> {
 
 fn is_audio_file(extension: &str) -> bool {
     let audio_extensions = [
-        "mp3", "wav", "flac", "aac", "ogg", "m4a", "wma", "aiff", "aif", 
+        "mp3", "wav", "flac", "ogg", "m4a", "wma", "aiff", "aif", 
         "ape", "opus", "dsd", "dsf", "dff", "alac", "mp4", "m4b", "m4p",
         "amr", "3gp", "aa", "aax", "aac", "webm", "ra", "rm", "mid", "midi"
     ];
@@ -134,24 +130,8 @@ fn is_audio_file(extension: &str) -> bool {
 
 fn main() {
     tauri::Builder::default()
-.setup(|app| {
-    // Initialize database connection
-    let app_dir = app.path()
-        .app_data_dir()
-        .expect("failed to get app data dir");
-    
-    std::fs::create_dir_all(&app_dir).expect("failed to create app data dir");
-    
-    let db_path = app_dir.join("music.db");
-    let conn = Connection::open(db_path).expect("failed to open database");
-    
-    // Store connection in Tauri state first
-    app.manage(DbConnection(Mutex::new(conn)));
-    
-    // Now get the state and create tables
-    let db_state: State<DbConnection> = app.state();
-    create_tables(db_state).expect("failed to create tables");
-    
+.setup(|_app| {
+    create_tables().expect("failed to create tables");
     Ok(())
 })
         .plugin(tauri_plugin_dialog::init())
@@ -160,8 +140,6 @@ fn main() {
             scan_folder,
             play_song,
             get_audio_metadata,
-            get_all_songs,
-            add_song,
             create_tables
         ])
         .run(tauri::generate_context!())

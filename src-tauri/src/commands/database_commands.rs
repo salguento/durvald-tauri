@@ -1,104 +1,50 @@
-use tauri::{State};
-use rusqlite::{Connection, params};
-use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
+use rusqlite::{ Connection, Result};
 
-// Define your data structures
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Song {
-    id: Option<i64>,
-    title: String,
-    artist: String,
-    album: String,
-    file_path: String,
-    duration: f64,
+
+#[derive(Debug)]
+struct Person {
+    name: String,
+    data: Option<Vec<u8>>,
 }
 
-// Database connection state
-pub struct DbConnection(pub Mutex<Connection>);
-
 #[tauri::command]
-pub fn get_all_songs(db: State<DbConnection>) -> Result<Vec<Song>, String> {
-    let conn = db.0.lock().map_err(|e| e.to_string())?;
+pub fn create_tables() -> Result<(), String> {
+    let conn = Connection::open("music.db3")
+        .map_err(|e| format!("Failed to open database: {}", e))?;
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS person (
+            id   INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            data BLOB
+        )",
+        (),
+    ).map_err(|e| format!("Failed to create table: {}", e))?;
     
-    let mut stmt = conn.prepare(
-        "SELECT id, title, artist, album, file_path, duration FROM songs"
-    ).map_err(|e| e.to_string())?;
+    let me = Person {
+        name: "Steven".to_string(),
+        data: None,
+    };
     
-    let song_iter = stmt.query_map([], |row| {
-        Ok(Song {
-            id: row.get(0)?,
-            title: row.get(1)?,
-            artist: row.get(2)?,
-            album: row.get(3)?,
-            file_path: row.get(4)?,
-            duration: row.get(5)?,
+    conn.execute(
+        "INSERT INTO person ( name, data) VALUES ( ?1, ?2)",
+        ( &me.name, &me.data),
+    ).map_err(|e| format!("Failed to insert data: {}", e))?;
+
+    let mut stmt = conn.prepare("SELECT id, name, data FROM person")
+        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+    
+    let person_iter = stmt.query_map([], |row| {
+        Ok(Person {
+            name: row.get(1)?,
+            data: row.get(2)?,
         })
-    }).map_err(|e| e.to_string())?;
-    
-    let mut songs = Vec::new();
-    for song in song_iter {
-        songs.push(song.map_err(|e| e.to_string())?);
+    }).map_err(|e| format!("Failed to query data: {}", e))?;
+
+    for person in person_iter {
+        let person = person.map_err(|e| format!("Failed to get person: {}", e))?;
+        println!("Found person {:?}", person);
     }
     
-    Ok(songs)
+    Ok(())
 }
-
-#[tauri::command]
-pub fn add_song(
-    song: Song,
-    db: State<DbConnection>,
-) -> Result<i64, String> {
-    let conn = db.0.lock().map_err(|e| e.to_string())?;
-    
-    conn.execute(
-        "INSERT INTO songs (title, artist, album, file_path, duration) VALUES (?1, ?2, ?3, ?4, ?5)",
-        params![song.title, song.artist, song.album, song.file_path, song.duration],
-    ).map_err(|e| e.to_string())?;
-    
-    let id = conn.last_insert_rowid();
-    Ok(id)
-}
-
-#[tauri::command]
-pub fn create_tables(db_state: State<'_, DbConnection>) -> Result<String, String> {
-    let conn = db_state.0.lock().map_err(|e| e.to_string())?;
-    
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS songs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            artist TEXT NOT NULL,
-            album TEXT NOT NULL,
-            file_path TEXT UNIQUE NOT NULL,
-            duration REAL NOT NULL,
-            play_count INTEGER DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )",
-        [],
-    ).map_err(|e| e.to_string())?;
-    
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS playlists (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL UNIQUE,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )",
-        [],
-    ).map_err(|e| e.to_string())?;
-    
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS playlist_songs (
-            playlist_id INTEGER,
-            song_id INTEGER,
-            position INTEGER,
-            FOREIGN KEY(playlist_id) REFERENCES playlists(id),
-            FOREIGN KEY(song_id) REFERENCES songs(id),
-            PRIMARY KEY (playlist_id, song_id)
-        )",
-        [],
-    ).map_err(|e| e.to_string())?;
-    
-    Ok("Tables created successfully".to_string())
-}
-
