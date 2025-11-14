@@ -1,4 +1,4 @@
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, For, Show, onMount } from "solid-js";
 import { A } from "@solidjs/router";
 
 const { invoke } = await import("@tauri-apps/api/core");
@@ -30,7 +30,22 @@ interface Metadata {
   all_fields: [string];
 }
 
+interface LibraryPaths {
+  path: string;
+}
 export default function FolderSelector() {
+  onMount(async () => {
+    try {
+      console.log("Starting app initialization...");
+      // Call your Tauri backend command
+      const libraryPaths: LibraryPaths[] = await invoke(
+        "get_paths_from_library_paths"
+      );
+      scanFolder(libraryPaths[0].path);
+    } catch (error) {
+      console.error("Startup error:", error);
+    }
+  });
   // File System
   const [selectedFolder, setSelectedFolder] = createSignal<string>("");
   const [files, setFiles] = createSignal<FileInfo[]>([]);
@@ -102,7 +117,9 @@ export default function FolderSelector() {
       const grouped = await groupByAlbum(filesWithMetadata);
       setGroupedFiles(grouped);
       console.log(grouped);
+      await invoke("add_path_to_library_paths", { folderPath });
     } catch (err) {
+      console.error("Full error:", err);
       setError(`Error scanning folder: ${err}`);
       setFiles([]);
     } finally {

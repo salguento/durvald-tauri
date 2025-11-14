@@ -12,9 +12,16 @@ use tauri::command;
 use rodio::Decoder;
 use std::fs::File;
 
+use rusqlite::Connection;
+use std::sync::Mutex;
 
-use commands::{get_audio_metadata};
-use commands::database_commands::{create_tables};
+use tauri::Manager;
+
+use commands::database_commands::AppState;
+use commands::database_commands::{
+    add_path_to_library_paths, create_tables, get_paths_from_library_paths,
+};
+use commands::get_audio_metadata;
 
 #[command]
 async fn play_song(path: String) {
@@ -120,29 +127,36 @@ async fn scan_folder(folder_path: String) -> Result<Vec<FileInfo>, String> {
 
 fn is_audio_file(extension: &str) -> bool {
     let audio_extensions = [
-        "mp3", "wav", "flac", "ogg", "m4a", "wma", "aiff", "aif", 
-        "ape", "opus", "dsd", "dsf", "dff", "alac", "mp4", "m4b", "m4p",
-        "amr", "3gp", "aa", "aax", "aac", "webm", "ra", "rm", "mid", "midi"
+        "mp3", "wav", "flac", "ogg", "m4a", "wma", "aiff", "aif", "ape", "opus", "dsd", "dsf",
+        "dff", "alac", "mp4", "m4b", "m4p", "amr", "3gp", "aa", "aax", "aac", "webm", "ra", "rm",
+        "mid", "midi",
     ];
-    
+
     audio_extensions.contains(&extension.to_lowercase().as_str())
 }
 
 fn main() {
+    let conn = Connection::open("music.db3").expect("Failed to open database");
+
     tauri::Builder::default()
-.setup(|_app| {
-    create_tables().expect("failed to create tables");
-    Ok(())
-})
+        .manage(AppState {
+            db: Mutex::new(conn),
+        })
+        .setup(|app| {
+            let state = app.state::<AppState>();
+            create_tables(state).expect("failed to create tables");
+            Ok(())
+        })
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             select_folder,
             scan_folder,
             play_song,
             get_audio_metadata,
-            create_tables
+            create_tables,
+            add_path_to_library_paths,
+            get_paths_from_library_paths
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-

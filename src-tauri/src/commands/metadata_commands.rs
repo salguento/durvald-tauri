@@ -1,10 +1,10 @@
+use base64::engine::{general_purpose, Engine as _};
 use lofty::file::AudioFile;
 use lofty::file::TaggedFileExt;
 use lofty::read_from_path;
 use lofty::tag::Accessor;
-use std::collections::HashMap;
 use serde::Serialize;
-use base64::engine::{general_purpose, Engine as _};
+use std::collections::HashMap;
 
 #[derive(Serialize)]
 pub struct AudioMetadata {
@@ -59,10 +59,9 @@ pub fn get_audio_metadata(path: String) -> Result<AudioMetadata, String> {
 
         // All fields as key-value pairs
         for item in tag.items() {
-            metadata.all_fields.insert(
-                format!("{:?}", item.key()),
-                format!("{:?}", item.value()),
-            );
+            metadata
+                .all_fields
+                .insert(format!("{:?}", item.key()), format!("{:?}", item.value()));
         }
     }
 
@@ -70,7 +69,8 @@ pub fn get_audio_metadata(path: String) -> Result<AudioMetadata, String> {
 }
 
 fn extract_embedded_cover_base64(tag: &lofty::tag::Tag) -> Option<String> {
-    let picture = tag.get_picture_type(lofty::picture::PictureType::CoverFront)
+    let picture = tag
+        .get_picture_type(lofty::picture::PictureType::CoverFront)
         .or_else(|| tag.pictures().first())?;
 
     let mime_type = match picture.mime_type() {
