@@ -23,7 +23,7 @@ pub fn create_tables(state: State<AppState>) -> Result<(), String> {
     db.execute(
         "CREATE TABLE IF NOT EXISTS library_paths (
             path_id   INTEGER PRIMARY KEY,
-            path TEXT
+            path TEXT UNIQUE
         )",
         (),
     )
@@ -249,7 +249,7 @@ pub fn add_path_to_library_paths(
     let p = LibraryPath { path: folder_path };
 
     db.execute(
-        "INSERT INTO library_paths (path) VALUES ( ?1)",
+        "INSERT OR IGNORE INTO library_paths (path) VALUES ( ?1)",
         params![&p.path],
     )
     .map_err(|e| format!("Failed to insert data: {}", e))?;
