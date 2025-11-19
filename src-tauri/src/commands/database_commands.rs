@@ -1,7 +1,10 @@
+use crate::{commands::get_audio_metadata, scan_folder, FileInfo};
 use rusqlite::{params, Connection, Result};
 use serde::Serialize;
 use std::sync::Mutex;
 use tauri::State;
+
+use super::metadata_commands::AudioMetadata;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct LibraryPath {
@@ -45,24 +48,6 @@ pub fn create_tables(state: State<AppState>) -> Result<(), String> {
     .map_err(|e| format!("Failed to create table: {}", e))?;
 
     db.execute(
-        "CREATE TABLE IF NOT EXISTS audio_quality (
-            id   INTEGER PRIMARY KEY,
-            value TEXT
-        )",
-        (),
-    )
-    .map_err(|e| format!("Failed to create table: {}", e))?;
-
-    db.execute(
-        "CREATE TABLE IF NOT EXISTS audio_sources (
-            id   INTEGER PRIMARY KEY,
-            name TEXT
-        )",
-        (),
-    )
-    .map_err(|e| format!("Failed to create table: {}", e))?;
-
-    db.execute(
         "CREATE TABLE IF NOT EXISTS genres (
             genre_id   INTEGER PRIMARY KEY,
             name TEXT,
@@ -78,7 +63,6 @@ pub fn create_tables(state: State<AppState>) -> Result<(), String> {
             playlist_id   INTEGER PRIMARY KEY,
             name TEXT,
             artwork TEXT
-
         )",
         (),
     )
@@ -87,15 +71,14 @@ pub fn create_tables(state: State<AppState>) -> Result<(), String> {
     db.execute(
         "CREATE TABLE IF NOT EXISTS songs (
             song_id   INTEGER PRIMARY KEY,
-            title TEXT,
+            title TEXT NOT NULL,
             artist_id INTEGER NOT NULL,
+            artist_name TEXT NOT NULL,
             release_id INTEGER NOT NULL,
+            release_name TEXT NOT NULL,
             track_number INTEGER NOT NULL,
             disc_numbert INTEGER NOT NULL DEFAULT 1,
             duration INTEDGER NOT NULL,
-            preferred_file_path TEXT,
-            preferred_file_format INTEGER,
-            preferred_file_size INTEGER,
             bitrate INTEGER,
             sample_rate INTEGER,
             play_count INTEGER DEFAULT 0,
@@ -127,19 +110,7 @@ pub fn create_tables(state: State<AppState>) -> Result<(), String> {
     db.execute(
         "CREATE TABLE IF NOT EXISTS artists (
             id   INTEGER PRIMARY KEY,
-            name TEXT,
-            image TEXT,
-            bio TEXT,
-            formed_year INTEGER,
-            birthplace TEXT,
-            is_favorite BOOL,
-            spotify_url TEXT,
-            apple_music_url TEXT,
-            discogs_url TEXT,
-            last_fm_url TEXT,
-            rate_your_music_url TEXT,
-            current_location TEXT,
-            birthday DATETIME
+            name TEXT
         )",
         (),
     )
@@ -174,19 +145,12 @@ pub fn create_tables(state: State<AppState>) -> Result<(), String> {
             release_date DATETIME,
             total_tracks INTEGER DEFAULT 1,
             total_discs INTEGER DEFAULT 1,
-            label_id INTEGER NOT NULL,
             artwork TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            description TEXT,
             is_explicit BOOL,
             is_favorite BOOL,
             rating INTEGER,
-            spotify_url TEXT,
-            apple_music_url TEXT,
-            last_fm_url TEXT,
-            discog_url TEXT,
-            rate_your_music_url TEXT,
             FOREIGN KEY (artist_id) REFERENCES artists(artist_id) ON DELETE CASCADE,
             FOREIGN KEY (release_type_id) REFERENCES release_types(release_type_id) ON DELETE CASCADE
         )",
@@ -272,33 +236,6 @@ pub fn create_tables(state: State<AppState>) -> Result<(), String> {
     )
     .map_err(|e| format!("Failed to create table: {}", e))?;
 
-    db.execute(
-        "CREATE TABLE IF NOT EXISTS file_format (
-            id   INTEGER PRIMARY KEY,
-            name TEXT
-        )",
-        (),
-    )
-    .map_err(|e| format!("Failed to create table: {}", e))?;
-
-    db.execute(
-        "CREATE TABLE IF NOT EXISTS sample_rate (
-            id   INTEGER PRIMARY KEY,
-            value TEXT
-        )",
-        (),
-    )
-    .map_err(|e| format!("Failed to create table: {}", e))?;
-
-    db.execute(
-        "CREATE TABLE IF NOT EXISTS bitrate (
-            id   INTEGER PRIMARY KEY,
-            value TEXT
-        )",
-        (),
-    )
-    .map_err(|e| format!("Failed to create table: {}", e))?;
-
     Ok(())
 }
 
@@ -318,7 +255,7 @@ pub fn add_path_to_library_paths(
     .map_err(|e| format!("Failed to insert data: {}", e))?;
 
     let mut stmt = db
-        .prepare("SELECT id, path FROM library_paths")
+        .prepare("SELECT path_id, path FROM library_paths")
         .map_err(|e| format!("Failed to prepare statement: {}", e))?;
 
     let path_iter = stmt
@@ -337,7 +274,7 @@ pub fn get_paths_from_library_paths(state: State<AppState>) -> Result<Vec<Librar
     let db = state.db.lock().unwrap();
 
     let mut stmt = db
-        .prepare("SELECT id, path FROM library_paths")
+        .prepare("SELECT path_id, path FROM library_paths")
         .map_err(|e| format!("Failed to prepare statement: {}", e))?;
 
     let path_iter = stmt
@@ -353,4 +290,63 @@ pub fn get_paths_from_library_paths(state: State<AppState>) -> Result<Vec<Librar
     paths.map_err(|e| format!("Failed to collect results: {}", e))
 }
 
+pub fn add_artist(artist: String) -> Result<(), String> {
+    let db = Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+    
+    // First check if the artist already exists
+    let exists: bool = db
+        .query_row(
+            "SELECT COUNT(*) FROM artists WHERE name = ?1",
+            params![&artist],
+            |row| Ok(row.get::<_, i64>(0)? > 0)
+        )
+        .map_err(|e| format!("Failed to check artist existence: {}", e))?;
 
+    // Only insert if the artist doesn't exist
+    if !exists {
+        db.execute("INSERT INTO artists (name) VALUES (?1)", params![&artist])
+            .map_err(|e| format!("Failed to insert artist: {}", e))?;
+    }
+    // If artist exists, we just return Ok(()) without inserting
+
+    Ok(())
+}
+
+pub fn add_release() {}
+
+pub fn add_song() {}
+
+pub fn group_artists(array: Vec<AudioMetadata>) -> Vec<String> {
+    let artists: std::collections::HashSet<String> =
+        array.into_iter().filter_map(|item| item.artist).collect();
+
+    artists.into_iter().collect()
+}
+
+pub fn group_releases() {}
+
+#[tauri::command]
+pub async fn update_database(folder_path: String) -> Result<(), String> {
+    let all_files: Vec<FileInfo> = scan_folder(folder_path)
+        .await
+        .map_err(|e| format!("Failed to scan folder: {}", e))?;
+
+    let metadata: Vec<AudioMetadata> = {
+        let mut vec = Vec::new();
+        for item in all_files {
+            let file_metadata: AudioMetadata = get_audio_metadata(item.path)
+                .await
+                .map_err(|e| format!("Failed to get audio metadata: {}", e))?;
+            vec.push(file_metadata)
+        }
+        vec
+    };
+
+    let all_artist = group_artists(metadata);
+
+    for artist in all_artist {
+        add_artist(artist).map_err(|e| format!("Failed to add artist: {}", e))?;
+    }
+
+    Ok(())
+}

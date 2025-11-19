@@ -41,7 +41,8 @@ export default function FolderSelector() {
       const libraryPaths: LibraryPaths[] = await invoke(
         "get_paths_from_library_paths"
       );
-      scanFolder(libraryPaths[0].path);
+      await invoke("update_database", { folderPath: libraryPaths[0].path });
+      // scanFolder(libraryPaths[0].path);
     } catch (error) {
       console.error("Startup error:", error);
     }
@@ -116,8 +117,12 @@ export default function FolderSelector() {
       setFiles(filesWithMetadata);
       const grouped = await groupByAlbum(filesWithMetadata);
       setGroupedFiles(grouped);
-      console.log(grouped);
+      console.log(files());
+
       await invoke("add_path_to_library_paths", { folderPath });
+      // await invoke("add_local_files_to_library", {
+      //   metadata: files(),
+      // });
     } catch (err) {
       console.error("Full error:", err);
       setError(`Error scanning folder: ${err}`);

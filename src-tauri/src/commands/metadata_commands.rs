@@ -3,10 +3,11 @@ use lofty::file::AudioFile;
 use lofty::file::TaggedFileExt;
 use lofty::read_from_path;
 use lofty::tag::Accessor;
+use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AudioMetadata {
     pub title: Option<String>,
     pub artist: Option<String>,
@@ -24,7 +25,7 @@ pub struct AudioMetadata {
 }
 
 #[tauri::command]
-pub fn get_audio_metadata(path: String) -> Result<AudioMetadata, String> {
+pub async fn get_audio_metadata(path: String) -> Result<AudioMetadata, String> {
     let tagged_file = read_from_path(&path).map_err(|e| format!("Failed to read file: {}", e))?;
 
     let properties = tagged_file.properties();
