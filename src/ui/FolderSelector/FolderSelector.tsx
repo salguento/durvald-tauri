@@ -17,7 +17,7 @@ interface FileInfo {
 interface Metadata {
   title: string;
   artist: string;
-  album: string;
+  release: string;
   genre: string;
   year: number;
   track: number;
@@ -51,7 +51,7 @@ export default function FolderSelector() {
   const [selectedFolder, setSelectedFolder] = createSignal<string>("");
   const [files, setFiles] = createSignal<FileInfo[]>([]);
   const [groupedFiles, setGroupedFiles] = createSignal<
-    { album: string; files: FileInfo[] }[]
+    { release: string; files: FileInfo[] }[]
   >([]);
   const [loading, setLoading] = createSignal(false);
   const [error, setError] = createSignal("");
@@ -86,14 +86,14 @@ export default function FolderSelector() {
 
   const groupByAlbum = async (array: FileInfo[]) => {
     const grouped = array.reduce((groups: Record<string, FileInfo[]>, item) => {
-      const album = item.metadata.album;
+      const album = item.metadata.release;
       (groups[album] = groups[album] || []).push(item);
       return groups;
     }, {});
 
     // Convert to array of groups
-    return Object.entries(grouped).map(([album, files]) => ({
-      album,
+    return Object.entries(grouped).map(([release, files]) => ({
+      release,
       files,
     }));
   };
@@ -227,7 +227,7 @@ export default function FolderSelector() {
                     <div class="flex flex-col">
                       <A href="/album/13" class="h-4">
                         <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
-                          {groupedFiles.album}
+                          {groupedFiles.release}
                         </span>
                       </A>
                       <A href="/artist/13" class="h-4">

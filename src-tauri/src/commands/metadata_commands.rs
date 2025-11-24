@@ -11,7 +11,7 @@ use std::collections::HashMap;
 pub struct AudioMetadata {
     pub title: Option<String>,
     pub artist: Option<String>,
-    pub album: Option<String>,
+    pub release: Option<String>,
     pub genre: Option<String>,
     pub year: Option<u32>,
     pub track: Option<u32>,
@@ -32,7 +32,7 @@ pub async fn get_audio_metadata(path: String) -> Result<AudioMetadata, String> {
     let mut metadata = AudioMetadata {
         title: None,
         artist: None,
-        album: None,
+        release: None,
         genre: None,
         year: None,
         track: None,
@@ -49,7 +49,7 @@ pub async fn get_audio_metadata(path: String) -> Result<AudioMetadata, String> {
         // Standard fields
         metadata.title = tag.title().map(|s| s.to_string());
         metadata.artist = tag.artist().map(|s| s.to_string());
-        metadata.album = tag.album().map(|s| s.to_string());
+        metadata.release = tag.album().map(|s| s.to_string());
         metadata.genre = tag.genre().map(|s| s.to_string());
         metadata.year = tag.year();
         metadata.track = tag.track();
