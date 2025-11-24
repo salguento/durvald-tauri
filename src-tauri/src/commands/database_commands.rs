@@ -12,6 +12,23 @@ pub struct LibraryPath {
     path: String,
 }
 
+#[derive(Serialize, Clone, Debug)]
+pub struct Releases {
+    id: u64,
+    title: String,
+    artist_id: u64,
+    artist_name: String,
+    release_date: String,
+    total_tracks: u8,
+    total_discs: u8,
+    duration: u64,
+    artwork: String,
+    is_favorite: bool,
+    rating: Option<u8>,
+    created_at: String,
+    updated_at: String,
+}
+
 #[derive(Serialize, Clone, Debug, Hash, Eq, PartialEq)]
 pub struct ReleaseGroup {
     title: String,
@@ -280,8 +297,9 @@ pub fn add_path_to_library_paths(
 }
 
 #[tauri::command]
-pub fn get_paths_from_library_paths(state: State<AppState>) -> Result<Vec<LibraryPath>, String> {
-    let db = state.db.lock().unwrap();
+pub fn get_paths_from_library_paths() -> Result<Vec<LibraryPath>, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
 
     let mut stmt = db
         .prepare("SELECT path_id, path FROM library_paths")
@@ -445,4 +463,38 @@ pub async fn update_database(folder_path: String) -> Result<(), String> {
     }
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_releases() -> Result<Vec<Releases>, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let mut stmt = db
+        .prepare("SELECT * FROM releases")
+        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+
+    let releases_iter = stmt
+        .query_map([], |row| {
+            Ok(Releases {
+                id: row.get(0)?,
+                title: row.get(1)?,
+                artist_id: row.get(2)?,
+                artist_name: row.get(3)?,
+                release_date: row.get::<_, i64>(4)?.to_string(),
+                total_tracks: row.get(5)?,
+                total_discs: row.get(6)?,
+                duration: row.get(7)?,
+                artwork: row.get(8)?,
+                created_at: row.get::<_, String>(9)?.to_string(),
+                updated_at: row.get::<_, String>(10)?.to_string(),
+                is_favorite: row.get(11)?,
+                rating: row.get(12)?,
+            })
+        })
+        .map_err(|e| format!("Failed to query data: {}", e))?;
+
+    // Collect all results into a Vec
+    let releases: Result<Vec<Releases>, _> = releases_iter.collect();
+    releases.map_err(|e| format!("Failed to collect results: {}", e))
 }

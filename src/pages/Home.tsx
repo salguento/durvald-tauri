@@ -1,8 +1,36 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { A } from "@solidjs/router";
+import { createSignal, For, Show, onMount } from "solid-js";
+import { invoke } from "@tauri-apps/api/core";
+
+interface Release {
+  id: number;
+  title: string;
+  artist_id: number;
+  artist_name: string;
+  release_date: string;
+  total_tracks: number;
+  total_discs: number;
+  duration: number;
+  artwork: string;
+  is_favorite: boolean;
+  rating: number | null;
+  created_at: string;
+  updated_at: string;
+}
 
 export default function Page() {
+  const [releases, setReleases] = createSignal<Release[]>([]);
+
+  onMount(async () => {
+    try {
+      setReleases(await invoke("get_releases"));
+      console.log(releases());
+    } catch (error) {
+      console.log("Startup error:", error);
+    }
+  });
   return (
     <div class="bg-zinc-900 size-7/12 h-full rounded-3xl grow overflow-hidden border border-zinc-700/50">
       <div class="relative w-full shadow-xl">
@@ -47,25 +75,29 @@ export default function Page() {
               class="px-12"
             >
               <div class="flex flex-row gap-3 w-[1364px]">
-                <div class="flex flex-col gap-2">
-                  <div>
-                    <img
-                      src="/assets/images/britpop-agcook.jpg"
-                      alt=""
-                      class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
-                    />
-                  </div>
-                  <div class="flex flex-col">
-                    <A href="/album/13">
-                      <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
-                        Britpop
-                      </span>
-                    </A>
-                    <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
-                      AG Cook
-                    </span>
-                  </div>
-                </div>
+                <For each={releases()}>
+                  {(releases) => (
+                    <div class="flex flex-col gap-2">
+                      <div>
+                        <img
+                          src={releases.artwork}
+                          alt=""
+                          class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
+                        />
+                      </div>
+                      <div class="flex flex-col">
+                        <A href={`/album/${releases.id.toString()}`}>
+                          <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
+                            {releases.title}
+                          </span>
+                        </A>
+                        <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
+                          {releases.artist_name}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </For>
                 <div class="flex flex-col gap-2">
                   <div>
                     <img

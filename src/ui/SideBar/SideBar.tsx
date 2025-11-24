@@ -166,7 +166,7 @@ export default function SideBar() {
                 },
               }}
               defer
-              class="h-full  bg-zinc-800 p-4 rounded-2xl relative max-h-[20rem] overflow-auto"
+              class="h-full  bg-zinc-800 p-4 rounded-2xl relative max-h-80 overflow-auto"
             >
               <div class="flex flex-col gap-3">
                 <span class="text-sm text-zinc-400">
