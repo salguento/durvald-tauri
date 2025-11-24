@@ -1,4 +1,5 @@
 use crate::{commands::get_audio_metadata, scan_folder, FileInfo};
+use rusqlite::OptionalExtension;
 use rusqlite::{params, Connection, Result};
 use serde::Serialize;
 use std::sync::Mutex;
@@ -9,6 +10,17 @@ use super::metadata_commands::AudioMetadata;
 #[derive(Serialize, Clone, Debug)]
 pub struct LibraryPath {
     path: String,
+}
+
+#[derive(Serialize, Clone, Debug, Hash, Eq, PartialEq)]
+pub struct ReleaseGroup {
+    title: String,
+    artist: String,
+    cover_image_base64: String,
+    tracks: u32,
+    disc: u32,
+    date: u32,
+    duration: u64,
 }
 
 #[derive(Debug)]
@@ -109,7 +121,7 @@ pub fn create_tables(state: State<AppState>) -> Result<(), String> {
 
     db.execute(
         "CREATE TABLE IF NOT EXISTS artists (
-            id   INTEGER PRIMARY KEY,
+            artist_id   INTEGER PRIMARY KEY,
             name TEXT
         )",
         (),
@@ -140,19 +152,17 @@ pub fn create_tables(state: State<AppState>) -> Result<(), String> {
             id   INTEGER PRIMARY KEY,
             title TEXT,
             artist_id INTEGER NOT NULL,
-            artists_name TEXT,
-            release_type_id INTEGER NOT NULL,
+            artist_name TEXT NOT NULL,
             release_date DATETIME,
             total_tracks INTEGER DEFAULT 1,
             total_discs INTEGER DEFAULT 1,
+            duration INTEGER,
             artwork TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            is_explicit BOOL,
-            is_favorite BOOL,
-            rating INTEGER,
-            FOREIGN KEY (artist_id) REFERENCES artists(artist_id) ON DELETE CASCADE,
-            FOREIGN KEY (release_type_id) REFERENCES release_types(release_type_id) ON DELETE CASCADE
+            is_favorite BOOL DEFAULT FALSE,
+            rating INTEGER DEFAULT NULL,
+            FOREIGN KEY (artist_id) REFERENCES artists(artist_id) ON DELETE CASCADE
         )",
         (),
     )
@@ -291,14 +301,15 @@ pub fn get_paths_from_library_paths(state: State<AppState>) -> Result<Vec<Librar
 }
 
 pub fn add_artist(artist: String) -> Result<(), String> {
-    let db = Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
-    
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
     // First check if the artist already exists
     let exists: bool = db
         .query_row(
             "SELECT COUNT(*) FROM artists WHERE name = ?1",
             params![&artist],
-            |row| Ok(row.get::<_, i64>(0)? > 0)
+            |row| Ok(row.get::<_, i64>(0)? > 0),
         )
         .map_err(|e| format!("Failed to check artist existence: {}", e))?;
 
@@ -312,18 +323,96 @@ pub fn add_artist(artist: String) -> Result<(), String> {
     Ok(())
 }
 
-pub fn add_release() {}
+pub fn add_release(release: ReleaseGroup) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    // First get the artist_id from the artists table
+    let artist_id: Option<i64> = db
+        .query_row(
+            "SELECT artist_id FROM artists WHERE name = ?1",
+            params![&release.artist],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(|e| format!("Failed to query artist: {}", e))?;
+
+    // If artist doesn't exist, we can't add the release (or you might want to handle this differently)
+    let artist_id = match artist_id {
+        Some(id) => id,
+        None => {
+            return Err(format!("Artist '{}' not found in database", release.artist));
+        }
+    };
+
+    // Check if the release already exists for this artist
+    let exists: bool = db
+        .query_row(
+            "SELECT COUNT(*) FROM releases WHERE title = ?1 AND artist_id = ?2",
+            params![&release.title, artist_id],
+            |row| Ok(row.get::<_, i64>(0)? > 0),
+        )
+        .map_err(|e| format!("Failed to check release existence: {}", e))?;
+
+    // Only insert if the release doesn't exist
+    if !exists {
+        db.execute(
+            "INSERT INTO releases (title, artist_id, artist_name, release_date, total_tracks, total_discs, duration, artwork) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![&release.title, artist_id, &release.artist, &release.date, &release.tracks, &release.disc, &release.duration, &release.cover_image_base64]
+        )
+        .map_err(|e| format!("Failed to insert release: {}", e))?;
+    }
+    Ok(())
+}
 
 pub fn add_song() {}
 
-pub fn group_artists(array: Vec<AudioMetadata>) -> Vec<String> {
-    let artists: std::collections::HashSet<String> =
-        array.into_iter().filter_map(|item| item.artist).collect();
+pub fn group_artists(array: &Vec<AudioMetadata>) -> Vec<String> {
+    let artists: std::collections::HashSet<String> = array
+        .into_iter()
+        .filter_map(|item| item.artist.as_ref().cloned())
+        .collect();
 
     artists.into_iter().collect()
 }
 
-pub fn group_releases() {}
+pub fn group_releases(array: &Vec<AudioMetadata>) -> Vec<ReleaseGroup> {
+    use std::collections::HashMap;
+
+    let mut release_map: HashMap<String, ReleaseGroup> = HashMap::new();
+
+    for item in array {
+        if let (Some(title), Some(artist), Some(artwork), Some(year)) = (
+            &item.release,
+            &item.artist,
+            &item.cover_image_base64,
+            &item.year,
+        ) {
+            // Create a key based on release title, artist, and year to group by
+            let key = format!("{}|{}|{}", title, artist, year);
+
+            // Get or create the ReleaseGroup entry
+            let release_group = release_map.entry(key).or_insert_with(|| ReleaseGroup {
+                title: title.clone(),
+                artist: artist.clone(),
+                cover_image_base64: artwork.clone(),
+                date: year.clone(),
+                duration: 0, // Initialize to 0
+                tracks: 0,   // Initialize to 0
+                disc: 1,     // Initialize to 0
+            });
+
+            // Accumulate the values
+            release_group.duration += item.duration as u64;
+            release_group.tracks += 1; // Count each track
+            if let Some(disc) = item.disc {
+                release_group.disc = release_group.disc.max(disc); // Use the highest disc number
+            }
+        }
+    }
+
+    release_map.into_values().collect()
+}
 
 #[tauri::command]
 pub async fn update_database(folder_path: String) -> Result<(), String> {
@@ -342,10 +431,17 @@ pub async fn update_database(folder_path: String) -> Result<(), String> {
         vec
     };
 
-    let all_artist = group_artists(metadata);
+    let all_artist = group_artists(&metadata);
 
     for artist in all_artist {
         add_artist(artist).map_err(|e| format!("Failed to add artist: {}", e))?;
+    }
+
+    let all_releases = group_releases(&metadata);
+
+    for release in all_releases {
+        println!("{:?}", release);
+        add_release(release).map_err(|e| format!("Failed to add release: {}", e))?;
     }
 
     Ok(())
