@@ -22,6 +22,7 @@ pub struct AudioMetadata {
     pub channels: Option<u8>,
     pub cover_image_base64: Option<String>, // Changed to base64
     pub all_fields: HashMap<String, String>,
+    pub file_path: String,
 }
 
 #[tauri::command]
@@ -43,6 +44,7 @@ pub async fn get_audio_metadata(path: String) -> Result<AudioMetadata, String> {
         channels: properties.channels(),
         cover_image_base64: None,
         all_fields: HashMap::new(),
+        file_path: path,
     };
 
     if let Some(tag) = tagged_file.primary_tag() {

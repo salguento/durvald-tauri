@@ -104,17 +104,18 @@ pub fn create_tables(state: State<AppState>) -> Result<(), String> {
             artist_id INTEGER NOT NULL,
             artist_name TEXT NOT NULL,
             release_id INTEGER NOT NULL,
-            release_name TEXT NOT NULL,
+            release_title TEXT NOT NULL,
             track_number INTEGER NOT NULL,
-            disc_numbert INTEGER NOT NULL DEFAULT 1,
+            disc_number INTEGER NOT NULL DEFAULT 1,
             duration INTEDGER NOT NULL,
             bitrate INTEGER,
             sample_rate INTEGER,
             play_count INTEGER DEFAULT 0,
             last_played DATETIME,
-            rating INTEGER,
+            rating INTEGER DEFAULT NULL,
             lyrics TEXT,
             is_favorite BOOL DEFAULT FALSE,
+            file_path TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )",
@@ -383,7 +384,67 @@ pub fn add_release(release: ReleaseGroup) -> Result<(), String> {
     Ok(())
 }
 
-pub fn add_song() {}
+pub fn add_song(song: AudioMetadata) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    // Get artist_id (artist must exist)
+    let artist_id: i64 = match db
+        .query_row(
+            "SELECT artist_id FROM artists WHERE name = ?1",
+            params![&song.artist],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(|e| format!("Failed to query artist: {}", e))?
+    {
+        Some(id) => id,
+        None => return Err(format!("Artist '{:?}' not found", song.artist)),
+    };
+
+    // Get release_id (release must exist)
+    let release_id: i64 = match db
+        .query_row(
+            "SELECT id FROM releases WHERE title = ?1 AND artist_id = ?2",
+            params![&song.release, artist_id],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(|e| format!("Failed to query release: {}", e))?
+    {
+        Some(id) => id,
+        None => return Err(format!("Release '{:?}' not found", song.release)),
+    };
+
+    // Check if song exists and insert if not
+    let exists: bool = db
+        .query_row(
+            "SELECT COUNT(*) FROM songs WHERE title = ?1 AND artist_id = ?2 AND release_id = ?3",
+            params![&song.title, artist_id, release_id],
+            |row| Ok(row.get::<_, i64>(0)? > 0),
+        )
+        .map_err(|e| format!("Failed to check song existence: {}", e))?;
+
+    if !exists {
+        db.execute(
+            "INSERT INTO songs (title, artist_id, artist_name, release_id, release_title, duration, track_number, disc_number, file_path) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            params![
+                &song.title,
+                artist_id,
+                &song.artist,
+                release_id,
+                &song.release,
+                &song.duration,
+                &song.track.unwrap_or(1),
+                &song.disc.unwrap_or(1),
+                &song.file_path
+            ]
+        )
+        .map_err(|e| format!("Failed to insert song: {}", e))?;
+    }
+
+    Ok(())
+}
 
 pub fn group_artists(array: &Vec<AudioMetadata>) -> Vec<String> {
     let artists: std::collections::HashSet<String> = array
@@ -458,8 +519,11 @@ pub async fn update_database(folder_path: String) -> Result<(), String> {
     let all_releases = group_releases(&metadata);
 
     for release in all_releases {
-        println!("{:?}", release);
         add_release(release).map_err(|e| format!("Failed to add release: {}", e))?;
+    }
+
+    for i in metadata {
+        add_song(i).map_err(|e| format!("Failed to add song: {}", e))?;
     }
 
     Ok(())
