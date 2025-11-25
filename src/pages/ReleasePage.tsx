@@ -4,6 +4,7 @@ import { For, onMount } from "solid-js";
 import { useParams } from "@solidjs/router";
 import { invoke } from "@tauri-apps/api/core";
 import { createSignal } from "solid-js";
+import { A } from "@solidjs/router";
 // Types
 import { ReleaseType } from "../types/releaseType";
 import SongType from "../types/songType";
@@ -61,9 +62,11 @@ export default function ReleasePage() {
               <span class="text-2xl text-white font-semibold">
                 {release()?.title}
               </span>
-              <span class="text-xl text-zinc-400 font-medium hover:underline hover:cursor-pointer">
-                {release()?.artist_name}
-              </span>
+              <A href={`/artist/${release()?.artist_id}`}>
+                <span class="text-xl text-zinc-400 font-medium hover:underline hover:cursor-pointer">
+                  {release()?.artist_name}
+                </span>
+              </A>
               <div class="flex flex-rol gap-2">
                 <span class="text-md text-zinc-600 font-medium hover:underline hover:cursor-pointer">
                   Electronic
