@@ -1,9 +1,13 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
-import { For } from "solid-js";
-
+import { For, onMount } from "solid-js";
+import { useParams } from "@solidjs/router";
+import { invoke } from "@tauri-apps/api/core";
+import { createSignal } from "solid-js";
+// Types
+import { ReleaseType } from "../types/releaseType";
 // UI
-import BackButton from "../ui/Components/BackButton";
+import BackButton from "../ui/components/BackButton";
 
 interface SongInfo {
   track: number;
@@ -13,7 +17,14 @@ interface SongInfo {
   isAdded: boolean;
 }
 
-export default function Album() {
+export default function ReleasePage() {
+  const [release, setRelease] = createSignal<ReleaseType>();
+
+  onMount(async () => {
+    const params = useParams();
+    const releaseId = params.id;
+    setRelease(await invoke("get_release_by_id", { releaseId: releaseId }));
+  });
   const album: SongInfo[] = [
     {
       track: 1,
@@ -101,15 +112,17 @@ export default function Album() {
           <div class="flex flex-row gap-8 items-center px-4">
             <div>
               <img
-                src="/assets/images/britpop-agcook.jpg"
+                src={release()?.artwork}
                 class="h-48 w-48 rounded-2xl"
                 alt=""
               />
             </div>
             <div class="flex flex-col gap-1">
-              <span class="text-2xl text-white font-semibold">Britpop</span>
+              <span class="text-2xl text-white font-semibold">
+                {release()?.title}
+              </span>
               <span class="text-xl text-zinc-400 font-medium hover:underline hover:cursor-pointer">
-                AG Cook
+                {release()?.artist_name}
               </span>
               <div class="flex flex-rol gap-2">
                 <span class="text-md text-zinc-600 font-medium hover:underline hover:cursor-pointer">
@@ -117,7 +130,7 @@ export default function Album() {
                 </span>
                 <span class="text-md text-zinc-600 font-medium">•</span>
                 <span class="text-md text-zinc-600 font-medium hover:underline hover:cursor-pointer">
-                  2024
+                  {release()?.release_date}
                 </span>
               </div>
             </div>

@@ -39,7 +39,7 @@ export default function FolderSelector() {
       console.log("Starting app initialization...");
       // Call your Tauri backend command
       const libraryPaths: LibraryPaths[] = await invoke(
-        "get_paths_from_library_paths"
+        "get_paths_from_library_paths",
       );
       await invoke("update_database", { folderPath: libraryPaths[0].path });
       // scanFolder(libraryPaths[0].path);
@@ -112,7 +112,7 @@ export default function FolderSelector() {
             ...i,
             metadata,
           };
-        })
+        }),
       );
       setFiles(filesWithMetadata);
       const grouped = await groupByAlbum(filesWithMetadata);
@@ -225,7 +225,7 @@ export default function FolderSelector() {
                       />
                     </div>
                     <div class="flex flex-col">
-                      <A href="/album/13" class="h-4">
+                      <A href="/release/13" class="h-4">
                         <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
                           {groupedFiles.release}
                         </span>

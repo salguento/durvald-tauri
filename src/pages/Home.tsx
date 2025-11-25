@@ -4,24 +4,11 @@ import { createSignal, For, onMount } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import ReleaseItem from "../ui/components/ReleaseItem";
 
-interface Release {
-  id: number;
-  title: string;
-  artist_id: number;
-  artist_name: string;
-  release_date: string;
-  total_tracks: number;
-  total_discs: number;
-  duration: number;
-  artwork: string;
-  is_favorite: boolean;
-  rating: number | null;
-  created_at: string;
-  updated_at: string;
-}
+// Types
+import { ReleaseType } from "../types/releaseType";
 
 export default function Page() {
-  const [releases, setReleases] = createSignal<Release[]>([]);
+  const [releases, setReleases] = createSignal<ReleaseType[]>([]);
 
   onMount(async () => {
     try {

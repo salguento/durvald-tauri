@@ -22,7 +22,7 @@ export default function ReleaseItem(props: PropsReleaseItem) {
         }
       >
         <A
-          href={`/album/${props.releaseId.toString()}`}
+          href={`/release/${props.releaseId.toString()}`}
           class="hover:cursor-pointer"
         >
           <img
@@ -35,7 +35,7 @@ export default function ReleaseItem(props: PropsReleaseItem) {
       <div class="flex flex-col">
         <div class="flex items-center gap-1">
           <A
-            href={`/album/${props.releaseId.toString()}`}
+            href={`/release/${props.releaseId.toString()}`}
             class="truncate w-fit max-w-full flex items-center h-fit"
           >
             <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
@@ -47,7 +47,7 @@ export default function ReleaseItem(props: PropsReleaseItem) {
           </Show>
         </div>
         <A
-          href={`/album/${props.artistId.toString()}`}
+          href={`/release/${props.artistId.toString()}`}
           class="truncate w-full flex items-center h-fit"
         >
           <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">

@@ -498,3 +498,32 @@ pub fn get_releases() -> Result<Vec<Releases>, String> {
     let releases: Result<Vec<Releases>, _> = releases_iter.collect();
     releases.map_err(|e| format!("Failed to collect results: {}", e))
 }
+
+#[tauri::command]
+pub fn get_release_by_id(release_id: &str) -> Result<Releases, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    db.query_row(
+        "SELECT * FROM releases WHERE id = ?1",
+        [release_id],
+        |row| {
+            Ok(Releases {
+                id: row.get(0)?,
+                title: row.get(1)?,
+                artist_id: row.get(2)?,
+                artist_name: row.get(3)?,
+                release_date: row.get::<_, i64>(4)?.to_string(),
+                total_tracks: row.get(5)?,
+                total_discs: row.get(6)?,
+                duration: row.get(7)?,
+                artwork: row.get(8)?,
+                created_at: row.get::<_, String>(9)?.to_string(),
+                updated_at: row.get::<_, String>(10)?.to_string(),
+                is_favorite: row.get(11)?,
+                rating: row.get(12)?,
+            })
+        },
+    )
+    .map_err(|e| format!("Failed to query release: {}", e))
+}
