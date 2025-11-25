@@ -40,6 +40,29 @@ pub struct ReleaseGroup {
     duration: u64,
 }
 
+#[derive(Serialize, Clone, Debug, Hash, Eq, PartialEq)]
+pub struct SongItem {
+    song_id: u64,
+    title: String,
+    artist_id: u64,
+    artist_name: String,
+    release_id: u64,
+    release_title: String,
+    track_number: u8,
+    disc_number: u8,
+    duration: u64,
+    bitrate: Option<u16>,
+    sample_rate: Option<u16>,
+    play_count: u64,
+    last_played: Option<String>,
+    rating: Option<u8>,
+    lyrics: Option<String>,
+    is_favorite: bool,
+    file_path: String,
+    created_at: String,
+    updated_at: String,
+}
+
 #[derive(Debug)]
 pub struct AppState {
     pub db: Mutex<Connection>,
@@ -590,4 +613,47 @@ pub fn get_release_by_id(release_id: &str) -> Result<Releases, String> {
         },
     )
     .map_err(|e| format!("Failed to query release: {}", e))
+}
+
+#[tauri::command]
+pub fn get_songs_by_release_id(release_id: &str) -> Result<Vec<SongItem>, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let mut stmt = db
+        .prepare("SELECT * FROM songs WHERE release_id = ?1")
+        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+
+    let song_iter = stmt
+        .query_map([release_id], |row| {
+            Ok(SongItem {
+                song_id: row.get(0)?,
+                title: row.get(1)?,
+                artist_id: row.get(2)?,
+                artist_name: row.get(3)?,
+                release_id: row.get(4)?,
+                release_title: row.get(5)?,
+                track_number: row.get(6)?,
+                disc_number: row.get(7)?,
+                duration: row.get::<_, f64>(8)?.round() as u64,
+                bitrate: row.get(9)?,
+                sample_rate: row.get(10)?,
+                play_count: row.get(11)?,
+                last_played: row.get(12)?,
+                rating: row.get(13)?,
+                lyrics: row.get(14)?,
+                is_favorite: row.get(15)?,
+                file_path: row.get(16)?,
+                created_at: row.get::<_, String>(17)?.to_string(),
+                updated_at: row.get::<_, String>(18)?.to_string(),
+            })
+        })
+        .map_err(|e| format!("Failed to query songs: {}", e))?;
+
+    let mut songs = Vec::new();
+    for song in song_iter {
+        songs.push(song.map_err(|e| format!("Failed to process song row: {}", e))?);
+    }
+
+    Ok(songs)
 }

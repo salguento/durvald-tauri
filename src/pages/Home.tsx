@@ -13,7 +13,6 @@ export default function Page() {
   onMount(async () => {
     try {
       setReleases(await invoke("get_releases"));
-      console.log(releases());
     } catch (error) {
       console.log("Startup error:", error);
     }

@@ -20,7 +20,7 @@ use tauri::Manager;
 use commands::database_commands::AppState;
 use commands::database_commands::{
     add_path_to_library_paths, create_tables, get_paths_from_library_paths, get_release_by_id,
-    get_releases, update_database,
+    get_releases, get_songs_by_release_id, update_database,
 };
 use commands::get_audio_metadata;
 
@@ -159,7 +159,8 @@ fn main() {
             get_paths_from_library_paths,
             update_database,
             get_releases,
-            get_release_by_id
+            get_release_by_id,
+            get_songs_by_release_id
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

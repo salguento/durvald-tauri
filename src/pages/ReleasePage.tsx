@@ -6,83 +6,23 @@ import { invoke } from "@tauri-apps/api/core";
 import { createSignal } from "solid-js";
 // Types
 import { ReleaseType } from "../types/releaseType";
+import SongType from "../types/songType";
 // UI
 import BackButton from "../ui/components/BackButton";
 
-interface SongInfo {
-  track: number;
-  name: string;
-  duration: number;
-  isFavorite: boolean;
-  isAdded: boolean;
-}
-
 export default function ReleasePage() {
   const [release, setRelease] = createSignal<ReleaseType>();
+  const [songs, setSongs] = createSignal<SongType[]>([]);
+  function msToMinSec(ms: number) {
+    return `${Math.floor(ms / 60)}:${((ms % 60) / 1).toFixed(0).padStart(2, "0")}`;
+  }
 
   onMount(async () => {
     const params = useParams();
     const releaseId = params.id;
     setRelease(await invoke("get_release_by_id", { releaseId: releaseId }));
+    setSongs(await invoke("get_songs_by_release_id", { releaseId: releaseId }));
   });
-  const album: SongInfo[] = [
-    {
-      track: 1,
-      name: "Silver Thread Golden Needle",
-      duration: 957,
-      isFavorite: false,
-      isAdded: true,
-    },
-    {
-      track: 2,
-      name: "Britpop",
-      duration: 322,
-      isFavorite: true,
-      isAdded: true,
-    },
-    {
-      track: 3,
-      name: "You Know Me",
-      duration: 407,
-      isFavorite: true,
-      isAdded: true,
-    },
-    {
-      track: 4,
-      name: "Prismatic",
-      duration: 349,
-      isFavorite: false,
-      isAdded: true,
-    },
-    {
-      track: 5,
-      name: "Crescent Sun",
-      duration: 405,
-      isFavorite: false,
-      isAdded: true,
-    },
-    {
-      track: 6,
-      name: "Heartache",
-      duration: 436,
-      isFavorite: false,
-      isAdded: true,
-    },
-    {
-      track: 7,
-      name: "Television",
-      duration: 338,
-      isFavorite: true,
-      isAdded: true,
-    },
-    {
-      track: 8,
-      name: "Luddite Factory Operator",
-      duration: 639,
-      isFavorite: true,
-      isAdded: true,
-    },
-  ];
 
   return (
     <div class="bg-zinc-900 size-7/12 h-full rounded-3xl grow overflow-hidden border border-zinc-700/50">
@@ -147,48 +87,45 @@ export default function ReleasePage() {
                     Name
                   </th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
                     Duration
                   </th>
                 </tr>
               </thead>
               <tbody class="bg-zinc-900 divide-y divide-zinc-700">
-                <For each={album}>
-                  {(song: SongInfo) => (
+                <For each={songs()}>
+                  {(song: SongType) => (
                     <tr class="hover:bg-zinc-700 ">
                       <td class="px-4 py-2 whitespace-nowrap">
                         <button
                           class="text-zinc-400 hover:text-white hover:cursor-pointer"
                           title={`${
-                            song.isFavorite
+                            song.is_favorite
                               ? "Unfavorite song"
                               : "Favorite song"
                           }`}
                         >
                           <span
                             class={`w-4 h-4 rounded-full mr-3 ${
-                              song.isFavorite
+                              song.is_favorite
                                 ? "icon-[solar--heart-bold]"
                                 : "icon-[solar--heart-linear]"
                             }`}
                           ></span>
                         </button>
                       </td>
-                      <td class="px-4 py-2 whitespace-nowrap">
+                      <td class="px-2 py-2 whitespace-nowrap">
                         <div class="text-sm font-medium text-zinc-400">
-                          {song.track}
+                          {song.track_number}
                         </div>
                       </td>
                       <td class="px-6 py-2 whitespace-nowrap">
                         <div class="flex items-center">
                           <div class="text-sm font-medium text-zinc-400">
-                            {song.name}
+                            {song.title}
                           </div>
                         </div>
                       </td>
-                      <td class="px-6 py-2 whitespace-nowrap">
+                      {/*<td class="px-6 py-2 whitespace-nowrap">
                         <span
                           class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize"
                           classList={{
@@ -198,9 +135,9 @@ export default function ReleasePage() {
                         >
                           {song.isFavorite ? "Folder" : song.isAdded || "File"}
                         </span>
-                      </td>
+                      </td>*/}
                       <td class="px-6 py-2 whitespace-nowrap text-sm text-zinc-400">
-                        {song.duration}
+                        {msToMinSec(song.duration)}
                       </td>
                     </tr>
                   )}
