@@ -1,8 +1,8 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
-import { A } from "@solidjs/router";
-import { createSignal, For, Show, onMount } from "solid-js";
+import { createSignal, For, onMount } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
+import ReleaseItem from "../ui/components/ReleaseItem";
 
 interface Release {
   id: number;
@@ -77,25 +77,14 @@ export default function Page() {
               <div class="flex flex-row gap-3 w-[1364px]">
                 <For each={releases()}>
                   {(releases) => (
-                    <div class="flex flex-col gap-2">
-                      <div>
-                        <img
-                          src={releases.artwork}
-                          alt=""
-                          class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
-                        />
-                      </div>
-                      <div class="flex flex-col">
-                        <A href={`/album/${releases.id.toString()}`}>
-                          <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
-                            {releases.title}
-                          </span>
-                        </A>
-                        <span class="text-xs text-zinc-500 hover:underline hover:text-white hover:cursor-pointer">
-                          {releases.artist_name}
-                        </span>
-                      </div>
-                    </div>
+                    <ReleaseItem
+                      artwork={releases.artwork}
+                      releaseId={releases.id}
+                      releaseTitle={releases.title}
+                      artistId={releases.artist_id}
+                      artistName={releases.artist_name}
+                      isFavorite={releases.is_favorite}
+                    />
                   )}
                 </For>
                 <div class="flex flex-col gap-2">
