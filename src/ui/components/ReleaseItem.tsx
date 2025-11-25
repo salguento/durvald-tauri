@@ -13,22 +13,25 @@ interface PropsReleaseItem {
 export default function ReleaseItem(props: PropsReleaseItem) {
   return (
     <div class="flex flex-col gap-1">
-      <div>
-        <Show
-          when={props.artwork != "" && props.artwork != undefined}
-          fallback={
-            <div class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl">
-              <span class="icon-[solar--music-notes-bold-duotone] h-12 w-12 "></span>
-            </div>
-          }
+      <Show
+        when={props.artwork != "" && props.artwork != undefined}
+        fallback={
+          <div class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl">
+            <span class="icon-[solar--music-notes-bold-duotone] h-12 w-12 "></span>
+          </div>
+        }
+      >
+        <A
+          href={`/album/${props.releaseId.toString()}`}
+          class="hover:cursor-pointer"
         >
           <img
             src={props.artwork}
             alt=""
-            class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl"
+            class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl hover:border-white border border-transparent"
           />
-        </Show>
-      </div>
+        </A>
+      </Show>
       <div class="flex flex-col">
         <div class="flex items-center gap-1">
           <A
