@@ -14,8 +14,17 @@ import BackButton from "../ui/components/BackButton";
 export default function ReleasePage() {
   const [release, setRelease] = createSignal<ReleaseType>();
   const [songs, setSongs] = createSignal<SongType[]>([]);
+
   function msToMinSec(ms: number) {
     return `${Math.floor(ms / 60)}:${((ms % 60) / 1).toFixed(0).padStart(2, "0")}`;
+  }
+
+  async function playMusic(path: string) {
+    try {
+      await invoke("play_file", { path: path });
+    } catch (error) {
+      console.error("Failed to play audio:", error);
+    }
   }
 
   onMount(async () => {
@@ -97,7 +106,10 @@ export default function ReleasePage() {
               <tbody class="bg-zinc-900 divide-y divide-zinc-700">
                 <For each={songs()}>
                   {(song: SongType) => (
-                    <tr class="hover:bg-zinc-700 ">
+                    <tr
+                      class="hover:bg-zinc-700 "
+                      onClick={() => playMusic(song.file_path)}
+                    >
                       <td class="px-4 py-2 whitespace-nowrap">
                         <button
                           class="text-zinc-400 hover:text-white hover:cursor-pointer"

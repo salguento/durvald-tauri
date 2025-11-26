@@ -8,39 +8,22 @@ use std::fs;
 use std::path::PathBuf;
 use tauri::command;
 
-// Rodio
-use rodio::Decoder;
-use std::fs::File;
-
 use rusqlite::Connection;
 use std::sync::Mutex;
+use tokio::sync::Mutex as TokioMutex;
 
-use tauri::Manager;
-
-use commands::database_commands::AppState;
 use commands::database_commands::{
     add_path_to_library_paths, create_tables, get_paths_from_library_paths, get_release_by_id,
     get_releases, get_songs_by_release_id, update_database,
 };
 use commands::get_audio_metadata;
 
-#[command]
-async fn play_song(path: String) {
-    // Get an output stream handle to the default physical sound device.
-    // Note that the playback stops when the stream_handle is dropped.//!
-    let stream_handle =
-        rodio::OutputStreamBuilder::open_default_stream().expect("open default audio stream");
-    let _sink = rodio::Sink::connect_new(&stream_handle.mixer());
-    // Load a sound from a file, using a path relative to Cargo.toml
-    let file = File::open(path).unwrap();
-    // Decode that sound file into a source
-    let source = Decoder::try_from(file).unwrap();
-    // Play the sound directly on the device
-    stream_handle.mixer().add(source);
+mod audio;
+use audio::AudioPlayer;
 
-    // The sound plays in a separate audio thread,
-    // so we need to keep the main thread alive while it's playing.
-    std::thread::sleep(std::time::Duration::from_secs(5));
+pub struct AppState {
+    pub db: Mutex<Connection>,
+    pub audio_player: TokioMutex<AudioPlayer>,
 }
 
 #[derive(Serialize)]
@@ -50,6 +33,64 @@ pub struct FileInfo {
     size: u64,
     is_directory: bool,
     extension: String,
+}
+
+// Audio player commands
+#[command]
+async fn play_file(path: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await;
+    player.play(path).await.map_err(|e| e.to_string())
+}
+
+#[command]
+async fn pause_playback(state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let player = state.audio_player.lock().await;
+    player.pause();
+    Ok(())
+}
+
+#[command]
+async fn resume_playback(state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let player = state.audio_player.lock().await;
+    player.resume();
+    Ok(())
+}
+
+#[command]
+async fn stop_playback(state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await;
+    player.stop();
+    Ok(())
+}
+
+#[command]
+async fn set_volume(volume: f32, state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let player = state.audio_player.lock().await;
+    player.set_volume(volume);
+    Ok(())
+}
+
+#[command]
+async fn get_playback_state(
+    state: tauri::State<'_, AppState>,
+) -> Result<PlaybackStateInfo, String> {
+    let player = state.audio_player.lock().await;
+    Ok(PlaybackStateInfo {
+        is_paused: player.is_paused(),
+        is_empty: player.is_empty(),
+    })
+}
+
+#[command]
+async fn add_to_queue(path: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await;
+    player.add_to_queue(path).await.map_err(|e| e.to_string())
+}
+
+#[derive(Serialize)]
+struct PlaybackStateInfo {
+    is_paused: bool,
+    is_empty: bool,
 }
 
 #[command]
@@ -137,31 +178,39 @@ fn is_audio_file(extension: &str) -> bool {
 }
 
 fn main() {
-    let conn = Connection::open("music.db3").expect("Failed to open database");
-
-    tauri::Builder::default()
-        .manage(AppState {
-            db: Mutex::new(conn),
-        })
-        .setup(|app| {
-            let state = app.state::<AppState>();
-            create_tables(state).expect("failed to create tables");
-            Ok(())
-        })
-        .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![
-            select_folder,
-            scan_folder,
-            play_song,
-            get_audio_metadata,
-            create_tables,
-            add_path_to_library_paths,
-            get_paths_from_library_paths,
-            update_database,
-            get_releases,
-            get_release_by_id,
-            get_songs_by_release_id
-        ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+    tauri::async_runtime::block_on(async {
+        let player = AudioPlayer::new().expect("Failed to create audio player");
+        let conn = Connection::open("music.db3").expect("Failed to open database");
+        tauri::Builder::default()
+            .manage(AppState {
+                db: Mutex::new(conn),
+                audio_player: TokioMutex::new(player),
+            })
+            .setup(|_app| {
+                create_tables().expect("failed to create tables");
+                Ok(())
+            })
+            .plugin(tauri_plugin_dialog::init())
+            .invoke_handler(tauri::generate_handler![
+                select_folder,
+                scan_folder,
+                get_audio_metadata,
+                create_tables,
+                add_path_to_library_paths,
+                get_paths_from_library_paths,
+                update_database,
+                get_releases,
+                get_release_by_id,
+                get_songs_by_release_id,
+                play_file,
+                pause_playback,
+                resume_playback,
+                stop_playback,
+                set_volume,
+                get_playback_state,
+                add_to_queue,
+            ])
+            .run(tauri::generate_context!())
+            .expect("error while running tauri application");
+    });
 }

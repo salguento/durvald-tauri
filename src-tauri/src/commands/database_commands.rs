@@ -2,8 +2,6 @@ use crate::{commands::get_audio_metadata, scan_folder, FileInfo};
 use rusqlite::OptionalExtension;
 use rusqlite::{params, Connection, Result};
 use serde::Serialize;
-use std::sync::Mutex;
-use tauri::State;
 
 use super::metadata_commands::AudioMetadata;
 
@@ -63,14 +61,10 @@ pub struct SongItem {
     updated_at: String,
 }
 
-#[derive(Debug)]
-pub struct AppState {
-    pub db: Mutex<Connection>,
-}
-
 #[tauri::command]
-pub fn create_tables(state: State<AppState>) -> Result<(), String> {
-    let db = state.db.lock().unwrap();
+pub fn create_tables() -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
 
     db.execute(
         "CREATE TABLE IF NOT EXISTS library_paths (
@@ -291,11 +285,9 @@ pub fn create_tables(state: State<AppState>) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn add_path_to_library_paths(
-    folder_path: String,
-    state: State<AppState>,
-) -> Result<(), String> {
-    let db = state.db.lock().unwrap();
+pub fn add_path_to_library_paths(folder_path: String) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
 
     let p = LibraryPath { path: folder_path };
 
