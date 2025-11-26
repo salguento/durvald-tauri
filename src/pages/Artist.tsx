@@ -1,7 +1,6 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { For } from "solid-js";
-import { A } from "@solidjs/router";
 import BackButton from "../ui/components/BackButton";
 
 interface SongInfo {

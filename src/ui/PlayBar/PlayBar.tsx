@@ -1,13 +1,46 @@
+// Dependecies
 import { invoke } from "@tauri-apps/api/core";
-
+import { onMount, Show } from "solid-js";
+// Types
+// Store
+import { playerStore } from "../../stores/player";
+// Function
 export default function PlayBar() {
+  const [playBackState, setPlayBackState] = playerStore.playBackState;
+  onMount(async () => {
+    setPlayBackState(await invoke("get_playback_state"));
+    console.log(playBackState());
+  });
   async function playMusic(path: string) {
     try {
       await invoke("play_song", { path: path });
       let obj = await invoke("get_audio_metadata", { path: path });
       console.log(await obj);
+      console.log(playBackState());
     } catch (error) {
       console.error("Failed to play audio:", error);
+    } finally {
+      setPlayBackState(await invoke("get_playback_state"));
+    }
+  }
+
+  async function pausePlayback() {
+    try {
+      await invoke("pause_playback");
+    } catch (error) {
+      console.error("Error resuming playback:", error);
+    } finally {
+      setPlayBackState(await invoke("get_playback_state"));
+    }
+  }
+
+  async function resumePlayback() {
+    try {
+      await invoke("resume_playback");
+    } catch (error) {
+      console.error("Error resuming playback:", error);
+    } finally {
+      setPlayBackState(await invoke("get_playback_state"));
     }
   }
 
@@ -69,7 +102,7 @@ export default function PlayBar() {
                     class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                     title="Shuffle"
                   >
-                    <span class="icon-[solar--shuffle-linear] h-6 w-6 "></span>
+                    <span class="icon-[solar--shuffle-linear] h-5 w-5 "></span>
                   </button>
                   <button
                     class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
@@ -77,13 +110,43 @@ export default function PlayBar() {
                   >
                     <span class="icon-[solar--rewind-back-bold] h-6 w-6"></span>
                   </button>
-                  <button
-                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
-                    title="Play"
-                    onclick={async () => playMusic("./assets/audio/song.wav")}
+                  <Show when={playBackState()?.is_empty == true}>
+                    <button
+                      class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                      title="Play"
+                      onclick={async () => playMusic("./assets/audio/song.wav")}
+                    >
+                      <span class="icon-[solar--play-circle-bold] h-8 w-8 "></span>
+                    </button>
+                  </Show>
+                  <Show
+                    when={
+                      playBackState()?.is_empty == false &&
+                      playBackState()?.is_paused == true
+                    }
                   >
-                    <span class="icon-[solar--play-circle-bold] h-10 w-10 "></span>
-                  </button>
+                    <button
+                      class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                      title="Resume"
+                      onclick={async () => resumePlayback()}
+                    >
+                      <span class="icon-[solar--play-circle-bold] h-8 w-8 "></span>
+                    </button>
+                  </Show>
+                  <Show
+                    when={
+                      playBackState()?.is_empty == false &&
+                      playBackState()?.is_paused == false
+                    }
+                  >
+                    <button
+                      class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                      title="Pause"
+                      onclick={async () => pausePlayback()}
+                    >
+                      <span class="icon-[solar--pause-circle-bold] h-8 w-8 "></span>
+                    </button>
+                  </Show>
                   <button
                     class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                     title="Foward"
@@ -94,7 +157,7 @@ export default function PlayBar() {
                     class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                     title="Repeat"
                   >
-                    <span class="icon-[solar--repeat-linear] h-6 w-6 "></span>
+                    <span class="icon-[solar--repeat-linear] h-5 w-5 "></span>
                   </button>
                 </div>
                 <div class="flex flex-col gap-1">

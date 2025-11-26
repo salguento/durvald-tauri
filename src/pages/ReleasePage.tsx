@@ -8,12 +8,15 @@ import { A } from "@solidjs/router";
 // Types
 import { ReleaseType } from "../types/releaseType";
 import SongType from "../types/songType";
+// Store
+import { playerStore } from "../stores/player";
 // UI
 import BackButton from "../ui/components/BackButton";
 
 export default function ReleasePage() {
   const [release, setRelease] = createSignal<ReleaseType>();
   const [songs, setSongs] = createSignal<SongType[]>([]);
+  const [playBackState, setPlayBackState] = playerStore.playBackState;
 
   function msToMinSec(ms: number) {
     return `${Math.floor(ms / 60)}:${((ms % 60) / 1).toFixed(0).padStart(2, "0")}`;
@@ -22,8 +25,13 @@ export default function ReleasePage() {
   async function playMusic(path: string) {
     try {
       await invoke("play_file", { path: path });
+      const state = await invoke("get_playback_state");
+      console.log(state);
     } catch (error) {
       console.error("Failed to play audio:", error);
+    } finally {
+      setPlayBackState(await invoke("get_playback_state"));
+      console.log(playBackState());
     }
   }
 
@@ -108,7 +116,7 @@ export default function ReleasePage() {
                   {(song: SongType) => (
                     <tr
                       class="hover:bg-zinc-700 "
-                      onClick={() => playMusic(song.file_path)}
+                      onDblClick={() => playMusic(song.file_path)}
                     >
                       <td class="px-4 py-2 whitespace-nowrap">
                         <button
