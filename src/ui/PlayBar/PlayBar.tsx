@@ -93,8 +93,8 @@ export default function PlayBar() {
                 </div>
               </div>
             </div>
-            <div class="size-1/2 ">
-              <div class="flex flex-col items-center justify-center h-full">
+            <div class="size-1/2 h-16">
+              <div class="flex flex-col items-center justify-around h-full">
                 <div class="flex flex-row items-center gap-4">
                   <button
                     class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"

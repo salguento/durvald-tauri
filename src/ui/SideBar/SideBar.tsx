@@ -1,8 +1,12 @@
+// Dependencies
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { A } from "@solidjs/router";
+// Store
+import { playerStore } from "../../stores/player";
 export default function SideBar() {
   const appWindow = getCurrentWindow();
+  const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
 
   return (
     <div class="bg-zinc-900 size-3/12 h-full rounded-3xl border border-zinc-700/50 z-1 overflow-hidden">
@@ -95,15 +99,12 @@ export default function SideBar() {
           class="h-full  rounded-2xl relative overflow-auto p-4 pt-36 "
         >
           <div class="flex flex-col gap-3">
-            <img
-              src="/assets/images/britpop-agcook.jpg"
-              class="rounded-2xl w-full"
-            />
+            <img src={currentTrack()?.artwork} class="rounded-2xl w-full" />
             <div class="flex flex-row justify-between w-full items-center">
               <span class="text-base lg:text-xl text-white font-semibold truncate hover:underline hover:cursor-pointer">
-                Britpop
+                {currentTrack()?.release_title}
               </span>
-              <div class="flex flex-row gap-4">
+              <div class="flex flex-row gap-2">
                 <button
                   class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                   title="favorite"
@@ -145,12 +146,12 @@ export default function SideBar() {
                   class="h-10 min-w-10 xl:h-16 xl:min-w-16 rounded-full"
                 ></img>
               </div>
-              <div class="flex flex-row justify-between w-full">
-                <span class="text-base lg:text-lg font-semibold text-zinc-400 truncate hover:underline hover:text-white hover:cursor-pointer">
-                  AG Cook
+              <div class="flex flex-row justify-between w-full relative">
+                <span class="text-base/tight lg:text-lg/tight font-semibold text-zinc-400  hover:underline hover:text-white hover:cursor-pointer w-full text-clip ">
+                  {currentTrack()?.artist_name}
                 </span>
                 <button
-                  class="flex flex-row  rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer items-center"
+                  class="flex flex-row  rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer items-center min-w-fit"
                   title="Follow"
                 >
                   <span class="icon-[solar--add-square-linear] h-6 w-6 "></span>
