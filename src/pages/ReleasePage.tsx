@@ -17,21 +17,20 @@ export default function ReleasePage() {
   const [release, setRelease] = createSignal<ReleaseType>();
   const [songs, setSongs] = createSignal<SongType[]>([]);
   const [playBackState, setPlayBackState] = playerStore.playBackState;
+  const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
 
   function msToMinSec(ms: number) {
     return `${Math.floor(ms / 60)}:${((ms % 60) / 1).toFixed(0).padStart(2, "0")}`;
   }
 
-  async function playMusic(path: string) {
+  async function playMusic(track: SongType) {
     try {
-      await invoke("play_file", { path: path });
-      const state = await invoke("get_playback_state");
-      console.log(state);
+      await invoke("play_file", { path: track.file_path });
+      setCurrentTrack(track);
     } catch (error) {
       console.error("Failed to play audio:", error);
     } finally {
       setPlayBackState(await invoke("get_playback_state"));
-      console.log(playBackState());
     }
   }
 
@@ -116,7 +115,7 @@ export default function ReleasePage() {
                   {(song: SongType) => (
                     <tr
                       class="hover:bg-zinc-700 "
-                      onDblClick={() => playMusic(song.file_path)}
+                      onDblClick={() => playMusic(song)}
                     >
                       <td class="px-4 py-2 whitespace-nowrap">
                         <button

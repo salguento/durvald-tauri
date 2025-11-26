@@ -42,6 +42,7 @@ pub struct ReleaseGroup {
 pub struct SongItem {
     song_id: u64,
     title: String,
+    artwork: String,
     artist_id: u64,
     artist_name: String,
     release_id: u64,
@@ -118,6 +119,7 @@ pub fn create_tables() -> Result<(), String> {
         "CREATE TABLE IF NOT EXISTS songs (
             song_id   INTEGER PRIMARY KEY,
             title TEXT NOT NULL,
+            artwork TEXT,
             artist_id INTEGER NOT NULL,
             artist_name TEXT NOT NULL,
             release_id INTEGER NOT NULL,
@@ -442,9 +444,10 @@ pub fn add_song(song: AudioMetadata) -> Result<(), String> {
 
     if !exists {
         db.execute(
-            "INSERT INTO songs (title, artist_id, artist_name, release_id, release_title, duration, track_number, disc_number, file_path) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            "INSERT INTO songs (title, artwork, artist_id, artist_name, release_id, release_title, duration, track_number, disc_number, file_path) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
             params![
                 &song.title,
+                &song.cover_image_base64,
                 artist_id,
                 &song.artist,
                 release_id,
@@ -621,23 +624,24 @@ pub fn get_songs_by_release_id(release_id: &str) -> Result<Vec<SongItem>, String
             Ok(SongItem {
                 song_id: row.get(0)?,
                 title: row.get(1)?,
-                artist_id: row.get(2)?,
-                artist_name: row.get(3)?,
-                release_id: row.get(4)?,
-                release_title: row.get(5)?,
-                track_number: row.get(6)?,
-                disc_number: row.get(7)?,
-                duration: row.get::<_, f64>(8)?.round() as u64,
-                bitrate: row.get(9)?,
-                sample_rate: row.get(10)?,
-                play_count: row.get(11)?,
-                last_played: row.get(12)?,
-                rating: row.get(13)?,
-                lyrics: row.get(14)?,
-                is_favorite: row.get(15)?,
-                file_path: row.get(16)?,
-                created_at: row.get::<_, String>(17)?.to_string(),
-                updated_at: row.get::<_, String>(18)?.to_string(),
+                artwork: row.get(2)?,
+                artist_id: row.get(3)?,
+                artist_name: row.get(4)?,
+                release_id: row.get(5)?,
+                release_title: row.get(6)?,
+                track_number: row.get(7)?,
+                disc_number: row.get(8)?,
+                duration: row.get::<_, f64>(9)?.round() as u64,
+                bitrate: row.get(10)?,
+                sample_rate: row.get(11)?,
+                play_count: row.get(12)?,
+                last_played: row.get(13)?,
+                rating: row.get(14)?,
+                lyrics: row.get(15)?,
+                is_favorite: row.get(16)?,
+                file_path: row.get(17)?,
+                created_at: row.get::<_, String>(18)?.to_string(),
+                updated_at: row.get::<_, String>(19)?.to_string(),
             })
         })
         .map_err(|e| format!("Failed to query songs: {}", e))?;

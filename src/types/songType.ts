@@ -1,6 +1,7 @@
 export default interface SongType {
   song_id: number;
   title: string;
+  artwork: string;
   artist_id: number;
   artist_name: string;
   release_id: number;

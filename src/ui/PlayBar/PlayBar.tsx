@@ -7,9 +7,9 @@ import { playerStore } from "../../stores/player";
 // Function
 export default function PlayBar() {
   const [playBackState, setPlayBackState] = playerStore.playBackState;
+  const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
   onMount(async () => {
     setPlayBackState(await invoke("get_playback_state"));
-    console.log(playBackState());
   });
   async function playMusic(path: string) {
     try {
@@ -47,11 +47,7 @@ export default function PlayBar() {
   return (
     <div class="bg-zinc-900 w-full h-24 rounded-3xl border border-zinc-700/50 relative overflow-hidden">
       <div class="absolute inset-0 z-1 rounded-3xl">
-        <img
-          src="/assets/images/britpop-agcook.jpg"
-          alt=""
-          class="w-full h-full"
-        />
+        <img src={currentTrack()?.artwork} alt="" class="w-full h-full" />
       </div>
       <div class="absolute inset-0 z-5 bg-zinc-900/50">
         <div class="backdrop-blur-3xl w-full flex items-center h-full">
@@ -60,16 +56,16 @@ export default function PlayBar() {
               <div class="flex flex-row items-center justify-between">
                 <div class="flex flex-row relative h-full items-center gap-3">
                   <img
-                    src="/assets/images/britpop-agcook.jpg"
+                    src={currentTrack()?.artwork}
                     alt=""
                     class="h-16 rounded-xl bg-white"
                   />
                   <div class="flex flex-col">
                     <span class="text-xs font-semibold text-white hover:underline hover:cursor-pointer">
-                      You Know Me
+                      {currentTrack()?.title}
                     </span>
                     <span class="text-xs font-medium text-zinc-400 hover:text-white hover:underline hover:cursor-pointer">
-                      AG Cook
+                      {currentTrack()?.artist_name}
                     </span>
                   </div>
                 </div>
@@ -78,7 +74,9 @@ export default function PlayBar() {
                     class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                     title="Favorite song"
                   >
-                    <span class="icon-[solar--heart-linear] h-5 w-5 "></span>
+                    <span
+                      class={` h-5 w-5 ${currentTrack()?.is_favorite ? "icon-[solar--heart-angle-bold]" : "icon-[solar--heart-angle-linear]"}`}
+                    ></span>
                   </button>
                   <button
                     class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
