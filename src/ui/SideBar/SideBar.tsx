@@ -11,11 +11,11 @@ export default function SideBar() {
   return (
     <div class="bg-zinc-900 size-3/12 h-full rounded-3xl border border-zinc-700/50 z-1 overflow-hidden">
       <div class="flex flex-col gap-4 h-full relative">
-        <div
-          class="w-full  absolute bg-zinc-900/50  z-1 "
-          data-tauri-drag-region
-        >
-          <div class=" w-full h-full justify-between flex backdrop-blur-3xl p-4">
+        <div class="w-full  absolute bg-zinc-900/50  z-1 ">
+          <div
+            class=" w-full h-full justify-between flex backdrop-blur-3xl p-4"
+            data-tauri-drag-region
+          >
             <div class="flex flex-row gap-3">
               <button
                 id="titlebar-minimize"
