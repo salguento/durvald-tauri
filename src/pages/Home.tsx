@@ -2,7 +2,7 @@
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { createSignal, For, onMount } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
-import ReleaseItem from "../ui/components/ReleaseItem";
+import ReleaseItem from "../ui/Components/ReleaseItem";
 
 // Types
 import { ReleaseType } from "../types/releaseType";

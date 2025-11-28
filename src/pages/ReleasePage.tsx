@@ -11,7 +11,7 @@ import SongType from "../types/songType";
 // Store
 import { playerStore } from "../stores/player";
 // UI
-import BackButton from "../ui/components/BackButton";
+import BackButton from "../ui/Components/BackButton";
 
 export default function ReleasePage() {
   const [release, setRelease] = createSignal<ReleaseType>();
