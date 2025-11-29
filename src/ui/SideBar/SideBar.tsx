@@ -34,7 +34,7 @@ export default function SideBar() {
                 title="Minimize"
                 onclick={async () => await appWindow.minimize()}
               >
-                <span class="icon-[solar--minimize-square-linear] h-6 w-6 "></span>
+                <span class="icon-[solar--square-top-up-linear] h-6 w-6 "></span>
               </button>
               <button
                 id="titlebar-maximize"
