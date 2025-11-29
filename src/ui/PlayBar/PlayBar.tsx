@@ -4,6 +4,8 @@ import { onMount, Show } from "solid-js";
 // Hooks
 import pausePlayback from "../../hooks/audio/pause";
 import resumePlayback from "../../hooks/audio/resume";
+// Utils
+import { secToMin } from "../../utils/secToMin";
 // Store
 import { playerStore } from "../../stores/playerStore";
 // UI
@@ -135,7 +137,7 @@ export default function PlayBar() {
                   <div class="flex flex-row justify-between items-center gap-3 text-xs text-zinc-400">
                     <span>
                       {playbackProgress().position
-                        ? playbackProgress().position
+                        ? secToMin(playbackProgress().position)
                         : ""}
                     </span>
                     <Slider
@@ -158,7 +160,7 @@ export default function PlayBar() {
                     </Slider>
                     <span>
                       {playbackProgress().duration
-                        ? playbackProgress().duration
+                        ? secToMin(playbackProgress().duration)
                         : ""}
                     </span>
                   </div>
