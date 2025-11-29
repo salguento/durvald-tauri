@@ -6,10 +6,13 @@ import pausePlayback from "../../hooks/audio/pause";
 import resumePlayback from "../../hooks/audio/resume";
 // Store
 import { playerStore } from "../../stores/playerStore";
+// UI
+import { Slider } from "@kobalte/core/slider";
 // Function
 export default function PlayBar() {
   const [playBackState, setPlayBackState] = playerStore.playBackState;
   const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
+  const [playbackProgress, setplaybackProgress] = playerStore.playbackProgress;
   onMount(async () => {
     setPlayBackState(await invoke("get_playback_state"));
   });
@@ -129,10 +132,35 @@ export default function PlayBar() {
                   </button>
                 </div>
                 <div class="flex flex-col gap-1">
-                  <div class="flex flex-row justify-between items-center gap-2 text-xs text-zinc-400">
-                    <span>0:00</span>
-                    <div class="bg-white h-1 w-[396px] xl:w-lg rounded-full"></div>
-                    <span>5:15</span>
+                  <div class="flex flex-row justify-between items-center gap-3 text-xs text-zinc-400">
+                    <span>
+                      {playbackProgress().position
+                        ? playbackProgress().position
+                        : ""}
+                    </span>
+                    <Slider
+                      class="relative flex flex-col items-center w-[256px]"
+                      value={[playbackProgress().percentage ?? 0]} // Set value from 0 to 1
+                      minValue={0}
+                      maxValue={1}
+                      step={0.001}
+                      onChange={(value) => {
+                        // Handle manual seek if needed
+                        console.log("Seeking to:", value[0]);
+                      }}
+                    >
+                      <Slider.Track class="bg-zinc-500 relative rounded-full h-1 w-full">
+                        <Slider.Fill class="absolute bg-white rounded-full h-full" />
+                        <Slider.Thumb class="block w-3 h-3 bg-white rounded-full -top-1 hover:cursor-pointer hover:w-4 hover:h-4 hover:-top-1.5 border border-zinc-900/50 focus:outline-0">
+                          <Slider.Input />
+                        </Slider.Thumb>
+                      </Slider.Track>
+                    </Slider>
+                    <span>
+                      {playbackProgress().duration
+                        ? playbackProgress().duration
+                        : ""}
+                    </span>
                   </div>
                 </div>
               </div>
