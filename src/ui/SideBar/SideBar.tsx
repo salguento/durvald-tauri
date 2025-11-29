@@ -3,7 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { A } from "@solidjs/router";
 // Store
-import { playerStore } from "../../stores/player";
+import { playerStore } from "../../stores/playerStore";
 export default function SideBar() {
   const appWindow = getCurrentWindow();
   const [currentTrack, setCurrentTrack] = playerStore.currentTrack;

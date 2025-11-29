@@ -1,4 +1,4 @@
-export default interface SongType {
+export default interface TrackType {
   song_id: number;
   title: string;
   artwork: string;

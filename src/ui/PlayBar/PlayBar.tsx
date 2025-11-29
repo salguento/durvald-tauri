@@ -1,9 +1,11 @@
 // Dependecies
 import { invoke } from "@tauri-apps/api/core";
 import { onMount, Show } from "solid-js";
-// Types
+// Hooks
+import pausePlayback from "../../hooks/audio/pause";
+import resumePlayback from "../../hooks/audio/resume";
 // Store
-import { playerStore } from "../../stores/player";
+import { playerStore } from "../../stores/playerStore";
 // Function
 export default function PlayBar() {
   const [playBackState, setPlayBackState] = playerStore.playBackState;
@@ -11,38 +13,6 @@ export default function PlayBar() {
   onMount(async () => {
     setPlayBackState(await invoke("get_playback_state"));
   });
-  async function playMusic(path: string) {
-    try {
-      await invoke("play_song", { path: path });
-      let obj = await invoke("get_audio_metadata", { path: path });
-      console.log(await obj);
-      console.log(playBackState());
-    } catch (error) {
-      console.error("Failed to play audio:", error);
-    } finally {
-      setPlayBackState(await invoke("get_playback_state"));
-    }
-  }
-
-  async function pausePlayback() {
-    try {
-      await invoke("pause_playback");
-    } catch (error) {
-      console.error("Error resuming playback:", error);
-    } finally {
-      setPlayBackState(await invoke("get_playback_state"));
-    }
-  }
-
-  async function resumePlayback() {
-    try {
-      await invoke("resume_playback");
-    } catch (error) {
-      console.error("Error resuming playback:", error);
-    } finally {
-      setPlayBackState(await invoke("get_playback_state"));
-    }
-  }
 
   return (
     <div class="bg-zinc-900 w-full h-24 rounded-3xl border border-zinc-700/50 relative overflow-hidden">
@@ -112,7 +82,7 @@ export default function PlayBar() {
                     <button
                       class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                       title="Play"
-                      onclick={async () => playMusic("./assets/audio/song.wav")}
+                      // onclick={async () => playMusic("./assets/audio/song.wav")}
                     >
                       <span class="icon-[solar--play-circle-bold] h-8 w-8 "></span>
                     </button>

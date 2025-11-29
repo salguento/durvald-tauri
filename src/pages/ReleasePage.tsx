@@ -5,34 +5,19 @@ import { useParams } from "@solidjs/router";
 import { invoke } from "@tauri-apps/api/core";
 import { createSignal } from "solid-js";
 import { A } from "@solidjs/router";
+// Hooks
+import playBack from "../hooks/audio/play";
+// Utils
+import msToMinSec from "../utils/msToSec";
 // Types
-import { ReleaseType } from "../types/releaseType";
-import SongType from "../types/songType";
-// Store
-import { playerStore } from "../stores/player";
+import { ReleaseType } from "../types/Release";
+import SongType from "../types/Track";
 // UI
 import BackButton from "../ui/Components/BackButton";
 
 export default function ReleasePage() {
   const [release, setRelease] = createSignal<ReleaseType>();
   const [songs, setSongs] = createSignal<SongType[]>([]);
-  const [playBackState, setPlayBackState] = playerStore.playBackState;
-  const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
-
-  function msToMinSec(ms: number) {
-    return `${Math.floor(ms / 60)}:${((ms % 60) / 1).toFixed(0).padStart(2, "0")}`;
-  }
-
-  async function playMusic(track: SongType) {
-    try {
-      await invoke("play_file", { path: track.file_path });
-      setCurrentTrack(track);
-    } catch (error) {
-      console.error("Failed to play audio:", error);
-    } finally {
-      setPlayBackState(await invoke("get_playback_state"));
-    }
-  }
 
   onMount(async () => {
     const params = useParams();
@@ -115,7 +100,7 @@ export default function ReleasePage() {
                   {(song: SongType) => (
                     <tr
                       class="hover:bg-zinc-700 "
-                      onDblClick={() => playMusic(song)}
+                      onDblClick={() => playBack(song)}
                     >
                       <td class="px-4 py-2 whitespace-nowrap">
                         <button

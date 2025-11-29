@@ -6,11 +6,15 @@ mod commands;
 use serde::Serialize;
 use std::fs;
 use std::path::PathBuf;
+use std::time::Duration;
+use tauri::async_runtime::Mutex;
 use tauri::command;
+use tauri::Emitter;
 
 use rusqlite::Connection;
-use std::sync::Mutex;
 use tokio::sync::Mutex as TokioMutex;
+
+use std::sync::Arc;
 
 use commands::database_commands::{
     add_path_to_library_paths, create_tables, get_paths_from_library_paths, get_release_by_id,
@@ -23,7 +27,14 @@ use audio::AudioPlayer;
 
 pub struct AppState {
     pub db: Mutex<Connection>,
-    pub audio_player: TokioMutex<AudioPlayer>,
+    pub audio_player: Arc<TokioMutex<AudioPlayer>>,
+}
+
+#[derive(Clone, Serialize)]
+struct ProgressPayload {
+    position: u64,
+    duration: Option<u64>,
+    percentage: Option<f32>,
 }
 
 #[derive(Serialize)]
@@ -71,6 +82,19 @@ async fn set_volume(volume: f32, state: tauri::State<'_, AppState>) -> Result<()
 }
 
 #[command]
+async fn get_progress(state: tauri::State<'_, AppState>) -> Result<(u64, Option<u64>), String> {
+    let player = state.audio_player.lock().await;
+    let (position, duration) = player.get_progress();
+    Ok((position.as_secs(), duration.map(|d| d.as_secs())))
+}
+
+#[command]
+async fn get_progress_percentage(state: tauri::State<'_, AppState>) -> Result<Option<f32>, String> {
+    let player = state.audio_player.lock().await;
+    Ok(player.get_progress_percentage())
+}
+
+#[command]
 async fn get_playback_state(
     state: tauri::State<'_, AppState>,
 ) -> Result<PlaybackStateInfo, String> {
@@ -85,6 +109,42 @@ async fn get_playback_state(
 async fn add_to_queue(path: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
     let mut player = state.audio_player.lock().await;
     player.add_to_queue(path).await.map_err(|e| e.to_string())
+}
+
+#[command]
+async fn start_progress_tracking(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    let app_clone = app.clone();
+    let player = state.audio_player.clone(); // Clone the Arc<TokioMutex>
+
+    tokio::spawn(async move {
+        loop {
+            tokio::time::sleep(Duration::from_millis(500)).await;
+
+            let player_lock = player.lock().await;
+            let (position, duration) = player_lock.get_progress();
+            let percentage = player_lock.get_progress_percentage();
+
+            // Stop emitting if player is empty
+            if player_lock.is_empty() {
+                break;
+            }
+
+            let payload = ProgressPayload {
+                position: position.as_secs(),
+                duration: duration.map(|d| d.as_secs()),
+                percentage,
+            };
+
+            drop(player_lock); // Release the lock before emitting
+
+            app_clone.emit("progress-update", payload).ok();
+        }
+    });
+
+    Ok(())
 }
 
 #[derive(Serialize)]
@@ -184,7 +244,7 @@ fn main() {
         tauri::Builder::default()
             .manage(AppState {
                 db: Mutex::new(conn),
-                audio_player: TokioMutex::new(player),
+                audio_player: Arc::new(TokioMutex::new(player)),
             })
             .setup(|_app| {
                 create_tables().expect("failed to create tables");
@@ -209,6 +269,9 @@ fn main() {
                 set_volume,
                 get_playback_state,
                 add_to_queue,
+                get_progress,
+                get_progress_percentage,
+                start_progress_tracking
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

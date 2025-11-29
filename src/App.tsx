@@ -2,6 +2,8 @@
 import "./App.css";
 import { Router, Route } from "@solidjs/router";
 import "overlayscrollbars/overlayscrollbars.css";
+// Store
+import { initializePlayerStore } from "./stores/playerStore";
 // Pages
 import Routes from "./Routes";
 import Layout from "./pages/Layout";
@@ -9,6 +11,7 @@ import Layout from "./pages/Layout";
 import { ErrorBoundary } from "solid-js";
 
 function App() {
+  initializePlayerStore();
   return (
     <ErrorBoundary
       fallback={(err) => {
