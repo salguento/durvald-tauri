@@ -55,15 +55,22 @@ async fn play_file(path: String, state: tauri::State<'_, AppState>) -> Result<()
 
 #[command]
 async fn pause_playback(state: tauri::State<'_, AppState>) -> Result<(), String> {
-    let player = state.audio_player.lock().await;
+    let mut player = state.audio_player.lock().await; // Changed to mut
     player.pause();
     Ok(())
 }
 
 #[command]
 async fn resume_playback(state: tauri::State<'_, AppState>) -> Result<(), String> {
-    let player = state.audio_player.lock().await;
+    let mut player = state.audio_player.lock().await; // Changed to mut
     player.resume();
+    Ok(())
+}
+
+#[command]
+async fn set_volume(volume: f32, state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await; // Changed to mut
+    player.set_volume(volume);
     Ok(())
 }
 
@@ -71,13 +78,6 @@ async fn resume_playback(state: tauri::State<'_, AppState>) -> Result<(), String
 async fn stop_playback(state: tauri::State<'_, AppState>) -> Result<(), String> {
     let mut player = state.audio_player.lock().await;
     player.stop();
-    Ok(())
-}
-
-#[command]
-async fn set_volume(volume: f32, state: tauri::State<'_, AppState>) -> Result<(), String> {
-    let player = state.audio_player.lock().await;
-    player.set_volume(volume);
     Ok(())
 }
 
@@ -99,6 +99,7 @@ async fn get_playback_state(
     state: tauri::State<'_, AppState>,
 ) -> Result<PlaybackStateInfo, String> {
     let player = state.audio_player.lock().await;
+    tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
     Ok(PlaybackStateInfo {
         is_paused: player.is_paused(),
         is_empty: player.is_empty(),
@@ -109,6 +110,27 @@ async fn get_playback_state(
 async fn add_to_queue(path: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
     let mut player = state.audio_player.lock().await;
     player.add_to_queue(path).await.map_err(|e| e.to_string())
+}
+
+#[command]
+async fn seek_to_position(seconds: u64, state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await;
+    player
+        .seek_to_position(seconds)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+#[command]
+async fn seek_to_percentage(
+    percentage: f32,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await;
+    player
+        .seek_to_percentage(percentage)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 #[command]
@@ -271,7 +293,9 @@ fn main() {
                 add_to_queue,
                 get_progress,
                 get_progress_percentage,
-                start_progress_tracking
+                start_progress_tracking,
+                seek_to_position,
+                seek_to_percentage,
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

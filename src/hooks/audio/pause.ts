@@ -12,6 +12,5 @@ export default async function pausePlayback() {
     console.error("Error resuming playback:", error);
   } finally {
     setPlayBackState(await invoke("get_playback_state"));
-    console.log(playbackProgress());
   }
 }

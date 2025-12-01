@@ -10,6 +10,7 @@ export default async function resumePlayback() {
   } catch (error) {
     console.error("Error resuming playback:", error);
   } finally {
+    console.log(playBackState());
     setPlayBackState(await invoke("get_playback_state"));
   }
 }

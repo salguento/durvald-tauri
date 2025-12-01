@@ -1,7 +1,9 @@
 // Dependecies
 import { invoke } from "@tauri-apps/api/core";
-import { onMount, Show } from "solid-js";
+import { listen } from "@tauri-apps/api/event";
+import { onMount, Show, createSignal } from "solid-js";
 // Hooks
+import playBack from "../../hooks/audio/play";
 import pausePlayback from "../../hooks/audio/pause";
 import resumePlayback from "../../hooks/audio/resume";
 // Utils
@@ -10,13 +12,33 @@ import { secToMin } from "../../utils/secToMin";
 import { playerStore } from "../../stores/playerStore";
 // UI
 import { Slider } from "@kobalte/core/slider";
+// Types
+import ProgressPayload from "../../types/ProgressPayload";
 // Function
 export default function PlayBar() {
+  const [isDragging, setIsDragging] = createSignal(false);
+  const [lastSeekTime, setLastSeekTime] = createSignal(0);
+  const [previewPosition, setPreviewPosition] = createSignal<number | null>(
+    null,
+  );
+  const [lastProgressUpdate, setLastProgressUpdate] = createSignal(0);
+  // Imported Stores
   const [playBackState, setPlayBackState] = playerStore.playBackState;
   const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
-  const [playbackProgress, setplaybackProgress] = playerStore.playbackProgress;
+  const [playbackProgress, setPlaybackProgress] = playerStore.playbackProgress;
+
   onMount(async () => {
     setPlayBackState(await invoke("get_playback_state"));
+
+    // In your progress listener
+    await listen<ProgressPayload>("progress-update", (event) => {
+      setLastProgressUpdate(Date.now());
+
+      // Only update if not currently dragging
+      if (!isDragging()) {
+        setPlaybackProgress(event.payload);
+      }
+    });
   });
 
   return (
@@ -87,7 +109,10 @@ export default function PlayBar() {
                     <button
                       class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                       title="Play"
-                      // onclick={async () => playMusic("./assets/audio/song.wav")}
+                      onclick={async () => {
+                        await playBack(currentTrack()!);
+                      }}
+                      disabled={!currentTrack()}
                     >
                       <span class="icon-[solar--play-circle-bold] h-8 w-8 "></span>
                     </button>
@@ -137,20 +162,51 @@ export default function PlayBar() {
                   <div class="flex flex-row justify-between items-center gap-3 text-xs text-zinc-400">
                     <Show when={!playBackState()?.is_empty}>
                       <span>
-                        {playbackProgress().position
-                          ? secToMin(playbackProgress().position)
-                          : "0:00"}
+                        {isDragging() && previewPosition() !== null
+                          ? secToMin(previewPosition()!)
+                          : secToMin(playbackProgress().position)}
                       </span>
                     </Show>
                     <Slider
-                      class="relative flex flex-col items-center w-[256px]"
-                      value={[playbackProgress().percentage ?? 0]} // Set value from 0 to 1
+                      class="relative flex flex-col items-center w-[256px] hover:cursor-pointer"
+                      value={
+                        previewPosition() !== null &&
+                        playbackProgress().duration
+                          ? [previewPosition()! / playbackProgress().duration!]
+                          : [playbackProgress().percentage ?? 0]
+                      }
                       minValue={0}
                       maxValue={1}
                       step={0.001}
                       onChange={(value) => {
-                        // Handle manual seek if needed
-                        console.log("Seeking to:", value[0]);
+                        setIsDragging(true);
+                        if (playbackProgress().duration) {
+                          const newPos =
+                            value[0] * playbackProgress().duration!;
+                          setPreviewPosition(newPos);
+                        }
+                      }}
+                      onChangeEnd={async (value) => {
+                        const percentage = value[0];
+                        setLastSeekTime(Date.now());
+
+                        // Update UI to final position
+                        if (playbackProgress().duration) {
+                          const finalPosition =
+                            percentage * playbackProgress().duration!;
+                          setPlaybackProgress({
+                            position: finalPosition,
+                            duration: playbackProgress().duration,
+                            percentage: percentage,
+                          });
+                        }
+
+                        setTimeout(() => {
+                          setIsDragging(false);
+                          setPreviewPosition(null);
+                        }, 200); // Show preview for 200ms after release
+
+                        await invoke("seek_to_percentage", { percentage });
                       }}
                     >
                       <Slider.Track class="bg-zinc-500 relative rounded-full h-1 w-full">

@@ -2,12 +2,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 // Types
-import SongType from "../../types/Track";
+import TrackType from "../../types/Track";
 import ProgressPayload from "../../types/ProgressPayload";
 // Store
 import { playerStore } from "../../stores/playerStore";
 // Function
-export default async function playBack(track: SongType) {
+export default async function playBack(track: TrackType) {
   const [playBackState, setPlayBackState] = playerStore.playBackState;
   const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
   const [playbackProgress, setPlaybackProgress] = playerStore.playbackProgress;
@@ -22,6 +22,5 @@ export default async function playBack(track: SongType) {
   } finally {
     setCurrentTrack(track);
     setPlayBackState(await invoke("get_playback_state"));
-    console.log(playbackProgress());
   }
 }

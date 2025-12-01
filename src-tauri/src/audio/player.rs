@@ -1,83 +1,107 @@
-use rodio::Source;
-use std::fs::File;
-use std::sync::Arc;
+use kira::sound::static_sound::{StaticSoundData, StaticSoundHandle};
+use kira::{sound::PlaybackState, Tween};
+use kira::{AudioManager, AudioManagerSettings, DefaultBackend};
 use std::time::Duration;
 
 pub struct AudioPlayer {
-    stream_handle: rodio::OutputStream,
-    current_sink: Option<Arc<rodio::Sink>>,
+    manager: AudioManager<DefaultBackend>,
+    current_sound: Option<StaticSoundHandle>,
     total_duration: Option<Duration>,
+    current_path: Option<String>,
+    paused_position: Option<f64>, // Store position when paused
 }
 
 impl AudioPlayer {
     pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
-        let stream_handle = rodio::OutputStreamBuilder::open_default_stream()?;
+        let manager = AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())?;
         Ok(Self {
-            stream_handle,
-            current_sink: None,
+            manager,
+            current_sound: None,
             total_duration: None,
+            current_path: None,
+            paused_position: None,
         })
     }
 
     pub async fn play(&mut self, path: String) -> Result<(), Box<dyn std::error::Error>> {
         self.stop();
-        let sink = rodio::Sink::connect_new(self.stream_handle.mixer());
-        let file = File::open(&path)?;
 
-        // Try to get the total duration
-        let duration = Self::get_file_duration(&path);
-        self.total_duration = duration;
+        let sound_data = StaticSoundData::from_file(&path)?;
+        self.total_duration = Some(sound_data.duration());
+        self.current_path = Some(path.clone());
+        self.paused_position = None;
 
-        let source = rodio::Decoder::try_from(file)?;
-        sink.append(source);
-        self.current_sink = Some(Arc::new(sink));
+        let sound_handle = self.manager.play(sound_data)?;
+        self.current_sound = Some(sound_handle);
+
         Ok(())
     }
 
-    pub fn pause(&self) {
-        if let Some(sink) = &self.current_sink {
-            sink.pause();
+    pub fn pause(&mut self) {
+        if let Some(sound) = &mut self.current_sound {
+            // Store as f64
+            self.paused_position = Some(sound.position());
+            sound.pause(Tween::default());
         }
     }
 
-    pub fn resume(&self) {
-        if let Some(sink) = &self.current_sink {
-            sink.play();
+    pub fn resume(&mut self) {
+        if let Some(sound) = &mut self.current_sound {
+            sound.resume(Tween::default());
+            self.paused_position = None;
         }
     }
 
     pub fn stop(&mut self) {
-        if let Some(sink) = self.current_sink.take() {
-            sink.stop();
+        if let Some(mut sound) = self.current_sound.take() {
+            sound.stop(Tween::default());
         }
         self.total_duration = None;
+        self.current_path = None;
+        self.paused_position = None;
     }
 
-    pub fn set_volume(&self, volume: f32) {
-        if let Some(sink) = &self.current_sink {
-            sink.set_volume(volume);
+    pub fn set_volume(&mut self, volume: f32) {
+        if let Some(sound) = &mut self.current_sound {
+            sound.set_volume(volume, Tween::default());
         }
     }
 
     pub fn is_paused(&self) -> bool {
-        self.current_sink
+        self.current_sound
             .as_ref()
-            .map(|sink| sink.is_paused())
+            .map(|sound| {
+                matches!(
+                    sound.state(),
+                    kira::sound::PlaybackState::Paused | kira::sound::PlaybackState::Pausing
+                )
+            })
             .unwrap_or(false)
     }
 
     pub fn is_empty(&self) -> bool {
-        self.current_sink
+        self.current_sound
             .as_ref()
-            .map(|sink| sink.empty())
+            .map(|sound| {
+                matches!(
+                    sound.state(),
+                    kira::sound::PlaybackState::Stopped | kira::sound::PlaybackState::Stopping
+                )
+            })
             .unwrap_or(true)
     }
 
     /// Get the current playback position
     pub fn get_position(&self) -> Duration {
-        self.current_sink
+        // First check if we have a stored paused position
+        if let Some(paused_pos) = self.paused_position {
+            return Duration::from_secs_f64(paused_pos);
+        }
+
+        // Otherwise get from the sound (if playing)
+        self.current_sound
             .as_ref()
-            .map(|sink| sink.get_pos())
+            .map(|sound| Duration::from_secs_f64(sound.position()))
             .unwrap_or(Duration::ZERO)
     }
 
@@ -103,23 +127,47 @@ impl AudioPlayer {
         None
     }
 
-    pub async fn add_to_queue(&mut self, path: String) -> Result<(), Box<dyn std::error::Error>> {
-        if let Some(sink) = &self.current_sink {
-            let file = File::open(path)?;
-            let source = rodio::Decoder::try_from(file)?;
-            sink.append(source);
+    /// Seek to a specific position in seconds
+    pub async fn seek_to_position(
+        &mut self,
+        seconds: u64,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(sound) = &mut self.current_sound {
+            sound.seek_to(seconds as f64);
+            // Update stored position
+            if self.paused_position.is_some() {
+                self.paused_position = Some(seconds as f64);
+            }
+            Ok(())
         } else {
-            // No current sink, create a new one
-            self.play(path).await?;
+            Err("No track is currently loaded".into())
         }
-        Ok(())
     }
 
-    // Helper function to get duration from a file
-    fn get_file_duration(path: &str) -> Option<Duration> {
-        File::open(path)
-            .ok()
-            .and_then(|file| rodio::Decoder::try_from(file).ok())
-            .and_then(|source| source.total_duration())
+    /// Seek to a specific percentage (0.0 to 1.0)
+    pub async fn seek_to_percentage(
+        &mut self,
+        percentage: f32,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(duration) = self.total_duration {
+            let target_seconds = (duration.as_secs_f32() * percentage.clamp(0.0, 1.0)) as u64;
+            self.seek_to_position(target_seconds).await
+        } else {
+            Err("Duration not available".into())
+        }
+    }
+
+    pub async fn add_to_queue(&mut self, path: String) -> Result<(), Box<dyn std::error::Error>> {
+        // Note: Kira doesn't have built-in queue support like rodio
+        // For now, we'll just play the next track when current finishes
+        // You'd need to implement a proper queue system separately
+        if self.is_empty() {
+            self.play(path).await?;
+        } else {
+            // Store in a queue vector and play when current finishes
+            // This would require additional queue management logic
+            return Err("Queue not implemented yet - current track still playing".into());
+        }
+        Ok(())
     }
 }
