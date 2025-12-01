@@ -69,7 +69,7 @@ async fn resume_playback(state: tauri::State<'_, AppState>) -> Result<(), String
 
 #[command]
 async fn set_volume(volume: f32, state: tauri::State<'_, AppState>) -> Result<(), String> {
-    let mut player = state.audio_player.lock().await; // Changed to mut
+    let mut player = state.audio_player.lock().await;
     player.set_volume(volume);
     Ok(())
 }

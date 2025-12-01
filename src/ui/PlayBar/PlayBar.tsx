@@ -6,6 +6,7 @@ import { onMount, Show, createSignal } from "solid-js";
 import playBack from "../../hooks/audio/play";
 import pausePlayback from "../../hooks/audio/pause";
 import resumePlayback from "../../hooks/audio/resume";
+import { useVolume } from "../../hooks/audio/useVolume";
 // Utils
 import { secToMin } from "../../utils/secToMin";
 // Store
@@ -22,6 +23,11 @@ export default function PlayBar() {
     null,
   );
   const [lastProgressUpdate, setLastProgressUpdate] = createSignal(0);
+  // Imported Hooks
+  const { volume, handleVolumeChange } = useVolume({
+    initialVolume: 50,
+    debounceDelay: 100,
+  });
   // Imported Stores
   const [playBackState, setPlayBackState] = playerStore.playBackState;
   const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
@@ -236,7 +242,21 @@ export default function PlayBar() {
                   >
                     <span class="icon-[solar--volume-loud-linear] h-6 w-6 "></span>
                   </button>
-                  <div class="w-24 h-1 bg-white rounded-full"></div>
+                  <Slider
+                    class="relative flex flex-col items-center w-24 hover:cursor-pointer"
+                    value={[volume()]}
+                    onChange={handleVolumeChange}
+                    minValue={0}
+                    maxValue={100}
+                    step={1}
+                  >
+                    <Slider.Track class="bg-zinc-500 relative rounded-full h-1 w-full">
+                      <Slider.Fill class="absolute bg-white rounded-full h-full" />
+                      <Slider.Thumb class="block w-3 h-3 bg-white rounded-full -top-1 hover:cursor-pointer hover:w-4 hover:h-4 hover:-top-1.5 border border-zinc-900/50 focus:outline-0">
+                        <Slider.Input />
+                      </Slider.Thumb>
+                    </Slider.Track>
+                  </Slider>
                 </div>
                 <div class="flex flex-row gap-4">
                   <button

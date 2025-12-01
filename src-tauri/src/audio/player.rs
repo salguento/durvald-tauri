@@ -1,5 +1,5 @@
 use kira::sound::static_sound::{StaticSoundData, StaticSoundHandle};
-use kira::{sound::PlaybackState, Tween};
+use kira::Tween;
 use kira::{AudioManager, AudioManagerSettings, DefaultBackend};
 use std::time::Duration;
 
@@ -8,7 +8,8 @@ pub struct AudioPlayer {
     current_sound: Option<StaticSoundHandle>,
     total_duration: Option<Duration>,
     current_path: Option<String>,
-    paused_position: Option<f64>, // Store position when paused
+    paused_position: Option<f64>,
+    current_volume: f32,
 }
 
 impl AudioPlayer {
@@ -20,6 +21,7 @@ impl AudioPlayer {
             total_duration: None,
             current_path: None,
             paused_position: None,
+            current_volume: 1.0,
         })
     }
 
@@ -31,7 +33,8 @@ impl AudioPlayer {
         self.current_path = Some(path.clone());
         self.paused_position = None;
 
-        let sound_handle = self.manager.play(sound_data)?;
+        let mut sound_handle = self.manager.play(sound_data)?;
+        sound_handle.set_volume(self.current_volume, Tween::default());
         self.current_sound = Some(sound_handle);
 
         Ok(())
@@ -62,8 +65,20 @@ impl AudioPlayer {
     }
 
     pub fn set_volume(&mut self, volume: f32) {
+        self.current_volume = volume;
+
+        // Apply to current sound if it exists
         if let Some(sound) = &mut self.current_sound {
-            sound.set_volume(volume, Tween::default());
+            // Convert linear volume (0.0-1.0) to decibels
+            let volume_db = if volume > 0.00001 {
+                // Small threshold to avoid log(0)
+                // Use f32 calculation since Value<Decibels> implements From<f32>
+                20.0 * volume.log10()
+            } else {
+                -80.0 // -80dB is effectively silent
+            };
+
+            sound.set_volume(volume_db as f32, Tween::default());
         }
     }
 
