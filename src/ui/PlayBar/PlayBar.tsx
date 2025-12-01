@@ -135,11 +135,13 @@ export default function PlayBar() {
                 </div>
                 <div class="flex flex-col gap-1">
                   <div class="flex flex-row justify-between items-center gap-3 text-xs text-zinc-400">
-                    <span>
-                      {playbackProgress().position
-                        ? secToMin(playbackProgress().position)
-                        : ""}
-                    </span>
+                    <Show when={!playBackState()?.is_empty}>
+                      <span>
+                        {playbackProgress().position
+                          ? secToMin(playbackProgress().position)
+                          : "0:00"}
+                      </span>
+                    </Show>
                     <Slider
                       class="relative flex flex-col items-center w-[256px]"
                       value={[playbackProgress().percentage ?? 0]} // Set value from 0 to 1
@@ -158,11 +160,13 @@ export default function PlayBar() {
                         </Slider.Thumb>
                       </Slider.Track>
                     </Slider>
-                    <span>
-                      {playbackProgress().duration
-                        ? secToMin(playbackProgress().duration)
-                        : ""}
-                    </span>
+                    <Show when={!playBackState()?.is_empty}>
+                      <span>
+                        {playbackProgress().duration
+                          ? secToMin(playbackProgress().duration)
+                          : "0:00"}
+                      </span>
+                    </Show>
                   </div>
                 </div>
               </div>
