@@ -2,10 +2,14 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { A } from "@solidjs/router";
+// Hooks
+import { useFullscreen } from "../../hooks/audio/useFullscreen";
 // Store
 import { playerStore } from "../../stores/playerStore";
+import { createSignal } from "solid-js";
 export default function SideBar() {
   const appWindow = getCurrentWindow();
+  const { isFullscreen, toogleFullscreen } = useFullscreen();
   const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
 
   return (
@@ -40,15 +44,11 @@ export default function SideBar() {
                 id="titlebar-maximize"
                 class="text-zinc-400 hover:text-white h-6"
                 title="Maximize"
-                onclick={async () => {
-                  if (await appWindow.isMaximized()) {
-                    await appWindow.unmaximize();
-                  } else {
-                    await appWindow.maximize();
-                  }
-                }}
+                onclick={toogleFullscreen}
               >
-                <span class="icon-[solar--maximize-square-linear] h-6 w-6 "></span>
+                <span
+                  class={`${isFullscreen() ? "icon-[solar--minimize-square-linear]" : "icon-[solar--maximize-square-linear]"} h-6 w-6`}
+                ></span>
               </button>
               <button
                 id="titlebar-close"
