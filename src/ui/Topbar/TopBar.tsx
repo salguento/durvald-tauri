@@ -7,7 +7,7 @@ export default function TopBar() {
   const appWindow = getCurrentWindow();
   const { isFullscreen, toogleFullscreen } = useFullscreen();
   return (
-    <div class=" h-10 grid grid-cols-3 pl-3.5 pr-4">
+    <div class="h-10 grid grid-cols-3 px-3.5">
       <div class="flex flex-row gap-4 justify-start" data-tauri-drag-region>
         <button
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
@@ -45,7 +45,6 @@ export default function TopBar() {
           title="Lyrics"
         >
           <span class="icon-[solar--document-add-linear] h-6 w-6 "></span>
-          <p class=" hidden 2xl:inline-block">Lyrics</p>
         </button>
         <button
           id="titlebar-minimize"
@@ -53,16 +52,15 @@ export default function TopBar() {
           title="Queue"
         >
           <span class="icon-[solar--playlist-linear] h-6 w-6 "></span>
-          <p class=" hidden 2xl:inline-block">Queue</p>
         </button>
       </div>
       <div
-        class="flex flex-row gap-3 h-full items-center justify-end"
+        class="flex flex-row gap-4 h-full items-center justify-end"
         data-tauri-drag-region
       >
         <button
           id="titlebar-minimize"
-          class="text-zinc-400 hover:text-white h-6"
+          class="text-zinc-400 hover:text-white flex items-center justify-center h-8 w-8"
           title="Minimize"
           onclick={async () => await appWindow.minimize()}
         >
@@ -70,7 +68,7 @@ export default function TopBar() {
         </button>
         <button
           id="titlebar-maximize"
-          class="text-zinc-400 hover:text-white h-6"
+          class="text-zinc-400 hover:text-white flex items-center justify-center h-8 w-8"
           title="Maximize"
           onclick={toogleFullscreen}
         >
@@ -80,7 +78,7 @@ export default function TopBar() {
         </button>
         <button
           id="titlebar-close"
-          class="text-zinc-400 hover:text-white h-6"
+          class="text-zinc-400 hover:text-white flex items-center justify-center h-8 w-8"
           title="Close"
           onclick={async () => appWindow.close()}
         >

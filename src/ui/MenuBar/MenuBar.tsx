@@ -1,7 +1,7 @@
 export default function MenuBar() {
   return (
-    <div class="bg-zinc-900 xl:size-1/6 lg:size-1/4 min-h-full rounded-3xl border border-zinc-700/50 p-4">
-      <div class="flex flex-col gap-6">
+    <div class="col-span-3 rounded-3xl border p-4 h-full">
+      <div class="flex flex-col gap-6 h-full">
         <div
           class="flex w-full flex-row flex-wrap justify-between items-center"
           data-tauri-drag-region
@@ -67,6 +67,12 @@ export default function MenuBar() {
             <span class="icon-[solar--playlist-minimalistic-2-bold] h-5 w-5 "></span>
             <span class="">Playlists</span>
           </div>
+        </div>
+        <div class="flex flex-col h-full justify-end">
+          <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-400 hover:cursor-pointer">
+            <span class="icon-[solar--settings-bold] h-5 w-5 "></span>
+            Settings
+          </button>
         </div>
       </div>
     </div>

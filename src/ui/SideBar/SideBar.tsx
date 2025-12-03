@@ -1,91 +1,16 @@
 // Dependencies
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { A } from "@solidjs/router";
 // Hooks
-import { useFullscreen } from "../../hooks/audio/useFullscreen";
+
 // Store
 import { playerStore } from "../../stores/playerStore";
 export default function SideBar() {
-  const appWindow = getCurrentWindow();
-  const { isFullscreen, toogleFullscreen } = useFullscreen();
   const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
 
   return (
-    <div class="bg-zinc-900 size-3/12 h-full rounded-3xl border border-zinc-700/50 z-1 overflow-hidden">
+    <div class="col-span-3 h-full rounded-3xl border border-zinc-500/50 z-1 overflow-hidden">
       <div class="flex flex-col gap-4 h-full relative">
-        <div class="w-full  absolute bg-zinc-900/50  z-1 ">
-          <div
-            class=" w-full h-full justify-between flex backdrop-blur-3xl p-4"
-            data-tauri-drag-region
-          >
-            <div class="flex flex-row gap-3">
-              <button
-                id="titlebar-minimize"
-                class="text-zinc-400 hover:text-white h-6 hover:cursor-pointer"
-                title="Settings"
-              >
-                <A href="/settings">
-                  <span class="icon-[solar--settings-linear] h-6 w-6 "></span>
-                </A>
-              </button>
-            </div>
-            <div class="flex flex-row gap-3">
-              <button
-                id="titlebar-minimize"
-                class="text-zinc-400 hover:text-white h-6"
-                title="Minimize"
-                onclick={async () => await appWindow.minimize()}
-              >
-                <span class="icon-[solar--square-top-up-linear] h-6 w-6 "></span>
-              </button>
-              <button
-                id="titlebar-maximize"
-                class="text-zinc-400 hover:text-white h-6"
-                title="Maximize"
-                onclick={toogleFullscreen}
-              >
-                <span
-                  class={`${isFullscreen() ? "icon-[solar--minimize-square-linear]" : "icon-[solar--maximize-square-linear]"} h-6 w-6`}
-                ></span>
-              </button>
-              <button
-                id="titlebar-close"
-                class="text-zinc-400 hover:text-white h-6"
-                title="Close"
-                onclick={async () => appWindow.close()}
-              >
-                <span class="icon-[solar--close-square-linear] h-6 w-6 "></span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="flex flex-row justify-between w-full absolute mt-13 bg-zinc-900/50 backdrop-blur-3xl p-4 z-1  border-t border-b border-zinc-700/50">
-          <button
-            id="titlebar-minimize"
-            title="Playing"
-            class="text-zinc-200 hover:text-white flex items-center gap-2 2xl:px-4 px-2.5  py-2.5 backdrop-blur-xl border border-white bg-zinc-800/50 hover:border-white rounded-full hover:cursor-pointer"
-          >
-            <span class="icon-[solar--play-stream-linear] h-6 w-6 "></span>
-            <p class=" hidden 2xl:inline">Playing</p>
-          </button>
-          <button
-            id="titlebar-minimize"
-            class="text-zinc-400 hover:text-white flex items-center gap-2 2xl:px-4 px-2.5 py-2.5 border border-transparent hover:border-white backdrop-blur-xl  rounded-full hover:cursor-pointer"
-            title="Lyrics"
-          >
-            <span class="icon-[solar--document-add-linear] h-6 w-6 "></span>
-            <p class=" hidden 2xl:inline-block">Lyrics</p>
-          </button>
-          <button
-            id="titlebar-minimize"
-            class="text-zinc-400 hover:text-white flex items-center gap-2 2xl:px-4 px-2.5 py-2.5  rounded-full border border-transparent hover:border-white hover:cursor-pointer"
-            title="Queue"
-          >
-            <span class="icon-[solar--playlist-linear] h-6 w-6 "></span>
-            <p class=" hidden 2xl:inline-block">Queue</p>
-          </button>
-        </div>
         <OverlayScrollbarsComponent
           element="div"
           options={{ scrollbars: { autoHide: "scroll" } }}
@@ -95,7 +20,7 @@ export default function SideBar() {
             },
           }}
           defer
-          class="h-full  rounded-2xl relative overflow-auto p-4 pt-36 "
+          class="h-full  rounded-2xl relative overflow-auto px-4 pt-4"
         >
           <div class="flex flex-col gap-3">
             <img src={currentTrack()?.artwork} class="rounded-2xl w-full" />
@@ -138,7 +63,7 @@ export default function SideBar() {
               </span>
               <span class="text-xs text-zinc-600 font-semibold">New Alias</span>
             </div>
-            <div class="flex flex-row p-4 bg-zinc-800 rounded-2xl items-center gap-3 hover:cursor-pointer">
+            <div class="flex flex-row items-center gap-3 hover:cursor-pointer">
               <div class="w-fit">
                 <img
                   src="/assets/images/ag-cook.jpg"
@@ -166,7 +91,7 @@ export default function SideBar() {
                 },
               }}
               defer
-              class="h-full  bg-zinc-800 p-4 rounded-2xl relative max-h-80 overflow-auto"
+              class="h-full relative max-h-96 overflow-auto bg-zinc-800/50 rounded-xl p-3"
             >
               <div class="flex flex-col gap-3">
                 <span class="text-sm text-zinc-400">

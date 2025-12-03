@@ -10,7 +10,7 @@ import playBack from "../hooks/audio/play";
 // Utils
 import msToMinSec from "../utils/msToSec";
 // Types
-import { ReleaseType } from "../types/Release";
+import { ReleaseType } from "../types/ReleaseType";
 import SongType from "../types/Track";
 // UI
 import BackButton from "../ui/Components/BackButton";
@@ -27,10 +27,10 @@ export default function ReleasePage() {
   });
 
   return (
-    <div class="bg-zinc-900 size-7/12 h-full rounded-3xl grow overflow-hidden border border-zinc-700/50">
+    <div class="col-span-6 h-full rounded-3xl overflow-hidden border border-zinc-500/50">
       <div class="relative w-full shadow-xl">
-        <div class="absolute  w-full text-white  bg-zinc-900/50  z-1  border-b border-zinc-700/50">
-          <div class="backdrop-blur-3xl grid grid-cols-5 items-center  pt-3 px-4 pb-3 w-full h-full">
+        <div class="absolute  w-full text-white  bg-black/50  z-1  border-b border-zinc-500/50">
+          <div class="backdrop-blur-2xl grid grid-cols-5 items-center  pt-3 px-4 pb-3 w-full h-full">
             <div
               class="flex items-center gap-2 col-span-2"
               data-tauri-drag-region
@@ -79,7 +79,7 @@ export default function ReleasePage() {
       >
         <div class="h-96 relative flex items-center">
           <div class="absolute w-full h-full  overflow-hidden flex items-center">
-            <div class="bg-zinc-900/50 backdrop-blur-3xl absolute w-full h-full"></div>
+            <div class="bg-black/50 backdrop-blur-2xl absolute w-full h-full"></div>
             <img src={release()?.artwork}></img>
           </div>
           <div class="flex flex-col gap-8 w-full relative pt-14">
@@ -130,11 +130,11 @@ export default function ReleasePage() {
                   <th class="px-2 text-left  py-1">Duration</th>
                 </tr>
               </thead>
-              <tbody class="bg-zinc-900 divide-y divide-zinc-700">
+              <tbody class="bg-black divide-y divide-zinc-500/50">
                 <For each={songs()}>
                   {(song: SongType) => (
                     <tr
-                      class="hover:bg-zinc-700 group hover:cursor-pointer relative h-8"
+                      class="hover:bg-zinc-800 group hover:cursor-pointer relative h-8"
                       onDblClick={() => playBack(song)}
                     >
                       <td class=" flex justify-center items-center px-2 w-fit  overflow-hidden h-8">

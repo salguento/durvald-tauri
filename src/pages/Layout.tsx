@@ -8,18 +8,22 @@ import TopBar from "../ui/Topbar/TopBar";
 
 const Layout: ParentComponent = (props) => {
   return (
-    <main class=" w-screen h-screen min-w-screen  bg-white dark:bg-black overflow-hidden relative">
+    <main class="bg-white dark:bg-black overflow-hidden">
       <div
-        class="flex flex-col w-screen p-2 gap-2 h-screen"
+        class="flex flex-col w-screen p-2 gap-2 h-screen relative"
         data-tauri-drag-region
       >
         <TopBar />
-        <div class="flex flex-row gap-2 h-full overflow-hidden">
+
+        <div class="grid grid-cols-12 grid-rows-1 gap-2 flex-1 overflow-hidden relative">
           <MenuBar />
-          {props.children}
-          <SideBar />
+
+          <div class="relative grid grid-cols-9 col-span-9 gap-2">
+            {props.children}
+            <SideBar />
+            <PlayBar />
+          </div>
         </div>
-        <PlayBar />
       </div>
     </main>
   );
