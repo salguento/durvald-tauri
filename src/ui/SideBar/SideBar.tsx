@@ -6,7 +6,6 @@ import { A } from "@solidjs/router";
 import { useFullscreen } from "../../hooks/audio/useFullscreen";
 // Store
 import { playerStore } from "../../stores/playerStore";
-import { createSignal } from "solid-js";
 export default function SideBar() {
   const appWindow = getCurrentWindow();
   const { isFullscreen, toogleFullscreen } = useFullscreen();
