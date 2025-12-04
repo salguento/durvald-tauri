@@ -14,16 +14,14 @@ const Layout: ParentComponent = (props) => {
         data-tauri-drag-region
       >
         <TopBar />
-
         <div class="grid grid-cols-12 grid-rows-1 gap-2 flex-1 overflow-hidden relative">
           <MenuBar />
-
           <div class="relative grid grid-cols-9 col-span-9 gap-2">
             {props.children}
             <SideBar />
-            <PlayBar />
           </div>
         </div>
+        <PlayBar />
       </div>
     </main>
   );

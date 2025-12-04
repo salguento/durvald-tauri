@@ -80,7 +80,7 @@ export default function ReleasePage() {
         <div class="h-96 relative flex items-center">
           <div class="absolute w-full h-full  overflow-hidden flex items-center">
             <div class="bg-black/50 backdrop-blur-2xl absolute w-full h-full"></div>
-            <img src={release()?.artwork}></img>
+            <img src={release()?.artwork} class="w-full"></img>
           </div>
           <div class="flex flex-col gap-8 w-full relative pt-14">
             <div class="flex flex-row gap-8 items-center px-4">

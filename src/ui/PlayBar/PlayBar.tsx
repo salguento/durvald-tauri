@@ -48,7 +48,7 @@ export default function PlayBar() {
   });
 
   return (
-    <div class="inset-x-3 bottom-3 h-20 rounded-3xl border border-zinc-500/50 absolute overflow-hidden">
+    <div class=" h-20 rounded-3xl border border-zinc-500/50 relative overflow-hidden">
       <Show when={currentTrack()}>
         <div class="absolute inset-0 z-1 rounded-3xl">
           <img
@@ -60,25 +60,25 @@ export default function PlayBar() {
       </Show>
       <div class="absolute inset-0 z-5 bg-black/20">
         <div class="backdrop-blur-xl w-full flex items-center h-full">
-          <div class="grid grid-cols-10 w-full items-center px-3 gap-4">
-            <div class="col-span-4 h-full">
-              <div class="flex flex-row items-center justify-between h-full">
-                <div class="flex flex-row relative h-full items-center gap-3">
+          <div class="grid grid-cols-12 w-full items-center px-3 gap-4">
+            <div class="col-span-4 h-full relative">
+              <div class="flex flex-row items-center justify-start h-full w-full gap-3">
+                <div class="flex flex-row h-full items-center gap-3 overflow-hidden">
                   <img
                     src={currentTrack()?.artwork}
                     alt=""
                     class="h-14 rounded-2xl bg-white"
                   />
-                  <div class="flex flex-col">
-                    <span class="text-xs font-semibold text-white hover:underline hover:cursor-pointer">
+                  <div class="flex flex-col truncate">
+                    <span class="text-xs font-semibold text-white hover:underline hover:cursor-pointer truncate">
                       {currentTrack()?.title}
                     </span>
-                    <span class="text-xs font-medium text-zinc-400 hover:text-white hover:underline hover:cursor-pointer">
+                    <span class="text-xs font-medium text-zinc-400 hover:text-white hover:underline hover:cursor-pointer truncate">
                       {currentTrack()?.artist_name}
                     </span>
                   </div>
                 </div>
-                <div class="flex flex-row gap-3">
+                <div class="flex flex-row justify-start  gap-3">
                   <button
                     class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                     title="Favorite song"
@@ -102,8 +102,8 @@ export default function PlayBar() {
                 </div>
               </div>
             </div>
-            <div class="col-span-4 h-16 items-center">
-              <div class="flex flex-col items-center justify-around h-full gap-2">
+            <div class="col-span-4 h-16 items-center justify-center">
+              <div class="flex flex-col items-center justify-around h-full gap-0">
                 <div class="flex flex-row items-center gap-4">
                   <button
                     class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
@@ -170,10 +170,20 @@ export default function PlayBar() {
                     <span class="icon-[solar--repeat-linear] h-5 w-5 "></span>
                   </button>
                 </div>
-                <div class="flex flex-col gap-1">
-                  <div class="flex flex-col justify-between items-center gap-1 text-xs text-zinc-400">
+                <div class="flex flex-col gap-1 relative w-full">
+                  <div class="flex flex-row justify-between items-center gap-2.5 text-xs text-zinc-400 relative w-full">
+                    <Show
+                      when={!playBackState()?.is_empty}
+                      fallback={<span class="h-4"></span>}
+                    >
+                      <span>
+                        {isDragging() && previewPosition() !== null
+                          ? secToMin(previewPosition()!)
+                          : secToMin(playbackProgress().position)}
+                      </span>
+                    </Show>
                     <Slider
-                      class="relative flex flex-col items-center w-[256px] hover:cursor-pointer"
+                      class="relative flex flex-col items-center w-full hover:cursor-pointer"
                       value={
                         previewPosition() !== null &&
                         playbackProgress().duration
@@ -221,27 +231,21 @@ export default function PlayBar() {
                         </Slider.Thumb>
                       </Slider.Track>
                     </Slider>
-                    <div class="flex justify-between w-full text-[10px]">
-                      <Show when={!playBackState()?.is_empty}>
-                        <span>
-                          {isDragging() && previewPosition() !== null
-                            ? secToMin(previewPosition()!)
-                            : secToMin(playbackProgress().position)}
-                        </span>
-                      </Show>
-                      <Show when={!playBackState()?.is_empty}>
-                        <span>
-                          {playbackProgress().duration
-                            ? secToMin(playbackProgress().duration)
-                            : "0:00"}
-                        </span>
-                      </Show>
-                    </div>
+                    <Show
+                      when={!playBackState()?.is_empty}
+                      fallback={<span class="h-4"></span>}
+                    >
+                      <span>
+                        {playbackProgress().duration
+                          ? secToMin(playbackProgress().duration)
+                          : "0:00"}
+                      </span>
+                    </Show>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="col-span-2">
+            <div class="col-span-4 flex  justify-center">
               <div class="flex flex-row items-center justify-center gap-3 ">
                 <button
                   class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
