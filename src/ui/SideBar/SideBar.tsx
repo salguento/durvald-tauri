@@ -5,11 +5,14 @@ import { A } from "@solidjs/router";
 
 // Store
 import { playerStore } from "../../stores/playerStore";
+import { uiStore } from "../../stores/uiStore";
 export default function SideBar() {
   const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
-
+  const [menuCollapsed, setMenuCollapsed] = uiStore.menuCollapsed;
   return (
-    <div class="col-span-3 h-full rounded-3xl border border-zinc-500/50 z-1 overflow-hidden">
+    <div
+      class={`${menuCollapsed() ? "flex grow max-w-80 w-full" : "col-span-3 xl:col-span-2"} h-full rounded-3xl border border-zinc-500/50 z-1 overflow-hidden`}
+    >
       <div class="flex flex-col gap-4 h-full relative">
         <OverlayScrollbarsComponent
           element="div"

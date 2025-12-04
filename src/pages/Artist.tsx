@@ -72,7 +72,7 @@ export default function Album() {
   ];
 
   return (
-    <div class="bg-zinc-900 size-7/12 h-full rounded-3xl grow overflow-hidden border border-zinc-700/50">
+    <div>
       <div class="relative w-full shadow-xl">
         <div class="absolute  w-full text-white  bg-zinc-900/50  z-1  border-b border-zinc-700/50">
           <div

@@ -1,77 +1,127 @@
+// Dependencies
+import { Show } from "solid-js";
+// Store
+import { uiStore } from "../../stores/uiStore";
+// Function
 export default function MenuBar() {
+  const [menuCollapsed, setMenuCollaped] = uiStore.menuCollapsed;
+  function collapseMenu() {
+    setMenuCollaped(!menuCollapsed());
+  }
   return (
-    <div class="col-span-3 rounded-3xl border p-4 h-full">
+    <div
+      class={`${menuCollapsed() ? "col-span-1 max-w-20" : "col-span-3 xl:col-span-2"} rounded-3xl border p-4 h-full`}
+    >
       <div class="flex flex-col gap-6 h-full">
-        <div
-          class="flex w-full flex-row flex-wrap justify-between items-center"
-          data-tauri-drag-region
-        >
-          <img
-            src="/assets/images/logotype.svg"
-            class="h-6"
-            alt="durvald logotype"
-          />
-          <button
-            class="hover:text-zinc-200 text-zinc-600 h-6 w-6 hover:cursor-pointer active:cursor-text"
-            title="Collapse"
+        <Show when={!menuCollapsed()}>
+          <div
+            class="flex w-full flex-row flex-wrap justify-between items-center"
+            data-tauri-drag-region
           >
-            <span class="icon-[solar--square-alt-arrow-left-linear] h-6 w-6 "></span>
-          </button>
-        </div>
+            <img
+              src="/assets/images/logotype.svg"
+              class="h-6"
+              alt="durvald logotype"
+            />
+            <button
+              class="hover:text-zinc-200 text-zinc-600 h-6 w-6 hover:cursor-pointer active:cursor-text"
+              title="Collapse"
+              onClick={() => {
+                collapseMenu();
+              }}
+            >
+              <span class="icon-[solar--square-alt-arrow-left-linear] h-6 w-6 "></span>
+            </button>
+          </div>
+        </Show>
+        <Show when={menuCollapsed()}>
+          <div
+            class="flex w-full flex-col gap-4 flex-wrap justify-between items-center"
+            data-tauri-drag-region
+          >
+            <img
+              src="/assets/images/logo.svg"
+              class="h-6"
+              alt="durvald logotype"
+            />
+            <button
+              class="hover:text-zinc-200 text-zinc-600 h-6 w-6 hover:cursor-pointer active:cursor-text"
+              title="Collapse"
+              onClick={() => {
+                collapseMenu();
+              }}
+            >
+              <span class="icon-[solar--square-alt-arrow-right-linear] h-6 w-6 "></span>
+            </button>
+          </div>
+        </Show>
         <div class="relative w-full">
-          <input
-            type="text"
-            class="rounded-lg w-full border border-transparent bg-zinc-800 focus:bg-zinc-900 hover:border-zinc-600 pl-10 placeholder:text-zinc-600 text-base h-10 font-medium text-white inline-block align-middle pt-1"
-            placeholder="Search"
-          ></input>
-          <span class="absolute left-2.5 top-2.5 icon-[solar--magnifer-linear] h-5 w-5 text-zinc-600 :text-white"></span>
+          <Show
+            when={!menuCollapsed()}
+            fallback={
+              <button class="flex flex-row p-2.5 rounded-lg h-10 w-10 hover:bg-zinc-800 focus:bg-zinc-900 font-medium text-zinc-300 hover:cursor-pointer">
+                <span class="icon-[solar--magnifer-linear] h-5 w-5 "></span>
+              </button>
+            }
+          >
+            <input
+              type="text"
+              class="rounded-lg w-full border border-transparent bg-zinc-800 focus:bg-zinc-900 hover:border-zinc-600 pl-10 placeholder:text-zinc-600 text-base h-10 font-medium text-white inline-block align-middle pt-1"
+              placeholder="Search"
+            ></input>
+            <span class="absolute left-2.5 top-2.5 icon-[solar--magnifer-linear] h-5 w-5 text-zinc-600 :text-white"></span>
+          </Show>
         </div>
         <div class="flex flex-col ">
           <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--home-angle-2-linear] h-5 w-5 "></span>
-            Home
+            <Show when={!menuCollapsed()}>Home</Show>
           </button>
           <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--bell-linear] h-5 w-5 "></span>
-            New
+            <Show when={!menuCollapsed()}>New</Show>
           </button>
           <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--clock-circle-linear] h-5 w-5 "></span>
-            Recently Added
+            <Show when={!menuCollapsed()}>Recently Added</Show>
           </button>
         </div>
         <div class="flex flex-col">
-          <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500 items-center">
-            <span class="icon-[solar--music-library-2-linear] h-5 w-5 "></span>
-            <span>Library</span>
-          </div>
+          <Show when={!menuCollapsed()}>
+            <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500 items-center">
+              <span class="icon-[solar--music-library-2-linear] h-5 w-5 "></span>
+              <span>Library</span>
+            </div>
+          </Show>
           <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--microphone-2-linear] h-5 w-5 "></span>
-            Artists
+            <Show when={!menuCollapsed()}>Artists</Show>
           </button>
           <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--library-linear] h-5 w-5 "></span>
-            Albuns
+            <Show when={!menuCollapsed()}> Albuns</Show>
           </button>
           <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--music-notes-linear] h-5 w-5 "></span>
-            Songs
+            <Show when={!menuCollapsed()}>Songs</Show>
           </button>
           <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--music-note-slider-linear] h-5 w-5 "></span>
-            Genres
+            <Show when={!menuCollapsed()}>Genres</Show>
           </button>
         </div>
-        <div class="flex flex-col">
-          <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500 items-center">
-            <span class="icon-[solar--playlist-minimalistic-2-bold] h-5 w-5 "></span>
-            <span class="">Playlists</span>
+        <Show when={!menuCollapsed()}>
+          <div class="flex flex-col">
+            <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500 items-center">
+              <span class="icon-[solar--playlist-minimalistic-2-bold] h-5 w-5 "></span>
+              <span class="">Playlists</span>
+            </div>
           </div>
-        </div>
+        </Show>
         <div class="flex flex-col h-full justify-end">
           <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-400 hover:cursor-pointer">
             <span class="icon-[solar--settings-bold] h-5 w-5 "></span>
-            Settings
+            <Show when={!menuCollapsed()}>Settings</Show>
           </button>
         </div>
       </div>

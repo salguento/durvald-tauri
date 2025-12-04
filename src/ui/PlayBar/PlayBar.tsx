@@ -61,7 +61,7 @@ export default function PlayBar() {
       <div class="absolute inset-0 z-5 bg-black/20">
         <div class="backdrop-blur-xl w-full flex items-center h-full">
           <div class="grid grid-cols-12 w-full items-center px-3 gap-4">
-            <div class="col-span-4 h-full relative">
+            <div class="col-span-4 xl:col-span-3 h-full relative">
               <div class="flex flex-row items-center justify-start h-full w-full gap-3">
                 <div class="flex flex-row h-full items-center gap-3 overflow-hidden">
                   <img
@@ -102,7 +102,7 @@ export default function PlayBar() {
                 </div>
               </div>
             </div>
-            <div class="col-span-4 h-16 items-center justify-center">
+            <div class="col-span-4 xl:col-span-6 h-16 items-center justify-center">
               <div class="flex flex-col items-center justify-around h-full gap-0">
                 <div class="flex flex-row items-center gap-4">
                   <button
@@ -245,7 +245,7 @@ export default function PlayBar() {
                 </div>
               </div>
             </div>
-            <div class="col-span-4 flex  justify-center">
+            <div class="col-span-4 xl:col-span-3 flex  justify-center">
               <div class="flex flex-row items-center justify-center gap-3 ">
                 <button
                   class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"

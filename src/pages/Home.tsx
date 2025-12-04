@@ -3,7 +3,6 @@ import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { createSignal, For, onMount } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import ReleaseItem from "../ui/Components/ReleaseItem";
-
 // Types
 import { ReleaseType } from "../types/ReleaseType";
 
@@ -18,9 +17,9 @@ export default function Page() {
     }
   });
   return (
-    <div class="col-span-6 h-full rounded-3xl grow overflow-hidden border border-zinc-500/50">
+    <div>
       <div class="relative w-full shadow-xl">
-        <div class="absolute  w-full text-white  bg-black/50  z-1  border-b border-zinc-700/50">
+        <div class="absolute w-full text-white  bg-black/50  z-1  border-b border-zinc-700/50">
           <div
             class="backdrop-blur-3xl flex flex-row items-center gap-2 pt-3 px-4 pb-3 w-full h-full "
             data-tauri-drag-region
