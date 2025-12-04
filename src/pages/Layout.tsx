@@ -5,11 +5,15 @@ import MenuBar from "../ui/MenuBar/MenuBar";
 import SideBar from "../ui/SideBar/SideBar";
 import PlayBar from "../ui/PlayBar/PlayBar";
 import TopBar from "../ui/Topbar/TopBar";
+// Hooks
+import { useShowSideBar } from "../hooks/ui/useShowSideBar";
 // Stores
 import { uiStore } from "../stores/uiStore";
 
 const Layout: ParentComponent = (props) => {
   const [menuCollapsed, setMenuCollapsed] = uiStore.menuCollapsed;
+  const { showSideBar } = useShowSideBar();
+
   return (
     <main class="overflow-hidden">
       <div
@@ -25,7 +29,7 @@ const Layout: ParentComponent = (props) => {
             class={`${menuCollapsed() ? "flex grow" : "grid grid-cols-9 col-span-9 xl:col-span-10"} relative gap-2 w-full overflow-hidden`}
           >
             <div
-              class={`${menuCollapsed() ? "w-full" : "col-span-6 xl:col-span-7"} h-full rounded-3xl grow overflow-hidden border border-zinc-500/50`}
+              class={`${menuCollapsed() ? "w-full " : `col-span-6  ${showSideBar() ? "xl:col-span-7" : "col-span-full"}`} ${showSideBar() ? "" : "col-span-full"} h-full rounded-3xl grow overflow-hidden border border-zinc-500/50`}
             >
               {props.children}
             </div>

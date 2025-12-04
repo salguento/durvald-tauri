@@ -2,5 +2,6 @@
 import { createSignal } from "solid-js";
 // States
 export const uiStore = {
-  menuCollapsed: createSignal<boolean>(),
+  menuCollapsed: createSignal<boolean>(false),
+  showSideBar: createSignal<boolean>(true),
 };

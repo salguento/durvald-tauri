@@ -1,11 +1,14 @@
 // Dependencies
 import { getCurrentWindow } from "@tauri-apps/api/window";
 // Hooks
-import { useFullscreen } from "../../hooks/audio/useFullscreen";
+import { useFullscreen } from "../../hooks/ui/useFullscreen";
+import { useShowSideBar } from "../../hooks/ui/useShowSideBar";
 // Function
 export default function TopBar() {
   const appWindow = getCurrentWindow();
   const { isFullscreen, toogleFullscreen } = useFullscreen();
+  const { toogleSideBar } = useShowSideBar();
+
   return (
     <div class="h-10 grid grid-cols-3 px-3.5">
       <div class="flex flex-row gap-4 justify-start" data-tauri-drag-region>
@@ -36,6 +39,9 @@ export default function TopBar() {
           id="titlebar-minimize"
           title="Playing"
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
+          onClick={() => {
+            toogleSideBar();
+          }}
         >
           <span class="icon-[solar--play-stream-linear] h-6 w-6 "></span>
         </button>
@@ -43,6 +49,9 @@ export default function TopBar() {
           id="titlebar-minimize"
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
           title="Lyrics"
+          onClick={() => {
+            toogleSideBar();
+          }}
         >
           <span class="icon-[solar--document-add-linear] h-6 w-6 "></span>
         </button>
@@ -50,6 +59,9 @@ export default function TopBar() {
           id="titlebar-minimize"
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
           title="Queue"
+          onClick={() => {
+            toogleSideBar();
+          }}
         >
           <span class="icon-[solar--playlist-linear] h-6 w-6 "></span>
         </button>

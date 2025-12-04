@@ -14,10 +14,7 @@ export default function MenuBar() {
     >
       <div class="flex flex-col gap-6 h-full">
         <Show when={!menuCollapsed()}>
-          <div
-            class="flex w-full flex-row flex-wrap justify-between items-center"
-            data-tauri-drag-region
-          >
+          <div class="flex w-full flex-row flex-wrap justify-between items-center">
             <img
               src="/assets/images/logotype.svg"
               class="h-6"
@@ -46,7 +43,7 @@ export default function MenuBar() {
             />
             <button
               class="hover:text-zinc-200 text-zinc-600 h-6 w-6 hover:cursor-pointer active:cursor-text"
-              title="Collapse"
+              title="Expand"
               onClick={() => {
                 collapseMenu();
               }}
