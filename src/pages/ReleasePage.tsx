@@ -83,7 +83,7 @@ export default function ReleasePage() {
             <img src={release()?.artwork} class="w-full"></img>
           </div>
           <div class="flex flex-col gap-8 w-full relative pt-14">
-            <div class="flex flex-row gap-8 items-center px-4">
+            <div class="flex flex-row gap-8 items-center px-10">
               <div>
                 <img
                   src={release()?.artwork}
@@ -120,26 +120,27 @@ export default function ReleasePage() {
           </div>
         </div>
         <div>
-          <div class="  shadow overflow-hidden">
-            <table class="w-full divide-y divide-zinc-700">
+          <div class="  shadow overflow-hidden ">
+            <table class="w-full divide-y divide-zinc-700/50">
               <thead class="h-4 text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
                 <tr class="">
                   <th class="w-8  text-left py-1"></th>
                   <th class="w-8 text-center py-1">#</th>
                   <th class="px-2  text-left py-1">Title</th>
-                  <th class="px-2 text-left  py-1">Duration</th>
+                  <th class="px-2 text-right  py-1">Duration</th>
+                  <th class="px-2 text-right  py-1"></th>
                 </tr>
               </thead>
-              <tbody class="bg-black divide-y divide-zinc-500/50">
+              <tbody class="bg-black divide-y divide-zinc-700/50">
                 <For each={songs()}>
                   {(song: SongType) => (
                     <tr
-                      class="hover:bg-zinc-800 group hover:cursor-pointer relative h-8"
+                      class="hover:bg-zinc-900 group hover:cursor-pointer relative h-12"
                       onDblClick={() => playBack(song)}
                     >
-                      <td class=" flex justify-center items-center px-2 w-fit  overflow-hidden h-8">
+                      <td class=" flex justify-center items-center px-2 w-fit  overflow-hidden h-12">
                         <button
-                          class="text-zinc-400 hover:text-white hover:cursor-pointer  flex justify-center w-4"
+                          class="text-zinc-400 hover:text-white hover:cursor-pointer  flex justify-center items-center w-4"
                           title={`${
                             song.is_favorite
                               ? "Unfavorite song"
@@ -169,10 +170,13 @@ export default function ReleasePage() {
                           </button>
                         </div>
                       </td>
-                      <td class="px-2  whitespace-nowrap">
-                        <div class="flex items-center">
+                      <td class="px-2 whitespace-nowrap">
+                        <div class="flex flex-col justify-start text-left">
                           <div class="text-sm font-medium text-zinc-400">
                             {song.title}
+                          </div>
+                          <div class="text-xs font-medium text-zinc-600">
+                            {song.artist_name}
                           </div>
                         </div>
                       </td>
@@ -187,17 +191,23 @@ export default function ReleasePage() {
                           {song.isFavorite ? "Folder" : song.isAdded || "File"}
                         </span>
                       </td>*/}
-                      <td class="px-6  whitespace-nowrap text-sm text-zinc-400">
+                      <td class="px-2  whitespace-nowrap text-sm text-zinc-400 text-right">
                         {msToMinSec(song.duration)}
+                      </td>
+                      <td class="pr-2 group-hover:visible hover:text-white invisible flex items-center justify-center  whitespace-nowrap text-sm text-zinc-400 text-right">
+                        <button
+                          class="  h-4 w-4 hover:cursor-pointer"
+                          title="Options"
+                          onClick={() => playBack(song)}
+                        >
+                          <span class="icon-[solar--menu-dots-bold] h-4 w-4"></span>
+                        </button>
                       </td>
                     </tr>
                   )}
                 </For>
               </tbody>
             </table>
-          </div>
-          <div class="w-full">
-            <div class="w-full h-full bg-amber-500"></div>
           </div>
         </div>
       </OverlayScrollbarsComponent>

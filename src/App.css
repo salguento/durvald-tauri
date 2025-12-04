@@ -1,44 +1,48 @@
 @import "tailwindcss";
 @plugin "@iconify/tailwind4";
 
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
+body {
+    @apply bg-white dark:bg-black;
+}
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+:root {
+    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
 }
 
 .titlebar {
-  height: 30px;
-  background: #329ea3;
-  user-select: none;
-  display: grid;
-  grid-template-columns: auto max-content;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+    height: 30px;
+    background: #329ea3;
+    user-select: none;
+    display: grid;
+    grid-template-columns: auto max-content;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
 }
 .titlebar > .controls {
-  display: flex;
+    display: flex;
 }
 .titlebar button {
-  appearance: none;
-  padding: 0;
-  margin: 0;
-  border: none;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width: 30px;
-  background-color: transparent;
+    appearance: none;
+    padding: 0;
+    margin: 0;
+    border: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 30px;
+    background-color: transparent;
 }
 .titlebar button:hover {
-  background: #5bbec3;
+    background: #5bbec3;
 }

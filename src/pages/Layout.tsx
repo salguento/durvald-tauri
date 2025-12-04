@@ -8,7 +8,7 @@ import TopBar from "../ui/Topbar/TopBar";
 
 const Layout: ParentComponent = (props) => {
   return (
-    <main class="bg-white dark:bg-black overflow-hidden">
+    <main class="overflow-hidden">
       <div
         class="flex flex-col w-screen p-2 gap-2 h-screen relative"
         data-tauri-drag-region
