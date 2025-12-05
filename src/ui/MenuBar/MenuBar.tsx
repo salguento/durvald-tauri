@@ -1,5 +1,6 @@
 // Dependencies
 import { Show } from "solid-js";
+import { A } from "@solidjs/router";
 // Store
 import { uiStore } from "../../stores/uiStore";
 // Function
@@ -90,10 +91,12 @@ export default function MenuBar() {
               <span>Library</span>
             </div>
           </Show>
-          <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
-            <span class="icon-[solar--microphone-2-linear] h-5 w-5 "></span>
-            <Show when={!menuCollapsed()}>Artists</Show>
-          </button>
+          <A href="/all-artists">
+            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+              <span class="icon-[solar--microphone-2-linear] h-5 w-5 "></span>
+              <Show when={!menuCollapsed()}>Artists</Show>
+            </button>
+          </A>
           <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--library-linear] h-5 w-5 "></span>
             <Show when={!menuCollapsed()}> Albuns</Show>
