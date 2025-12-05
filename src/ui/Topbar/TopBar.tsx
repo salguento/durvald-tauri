@@ -92,7 +92,7 @@ export default function TopBar() {
         <button
           id="titlebar-maximize"
           class="text-zinc-400 hover:text-white flex items-center justify-center h-8 w-8"
-          title="Maximize"
+          title={`${isFullscreen() ? "Windowed" : "Fullscreen"}`}
           onclick={toogleFullscreen}
         >
           <span
