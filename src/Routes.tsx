@@ -7,6 +7,7 @@ const ReleasePage = lazy(() => import("./pages/ReleasePage"));
 const Artist = lazy(() => import("./pages/Artist"));
 const AllArtists = lazy(() => import("./pages/AllArtists"));
 const AllReleases = lazy(() => import("./pages/AllReleases"));
+const AllSongs = lazy(() => import("./pages/AllSongs"));
 
 export default function Routes() {
   return (
@@ -17,6 +18,7 @@ export default function Routes() {
       <Route path="/artist/:id" component={Artist} />
       <Route path="/all-artists" component={AllArtists} />
       <Route path="/all-releases" component={AllReleases} />
+      <Route path="/all-songs" component={AllSongs} />
     </>
   );
 }

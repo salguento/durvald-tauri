@@ -103,10 +103,12 @@ export default function MenuBar() {
               <Show when={!menuCollapsed()}> Albuns</Show>
             </button>
           </A>
-          <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
-            <span class="icon-[solar--music-notes-linear] h-5 w-5 "></span>
-            <Show when={!menuCollapsed()}>Songs</Show>
-          </button>
+          <A href="/all-songs">
+            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+              <span class="icon-[solar--music-notes-linear] h-5 w-5 "></span>
+              <Show when={!menuCollapsed()}>Songs</Show>
+            </button>
+          </A>
           <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--music-note-slider-linear] h-5 w-5 "></span>
             <Show when={!menuCollapsed()}>Genres</Show>
