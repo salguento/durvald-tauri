@@ -27,7 +27,7 @@ export default function ReleasePage() {
   });
 
   return (
-    <div>
+    <div class="h-full">
       <div class="relative w-full shadow-xl">
         <div class="absolute  w-full text-white  bg-black/50  z-1  border-b border-zinc-500/50">
           <div class="backdrop-blur-2xl grid grid-cols-5 items-center  pt-3 px-4 pb-3 w-full h-full">
@@ -67,7 +67,7 @@ export default function ReleasePage() {
         </div>
       </div>
       <OverlayScrollbarsComponent
-        element="div"
+        element="span"
         options={{ scrollbars: { autoHide: "scroll" } }}
         events={{
           scroll: () => {
