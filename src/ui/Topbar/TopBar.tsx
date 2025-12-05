@@ -3,11 +3,22 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 // Hooks
 import { useFullscreen } from "../../hooks/ui/useFullscreen";
 import { useShowSideBar } from "../../hooks/ui/useShowSideBar";
+// Store
+import { uiStore } from "../../stores/uiStore";
 // Function
 export default function TopBar() {
   const appWindow = getCurrentWindow();
   const { isFullscreen, toogleFullscreen } = useFullscreen();
-  const { toogleSideBar } = useShowSideBar();
+  const { openSideBar, closeSideBar, showSideBar } = useShowSideBar();
+  const [sideBarTab, setSideBarTab] = uiStore.sideBarTab;
+  function handleTab(tabName: string) {
+    if (sideBarTab() == tabName && showSideBar()) {
+      closeSideBar();
+    } else {
+      setSideBarTab(tabName);
+      openSideBar();
+    }
+  }
 
   return (
     <div class="h-10 grid grid-cols-3 px-3.5">
@@ -36,31 +47,31 @@ export default function TopBar() {
         data-tauri-drag-region
       >
         <button
-          id="titlebar-minimize"
+          id="playing-tab"
           title="Playing"
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
           onClick={() => {
-            toogleSideBar();
+            handleTab("playing");
           }}
         >
           <span class="icon-[solar--play-stream-linear] h-6 w-6 "></span>
         </button>
         <button
-          id="titlebar-minimize"
+          id="lyrics-tab"
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
           title="Lyrics"
           onClick={() => {
-            toogleSideBar();
+            handleTab("lyrics");
           }}
         >
           <span class="icon-[solar--document-add-linear] h-6 w-6 "></span>
         </button>
         <button
-          id="titlebar-minimize"
+          id="queue-tab"
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
           title="Queue"
           onClick={() => {
-            toogleSideBar();
+            handleTab("queue");
           }}
         >
           <span class="icon-[solar--playlist-linear] h-6 w-6 "></span>

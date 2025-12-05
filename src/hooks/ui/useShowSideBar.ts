@@ -4,12 +4,18 @@ import { uiStore } from "../../stores/uiStore";
 export function useShowSideBar() {
   const [showSideBar, setShowSideBar] = uiStore.showSideBar;
 
-  const toogleSideBar = () => {
-    setShowSideBar(!showSideBar());
+  const openSideBar = () => {
+    setShowSideBar(true);
+  };
+
+  const closeSideBar = () => {
+    setShowSideBar(false);
+    console.log("closed");
   };
 
   return {
     showSideBar,
-    toogleSideBar,
+    openSideBar,
+    closeSideBar,
   };
 }
