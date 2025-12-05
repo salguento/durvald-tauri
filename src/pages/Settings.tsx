@@ -5,13 +5,10 @@ import FolderSelector from "../ui/FolderSelector/FolderSelector";
 
 export default function Settings() {
   return (
-    <div class="bg-zinc-900 size-7/12 h-full rounded-3xl grow overflow-hidden border border-zinc-700/50">
+    <div class="">
       <div class="relative w-full shadow-xl">
-        <div class="absolute  w-full text-white  bg-zinc-900/50  z-1  border-b border-zinc-700/50">
-          <div
-            class="backdrop-blur-3xl flex flex-row items-center gap-2 pt-3 px-4 pb-3 w-full h-full "
-            data-tauri-drag-region
-          >
+        <div class="absolute  w-full text-white  bg-black/50  z-1  border-b border-zinc-500/50">
+          <div class="backdrop-blur-3xl flex flex-row items-center gap-2 pt-3 px-4 pb-3 w-full h-full ">
             <button class="hover:cursor-pointer h-6 w-6 text-zinc-400 hover:text-white">
               <A href="/">
                 <span class="icon-[solar--arrow-left-linear] h-6 w-6 "></span>
