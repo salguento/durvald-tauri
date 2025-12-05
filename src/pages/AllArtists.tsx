@@ -2,6 +2,7 @@
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 // UI
 import BackButton from "../ui/Components/BackButton";
+import ContextMenuComponent from "../ui/Components/ContextMenu";
 // Function
 export default function AllArtists() {
   return (
@@ -27,7 +28,11 @@ export default function AllArtists() {
         }}
         defer
         class="w-full flex flex-col gap-4 h-full"
-      ></OverlayScrollbarsComponent>
+      >
+        <div class="h-screen w-full flex justify-center items-center overflow-hidden">
+          <ContextMenuComponent />
+        </div>
+      </OverlayScrollbarsComponent>
     </div>
   );
 }
