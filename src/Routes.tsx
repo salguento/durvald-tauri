@@ -8,6 +8,7 @@ const Artist = lazy(() => import("./pages/Artist"));
 const AllArtists = lazy(() => import("./pages/AllArtists"));
 const AllReleases = lazy(() => import("./pages/AllReleases"));
 const AllSongs = lazy(() => import("./pages/AllSongs"));
+const AllGenres = lazy(() => import("./pages/AllGenres"));
 
 export default function Routes() {
   return (
@@ -19,6 +20,7 @@ export default function Routes() {
       <Route path="/all-artists" component={AllArtists} />
       <Route path="/all-releases" component={AllReleases} />
       <Route path="/all-songs" component={AllSongs} />
+      <Route path="/all-genres" component={AllGenres} />
     </>
   );
 }
