@@ -1,18 +1,27 @@
+// Dependencies
 import { ContextMenu } from "@kobalte/core/context-menu";
 import { createSignal } from "solid-js";
-export default function ContextMenuComponent() {
+// Types
+import { ParentProps, JSX } from "solid-js";
+import TrackType from "../../../types/Track";
+interface Props {
+  children: JSX.Element;
+  track: TrackType;
+}
+// Function
+export default function ContextMenuComponent(props: Props) {
   const [showGitLog, setShowGitLog] = createSignal(true);
   const [showHistory, setShowHistory] = createSignal(false);
   const [branch, setBranch] = createSignal("main");
   return (
     <ContextMenu>
-      <ContextMenu.Trigger class="block border border-zinc-500/50 bg-blue-500 text-center text-white">
-        Right click here.
+      <ContextMenu.Trigger class="relative w-full h-full table-row group">
+        {props.children}
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
         <ContextMenu.Content class="min-w-3xs p-1 bg-black/50 backdrop-blur-3xl border border-zinc-500/50  text-zinc-400 rounded-2xl z-100 outline-none cursor-pointer">
           <ContextMenu.Item class="hover:bg-zinc-900 relative px-2 py-1 flex justify-between rounded-xl">
-            <div class="">Commit</div>
+            <div class="">{props.track.title}</div>
             <div class="">⌘+K</div>
           </ContextMenu.Item>
           <ContextMenu.Item class="hover:bg-zinc-900 relative px-2 py-1 flex justify-between rounded-xl">
@@ -25,7 +34,7 @@ export default function ContextMenuComponent() {
           >
             Update Project <div class="">⌘+T</div>
           </ContextMenu.Item>
-          <ContextMenu.Sub overlap gutter={4} shift={-8}>
+          <ContextMenu.Sub overlap gutter={8} shift={-8}>
             <ContextMenu.SubTrigger class="flex justify-between cursor-default">
               <div class="">GitHub</div>
               <span class="icon-[solar--alt-arrow-right-linear] w-4 h-4"></span>

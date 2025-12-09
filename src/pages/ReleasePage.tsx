@@ -14,6 +14,7 @@ import { ReleaseType } from "../types/ReleaseType";
 import SongType from "../types/Track";
 // UI
 import BackButton from "../ui/Components/BackButton";
+import SongContextMenu from "../ui/Components/ContextMenu/SongContextMenu";
 
 export default function ReleasePage() {
   const [release, setRelease] = createSignal<ReleaseType>();
@@ -121,24 +122,25 @@ export default function ReleasePage() {
         </div>
         <div>
           <div class="  shadow overflow-hidden ">
-            <table class="w-full divide-y divide-zinc-700/50">
-              <thead class="h-4 text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
-                <tr class="">
-                  <th class="w-8  text-left py-1"></th>
-                  <th class="w-8 text-center py-1">#</th>
-                  <th class="px-2  text-left py-1">Title</th>
-                  <th class="px-2 text-right  py-1">Duration</th>
-                  <th class="px-2 text-right  py-1"></th>
-                </tr>
-              </thead>
-              <tbody class="bg-black divide-y divide-zinc-700/50">
+            <div class="w-full divide-y divide-zinc-700/50 table">
+              <div class="h-4 text-[10px] font-medium text-zinc-500 uppercase tracking-wider table-header-group w-full">
+                <div class="table-row w-full">
+                  <div class="table-cell w-8  text-left py-1"></div>
+                  <div class="table-cell w-8 text-center py-1">#</div>
+                  <div class="table-cell px-2  text-left py-1">Title</div>
+                  <div class="table-cell px-2 text-right  py-1">Duration</div>
+                  <div class="table-cell px-2 text-right  py-1"></div>
+                </div>
+              </div>
+              <div class="bg-black divide-y divide-zinc-700/50 relative table-row-group h-12 overflow-hidden">
                 <For each={songs()}>
                   {(song: SongType) => (
-                    <tr
-                      class="hover:bg-zinc-900 group hover:cursor-pointer relative h-12"
-                      onDblClick={() => playBack(song)}
-                    >
-                      <td class=" flex justify-center items-center px-2 w-fit  overflow-hidden h-12">
+                    <SongContextMenu track={song}>
+                      {/*<div
+                        class="hover:bg-zinc-900 group hover:cursor-pointer relative h-12 table-row"
+                        onDblClick={() => playBack(song)}
+                      >*/}
+                      <div class=" flex justify-center items-center px-2 w-fit  overflow-hidden h-12 table-cel">
                         <button
                           class="text-zinc-400 hover:text-white hover:cursor-pointer  flex justify-center items-center w-4"
                           title={`${
@@ -155,8 +157,8 @@ export default function ReleasePage() {
                             }`}
                           ></span>
                         </button>
-                      </td>
-                      <td class="whitespace-nowrap items-center">
+                      </div>
+                      <div class="whitespace-nowrap items-center table-cell">
                         <div class="flex items-center justify-center w-8">
                           <div class="text-sm font-medium text-zinc-400 group-hover:hidden">
                             {song.track_number}
@@ -169,45 +171,33 @@ export default function ReleasePage() {
                             <span class="icon-[solar--play-bold] text-white h-4 w-4"></span>
                           </button>
                         </div>
-                      </td>
-                      <td class="px-2 whitespace-nowrap">
-                        <div class="flex flex-col justify-start text-left">
-                          <div class="text-sm font-medium text-zinc-400">
-                            {song.title}
-                          </div>
-                          <div class="text-xs font-medium text-zinc-600">
-                            {song.artist_name}
-                          </div>
+                      </div>
+                      <div class="px-2 whitespace-nowrap table-cell align-middle ">
+                        <div class="text-sm font-medium text-zinc-400">
+                          {song.title}
                         </div>
-                      </td>
-                      {/*<td class="px-6 py-2 whitespace-nowrap">
-                        <span
-                          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize"
-                          classList={{
-                            "bg-yellow-100 text-yellow-800": song.isFavorite,
-                            "bg-blue-100 text-blue-800": !song.isFavorite,
-                          }}
-                        >
-                          {song.isFavorite ? "Folder" : song.isAdded || "File"}
-                        </span>
-                      </td>*/}
-                      <td class="px-2  whitespace-nowrap text-sm text-zinc-400 text-right">
+                        <div class="text-xs font-medium text-zinc-600">
+                          {song.artist_name}
+                        </div>
+                      </div>
+                      <div class="px-2 whitespace-nowrap text-sm text-zinc-400 text-right table-cell align-middle">
                         {msToMinSec(song.duration)}
-                      </td>
-                      <td class="pr-2 group-hover:visible hover:text-white invisible flex items-center justify-center  whitespace-nowrap text-sm text-zinc-400 text-right">
+                      </div>
+                      <div class="table-cell pr-2  hover:text-white text-transparent  items-center justify-center  whitespace-nowrap text-sm group-hover:text-zinc-400 text-right">
                         <button
-                          class="  h-4 w-4 hover:cursor-pointer"
+                          class="h-4 w-4 hover:cursor-pointer"
                           title="Options"
                           onClick={() => playBack(song)}
                         >
                           <span class="icon-[solar--menu-dots-bold] h-4 w-4"></span>
                         </button>
-                      </td>
-                    </tr>
+                      </div>
+                      {/*</div>*/}
+                    </SongContextMenu>
                   )}
                 </For>
-              </tbody>
-            </table>
+              </div>
+            </div>
           </div>
         </div>
       </OverlayScrollbarsComponent>
