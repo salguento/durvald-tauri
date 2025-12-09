@@ -2,6 +2,8 @@ use kira::sound::static_sound::{StaticSoundData, StaticSoundHandle};
 use kira::Tween;
 use kira::{AudioManager, AudioManagerSettings, DefaultBackend};
 use std::time::Duration;
+use tokio::fs::File;
+use tokio::io::AsyncReadExt;
 
 pub struct AudioPlayer {
     manager: AudioManager<DefaultBackend>,
@@ -28,7 +30,14 @@ impl AudioPlayer {
     pub async fn play(&mut self, path: String) -> Result<(), Box<dyn std::error::Error>> {
         self.stop();
 
-        let sound_data = StaticSoundData::from_file(&path)?;
+        // Load file asynchronously to avoid blocking
+        let mut file = File::open(&path).await?;
+        let mut buffer = Vec::new();
+        file.read_to_end(&mut buffer).await?;
+
+        // Parse audio data from buffer (this is fast)
+        let sound_data = StaticSoundData::from_cursor(std::io::Cursor::new(buffer))?;
+
         self.total_duration = Some(sound_data.duration());
         self.current_path = Some(path.clone());
         self.paused_position = None;
@@ -42,7 +51,6 @@ impl AudioPlayer {
 
     pub fn pause(&mut self) {
         if let Some(sound) = &mut self.current_sound {
-            // Store as f64
             self.paused_position = Some(sound.position());
             sound.pause(Tween::default());
         }
@@ -67,15 +75,11 @@ impl AudioPlayer {
     pub fn set_volume(&mut self, volume: f32) {
         self.current_volume = volume;
 
-        // Apply to current sound if it exists
         if let Some(sound) = &mut self.current_sound {
-            // Convert linear volume (0.0-1.0) to decibels
             let volume_db = if volume > 0.00001 {
-                // Small threshold to avoid log(0)
-                // Use f32 calculation since Value<Decibels> implements From<f32>
                 20.0 * volume.log10()
             } else {
-                -80.0 // -80dB is effectively silent
+                -80.0
             };
 
             sound.set_volume(volume_db as f32, Tween::default());
@@ -106,31 +110,25 @@ impl AudioPlayer {
             .unwrap_or(true)
     }
 
-    /// Get the current playback position
     pub fn get_position(&self) -> Duration {
-        // First check if we have a stored paused position
         if let Some(paused_pos) = self.paused_position {
             return Duration::from_secs_f64(paused_pos);
         }
 
-        // Otherwise get from the sound (if playing)
         self.current_sound
             .as_ref()
             .map(|sound| Duration::from_secs_f64(sound.position()))
             .unwrap_or(Duration::ZERO)
     }
 
-    /// Get the total duration of the current track
     pub fn get_duration(&self) -> Option<Duration> {
         self.total_duration
     }
 
-    /// Get playback progress as a tuple of (current_position, total_duration)
     pub fn get_progress(&self) -> (Duration, Option<Duration>) {
         (self.get_position(), self.get_duration())
     }
 
-    /// Get playback progress as a percentage (0.0 to 1.0)
     pub fn get_progress_percentage(&self) -> Option<f32> {
         if let Some(total) = self.total_duration {
             let current = self.get_position();
@@ -142,14 +140,12 @@ impl AudioPlayer {
         None
     }
 
-    /// Seek to a specific position in seconds
     pub async fn seek_to_position(
         &mut self,
         seconds: u64,
     ) -> Result<(), Box<dyn std::error::Error>> {
         if let Some(sound) = &mut self.current_sound {
             sound.seek_to(seconds as f64);
-            // Update stored position
             if self.paused_position.is_some() {
                 self.paused_position = Some(seconds as f64);
             }
@@ -159,7 +155,6 @@ impl AudioPlayer {
         }
     }
 
-    /// Seek to a specific percentage (0.0 to 1.0)
     pub async fn seek_to_percentage(
         &mut self,
         percentage: f32,
@@ -173,14 +168,9 @@ impl AudioPlayer {
     }
 
     pub async fn add_to_queue(&mut self, path: String) -> Result<(), Box<dyn std::error::Error>> {
-        // Note: Kira doesn't have built-in queue support like rodio
-        // For now, we'll just play the next track when current finishes
-        // You'd need to implement a proper queue system separately
         if self.is_empty() {
             self.play(path).await?;
         } else {
-            // Store in a queue vector and play when current finishes
-            // This would require additional queue management logic
             return Err("Queue not implemented yet - current track still playing".into());
         }
         Ok(())
