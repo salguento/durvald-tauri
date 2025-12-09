@@ -2,7 +2,7 @@
 import { ContextMenu } from "@kobalte/core/context-menu";
 import { createSignal } from "solid-js";
 // Types
-import { ParentProps, JSX } from "solid-js";
+import { JSX } from "solid-js";
 import TrackType from "../../../types/Track";
 interface Props {
   children: JSX.Element;
