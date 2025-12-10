@@ -50,7 +50,7 @@ export default function PlayBar() {
   });
 
   return (
-    <div class=" h-20 rounded-3xl border border-zinc-500/50 relative overflow-hidden">
+    <div class=" h-20 rounded-3xl border border-zinc-700/50 relative overflow-hidden">
       <Show when={currentTrack()}>
         <div class="absolute inset-0 z-1 rounded-3xl">
           <img

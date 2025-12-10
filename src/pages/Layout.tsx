@@ -29,7 +29,7 @@ const Layout: ParentComponent = (props) => {
             class={`${menuCollapsed() ? "flex grow" : "grid grid-cols-9 col-span-9 xl:col-span-10"} relative gap-2 w-full overflow-hidden`}
           >
             <div
-              class={`${menuCollapsed() ? "w-full " : `col-span-6  ${showSideBar() ? "xl:col-span-7" : "col-span-full"}`} ${showSideBar() ? "" : "col-span-full"} h-full rounded-3xl grow overflow-hidden border border-zinc-500/50`}
+              class={`${menuCollapsed() ? "w-full " : `col-span-6  ${showSideBar() ? "xl:col-span-7" : "col-span-full"}`} ${showSideBar() ? "" : "col-span-full"} h-full rounded-3xl grow overflow-hidden border border-zinc-700/50 bg-zinc-900`}
             >
               {props.children}
             </div>

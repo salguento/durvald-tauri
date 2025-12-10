@@ -15,7 +15,7 @@ export default function ContextMenuComponent(props: Props) {
   const [branch, setBranch] = createSignal("main");
   return (
     <ContextMenu>
-      <ContextMenu.Trigger class="relative w-full h-full table-row group">
+      <ContextMenu.Trigger class="relative w-full h-full flex group bg-zinc-900 hover:bg-zinc-800 hover:cursor-pointer">
         {props.children}
       </ContextMenu.Trigger>
       <ContextMenu.Portal>

@@ -36,9 +36,9 @@ export default function ReleaseItem(props: PropsReleaseItem) {
         <div class="flex items-center gap-1">
           <A
             href={`/release/${props.releaseId.toString()}`}
-            class="truncate w-fit max-w-full flex items-center h-fit"
+            class="w-fit max-w-40 flex items-center h-fit"
           >
-            <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer">
+            <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer line-clamp-2">
               {props.releaseTitle}
             </span>
           </A>

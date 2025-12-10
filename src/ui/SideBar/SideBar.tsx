@@ -16,7 +16,7 @@ export default function SideBar() {
   return (
     <Show when={showSideBar()}>
       <div
-        class={`${menuCollapsed() ? "flex grow max-w-80 w-full" : "col-span-3 xl:col-span-2"} h-full rounded-3xl border border-zinc-500/50 z-1 overflow-hidden relative`}
+        class={`${menuCollapsed() ? "flex grow max-w-80 w-full" : "col-span-3 xl:col-span-2"} h-full rounded-3xl border border-zinc-700/50 bg-zinc-900 z-1 overflow-hidden relative`}
       >
         <div class="flex flex-col gap-4 h-full relative">
           <OverlayScrollbarsComponent

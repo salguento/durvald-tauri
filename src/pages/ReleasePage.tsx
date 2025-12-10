@@ -30,7 +30,7 @@ export default function ReleasePage() {
   return (
     <div class="h-full">
       <div class="relative w-full shadow-xl">
-        <div class="absolute  w-full text-white  bg-black/50  z-1  border-b border-zinc-500/50">
+        <div class="absolute  w-full text-white  bg-zinc-900/50  z-1  border-b border-zinc-700/50">
           <div class="backdrop-blur-2xl grid grid-cols-5 items-center  pt-3 px-4 pb-3 w-full h-full">
             <div
               class="flex items-center gap-2 col-span-2"
@@ -88,12 +88,12 @@ export default function ReleasePage() {
               <div>
                 <img
                   src={release()?.artwork}
-                  class="h-48 w-48 rounded-2xl"
+                  class="w-64 min-w-48 rounded-xl"
                   alt=""
                 />
               </div>
               <div class="flex flex-col gap-1">
-                <span class="text-2xl text-white font-semibold">
+                <span class="text-2xl text-white font-semibold line-clamp-2">
                   {release()?.title}
                 </span>
                 <A href={`/artist/${release()?.artist_id}`}>
@@ -121,82 +121,63 @@ export default function ReleasePage() {
           </div>
         </div>
         <div>
-          <div class="  shadow overflow-hidden ">
-            <div class="w-full divide-y divide-zinc-700/50 table">
-              <div class="h-4 text-[10px] font-medium text-zinc-500 uppercase tracking-wider table-header-group w-full">
-                <div class="table-row w-full">
-                  <div class="table-cell w-8  text-left py-1"></div>
-                  <div class="table-cell w-8 text-center py-1">#</div>
-                  <div class="table-cell px-2  text-left py-1">Title</div>
-                  <div class="table-cell px-2 text-right  py-1">Duration</div>
-                  <div class="table-cell px-2 text-right  py-1"></div>
-                </div>
-              </div>
-              <div class="bg-black divide-y divide-zinc-700/50 relative table-row-group h-12 overflow-hidden">
-                <For each={songs()}>
-                  {(song: SongType) => (
-                    <SongContextMenu track={song}>
-                      {/*<div
-                        class="hover:bg-zinc-900 group hover:cursor-pointer relative h-12 table-row"
-                        onDblClick={() => playBack(song)}
-                      >*/}
-                      <div class=" flex justify-center items-center px-2 w-fit  overflow-hidden h-12 table-cel">
-                        <button
-                          class="text-zinc-400 hover:text-white hover:cursor-pointer  flex justify-center items-center w-4"
-                          title={`${
+          <div class="overflow-hidden relative">
+            <div class="relative overflow-hidden">
+              <For each={songs()}>
+                {(song: SongType) => (
+                  <SongContextMenu track={song}>
+                    <div class="flex justify-center items-center content-center h-12  min-w-8 pl-2 ">
+                      <button
+                        class="text-zinc-300 hover:text-white hover:cursor-pointer w-4 h-4"
+                        title={`${
+                          song.is_favorite ? "Unfavorite song" : "Favorite song"
+                        }`}
+                      >
+                        <span
+                          class={`w-4 h-4  ${
                             song.is_favorite
-                              ? "Unfavorite song"
-                              : "Favorite song"
+                              ? "icon-[solar--heart-bold] hover:icon-[solar--heart-linear]"
+                              : "group-hover:icon-[solar--heart-linear] hover:icon-[solar--heart-bold]"
                           }`}
-                        >
-                          <span
-                            class={`w-4 h-4 rounded-full  ${
-                              song.is_favorite
-                                ? "icon-[solar--heart-bold]"
-                                : "group-hover:icon-[solar--heart-linear]"
-                            }`}
-                          ></span>
-                        </button>
+                        ></span>
+                      </button>
+                    </div>
+                    <div class="flex justify-center items-center h-12 min-w-10 ">
+                      <div class="text-sm font-medium text-zinc-300 group-hover:hidden h-4 w-4 text-center">
+                        {song.track_number}
                       </div>
-                      <div class="whitespace-nowrap items-center table-cell">
-                        <div class="flex items-center justify-center w-8">
-                          <div class="text-sm font-medium text-zinc-400 group-hover:hidden">
-                            {song.track_number}
-                          </div>
-                          <button
-                            class="group-hover:block hidden h-4 w-4 hover:cursor-pointer"
-                            title="Play"
-                            onClick={() => playBack(song)}
-                          >
-                            <span class="icon-[solar--play-bold] text-white h-4 w-4"></span>
-                          </button>
-                        </div>
+                      <button
+                        class="group-hover:block hidden h-4 w-4 hover:cursor-pointer"
+                        title="Play"
+                        onClick={() => playBack(song)}
+                      >
+                        <span class="icon-[solar--play-bold] text-white h-4 w-4 text-center"></span>
+                      </button>
+                    </div>
+                    <div class="flex-row items-center content-center min-w-0 w-full px-2">
+                      <div class="text-sm font-medium text-zinc-300 truncate  max-w-full">
+                        {song.title}
                       </div>
-                      <div class="px-2 whitespace-nowrap table-cell align-middle ">
-                        <div class="text-sm font-medium text-zinc-400">
-                          {song.title}
-                        </div>
-                        <div class="text-xs font-medium text-zinc-600">
-                          {song.artist_name}
-                        </div>
+                      <div class="text-xs font-medium text-zinc-500 truncate max-w-full">
+                        {song.artist_name}
                       </div>
-                      <div class="px-2 whitespace-nowrap text-sm text-zinc-400 text-right table-cell align-middle">
-                        {msToMinSec(song.duration)}
-                      </div>
-                      <div class="table-cell pr-2  hover:text-white text-transparent  items-center justify-center  whitespace-nowrap text-sm group-hover:text-zinc-400 text-right">
-                        <button
-                          class="h-4 w-4 hover:cursor-pointer"
-                          title="Options"
-                          onClick={() => playBack(song)}
-                        >
-                          <span class="icon-[solar--menu-dots-bold] h-4 w-4"></span>
-                        </button>
-                      </div>
-                      {/*</div>*/}
-                    </SongContextMenu>
-                  )}
-                </For>
-              </div>
+                    </div>
+                    <div class="flex items-center justify-end text-sm text-zinc-400 text-right l min-w-16 px-2">
+                      {msToMinSec(song.duration)}
+                    </div>
+                    <div class="flex min-w-8 pr-2  hover:text-white text-transparent  items-center justify-center  text-sm group-hover:text-zinc-400 text-right">
+                      <button
+                        class="h-4 w-4 hover:cursor-pointer"
+                        title="Options"
+                        onClick={() => playBack(song)}
+                      >
+                        <span class="icon-[solar--menu-dots-bold] h-4 w-4"></span>
+                      </button>
+                    </div>
+                    {/*</div>*/}
+                  </SongContextMenu>
+                )}
+              </For>
             </div>
           </div>
         </div>
