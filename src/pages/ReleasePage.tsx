@@ -15,10 +15,13 @@ import SongType from "../types/Track";
 // UI
 import BackButton from "../ui/Components/BackButton";
 import SongContextMenu from "../ui/Components/ContextMenu/SongContextMenu";
+import { ContextMenu } from "@kobalte/core/context-menu";
+import DropdownMenuComponent from "../ui/Components/ContextMenu/SongDropdownMenu";
 
 export default function ReleasePage() {
   const [release, setRelease] = createSignal<ReleaseType>();
   const [songs, setSongs] = createSignal<SongType[]>([]);
+  const [isOpen, setIsOpen] = createSignal<boolean>(false);
 
   onMount(async () => {
     const params = useParams();
@@ -125,7 +128,7 @@ export default function ReleasePage() {
             <div class="relative overflow-hidden">
               <For each={songs()}>
                 {(song: SongType) => (
-                  <SongContextMenu track={song}>
+                  <SongContextMenu track={song} isOpen={isOpen()}>
                     <div class="flex justify-center items-center content-center h-12  min-w-8 pl-2 ">
                       <button
                         class="text-zinc-300 hover:text-white hover:cursor-pointer w-4 h-4"
@@ -169,9 +172,11 @@ export default function ReleasePage() {
                       <button
                         class="h-4 w-4 hover:cursor-pointer"
                         title="Options"
-                        onClick={() => playBack(song)}
+                        onClick={() => setIsOpen(true)}
                       >
-                        <span class="icon-[solar--menu-dots-bold] h-4 w-4"></span>
+                        <DropdownMenuComponent track={song}>
+                          <span class="icon-[solar--menu-dots-bold] h-4 w-4"></span>
+                        </DropdownMenuComponent>
                       </button>
                     </div>
                     {/*</div>*/}
