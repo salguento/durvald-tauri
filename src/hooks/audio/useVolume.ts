@@ -31,11 +31,7 @@ export function useVolume(options: UseVolumeOptions = {}): UseVolumeReturn {
   const setVolumeBackend = async (newVolume: number) => {
     try {
       const normalizedVolume = newVolume / 100;
-      console.log(
-        `[useVolume] Setting volume: ${newVolume}% (normalized: ${normalizedVolume})`,
-      );
       await invoke("set_volume", { volume: normalizedVolume });
-      console.log(`[useVolume] Volume set successfully`);
     } catch (error) {
       console.error("[useVolume] Failed to set volume:", error);
     }
@@ -44,7 +40,6 @@ export function useVolume(options: UseVolumeOptions = {}): UseVolumeReturn {
   // Set volume immediately without debounce
   const setVolumeImmediate = async (newVolume: number) => {
     const normalizedVolume = Math.max(0, Math.min(100, newVolume));
-    console.log(`[useVolume] setVolumeImmediate: ${normalizedVolume}%`);
     setVolume(normalizedVolume);
 
     // Clear any pending debounce
@@ -59,7 +54,6 @@ export function useVolume(options: UseVolumeOptions = {}): UseVolumeReturn {
   // Handle slider value changes with debouncing
   const handleVolumeChange = (value: number[]) => {
     const newVolume = Math.max(0, Math.min(100, Math.round(value[0])));
-    console.log(`[useVolume] handleVolumeChange: ${newVolume}%`);
     setVolume(newVolume);
 
     // Debounce the backend call
@@ -68,7 +62,6 @@ export function useVolume(options: UseVolumeOptions = {}): UseVolumeReturn {
     }
 
     debounceTimer = setTimeout(() => {
-      console.log(`[useVolume] Debounce timer fired for: ${newVolume}%`);
       setVolumeBackend(newVolume);
       debounceTimer = null;
     }, debounceDelay);
@@ -76,7 +69,6 @@ export function useVolume(options: UseVolumeOptions = {}): UseVolumeReturn {
 
   // Reset to default volume
   const resetVolume = () => {
-    console.log(`[useVolume] resetVolume called`);
     handleVolumeChange([50]);
   };
 

@@ -13,7 +13,6 @@ import { secToMin } from "../../utils/secToMin";
 import { playerStore } from "../../stores/playerStore";
 // UI
 import { Slider } from "@kobalte/core/slider";
-import { Tooltip } from "@kobalte/core/tooltip";
 // Types
 import ProgressPayload from "../../types/ProgressPayload";
 // Function
@@ -24,12 +23,13 @@ export default function PlayBar() {
     null,
   );
   const [lastProgressUpdate, setLastProgressUpdate] = createSignal(0);
-  const [openTooltip, setOpenTooltip] = createSignal(false);
+  const [previousVolume, setPreviousVolume] = createSignal<number>(0);
   // Imported Hooks
-  const { volume, handleVolumeChange, setVolume, resetVolume } = useVolume({
-    initialVolume: 50,
-    debounceDelay: 100,
-  });
+  const { volume, handleVolumeChange, setVolumeImmediate, resetVolume } =
+    useVolume({
+      initialVolume: 50,
+      debounceDelay: 100,
+    });
   // Imported Stores
   const [playBackState, setPlayBackState] = playerStore.playBackState;
   const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
@@ -248,15 +248,16 @@ export default function PlayBar() {
               </div>
             </div>
             <div class="col-span-4 xl:col-span-3 flex  justify-center">
-              <div class="flex flex-row items-center justify-center gap-3 group">
+              <div class="flex flex-row items-center justify-center gap-3">
                 <button
                   class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer "
                   title={`${volume() !== 0 ? "Mute" : "Unmute"}`}
                   onClick={() => {
                     if (volume() == 0) {
-                      resetVolume();
+                      setVolumeImmediate(previousVolume());
                     } else {
-                      setVolume(0);
+                      setPreviousVolume(volume());
+                      setVolumeImmediate(0);
                     }
                   }}
                 >
@@ -271,7 +272,7 @@ export default function PlayBar() {
                   </Show>
                 </button>
                 <Slider
-                  class="relative flex flex-col items-center w-24 hover:cursor-pointer"
+                  class="relative flex flex-col items-center w-24 hover:cursor-pointer group"
                   value={[volume()]}
                   onChange={handleVolumeChange}
                   minValue={0}
@@ -282,7 +283,7 @@ export default function PlayBar() {
                     <Slider.Fill class="absolute bg-white rounded-full h-full" />
                     <Slider.Thumb class=" w-3 h-3  bg-white rounded-full -top-1 hover:cursor-pointer hover:w-4 hover:h-4 hover:-top-1.5 border border-zinc-900/50 focus:outline-0 relative flex justify-center">
                       <Slider.Input />
-                      <div class="text-black text-xs group-hover:visible invisible absolute -top-7 flex justify-center bg-white  border border-zinc-500/50 h-fit px-2 py-0.5 rounded-lg w-8 text-center">
+                      <div class="text-black text-xs group-active:visible invisible absolute -top-7 flex justify-center bg-white  border border-zinc-500/50 h-fit px-2 py-0.5 rounded-lg w-8 text-center">
                         <span class="">{volume()}</span>
                       </div>
                     </Slider.Thumb>
