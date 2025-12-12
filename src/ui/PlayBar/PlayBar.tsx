@@ -64,45 +64,47 @@ export default function PlayBar() {
         <div class="backdrop-blur-xl w-full flex items-center h-full">
           <div class="grid grid-cols-12 w-full items-center px-3 gap-4">
             <div class="col-span-4 xl:col-span-3 h-full relative">
-              <div class="flex flex-row items-center justify-start h-full w-full gap-3">
-                <div class="flex flex-row h-full items-center gap-3 overflow-hidden">
-                  <img
-                    src={currentTrack()?.artwork}
-                    alt=""
-                    class="h-14 rounded-2xl bg-white"
-                  />
-                  <div class="flex flex-col truncate">
-                    <span class="text-xs font-semibold text-white hover:underline hover:cursor-pointer truncate">
-                      {currentTrack()?.title}
-                    </span>
-                    <span class="text-xs font-medium text-zinc-400 hover:text-white hover:underline hover:cursor-pointer truncate">
-                      {currentTrack()?.artist_name}
-                    </span>
+              <Show when={currentTrack()}>
+                <div class="flex flex-row items-center justify-start h-full w-full gap-3">
+                  <div class="flex flex-row h-full items-center gap-3 overflow-hidden">
+                    <img
+                      src={currentTrack()?.artwork}
+                      alt=""
+                      class="h-14 rounded-2xl bg-white"
+                    />
+                    <div class="flex flex-col truncate">
+                      <span class="text-xs font-semibold text-white hover:underline hover:cursor-pointer truncate">
+                        {currentTrack()?.title}
+                      </span>
+                      <span class="text-xs font-medium text-zinc-400 hover:text-white hover:underline hover:cursor-pointer truncate">
+                        {currentTrack()?.artist_name}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="flex flex-row justify-start  gap-3">
+                    <button
+                      class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                      title="Favorite song"
+                    >
+                      <span
+                        class={` h-5 w-5 ${currentTrack()?.is_favorite ? "icon-[solar--heart-angle-bold]" : "icon-[solar--heart-angle-linear]"}`}
+                      ></span>
+                    </button>
+                    <button
+                      class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                      title="Add song"
+                    >
+                      <span class="icon-[solar--add-circle-linear] h-5 w-5 "></span>
+                    </button>
+                    <button
+                      class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                      title="More options"
+                    >
+                      <span class="icon-[solar--menu-dots-bold] h-5 w-5 "></span>
+                    </button>
                   </div>
                 </div>
-                <div class="flex flex-row justify-start  gap-3">
-                  <button
-                    class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
-                    title="Favorite song"
-                  >
-                    <span
-                      class={` h-5 w-5 ${currentTrack()?.is_favorite ? "icon-[solar--heart-angle-bold]" : "icon-[solar--heart-angle-linear]"}`}
-                    ></span>
-                  </button>
-                  <button
-                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
-                    title="Add song"
-                  >
-                    <span class="icon-[solar--add-circle-linear] h-5 w-5 "></span>
-                  </button>
-                  <button
-                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
-                    title="More options"
-                  >
-                    <span class="icon-[solar--menu-dots-bold] h-5 w-5 "></span>
-                  </button>
-                </div>
-              </div>
+              </Show>
             </div>
             <div class="col-span-4 xl:col-span-6 h-16 items-center justify-center">
               <div class="flex flex-col items-center justify-around h-full gap-0">

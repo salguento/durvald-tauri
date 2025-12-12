@@ -15,7 +15,6 @@ import SongType from "../types/Track";
 // UI
 import BackButton from "../ui/Components/BackButton";
 import SongContextMenu from "../ui/Components/ContextMenu/SongContextMenu";
-import { ContextMenu } from "@kobalte/core/context-menu";
 import DropdownMenuComponent from "../ui/Components/ContextMenu/SongDropdownMenu";
 
 export default function ReleasePage() {
