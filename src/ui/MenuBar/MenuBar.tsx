@@ -11,11 +11,9 @@ export default function MenuBar() {
   }
   return (
     <div
-      class={`${menuCollapsed() ? "w-[60px] max-w-16" : "max-w-72 w-72"} rounded-3xl border  h-full`}
+      class={`${menuCollapsed() ? "w-[58px] max-w-[58px] min-w-[58px]" : "max-w-72 w-72"} rounded-3xl border  h-full`}
     >
-      <div
-        class={`flex flex-col gap-6 h-full  items-center  ${menuCollapsed() ? "py-4" : "p-4"}`}
-      >
+      <div class={`flex flex-col gap-6 h-full  items-center  p-4 `}>
         <Show when={!menuCollapsed()}>
           <div class="flex w-full flex-row flex-wrap justify-between items-center">
             <img
@@ -35,10 +33,7 @@ export default function MenuBar() {
           </div>
         </Show>
         <Show when={menuCollapsed()}>
-          <div
-            class="flex w-full flex-col gap-4 flex-wrap justify-between items-center"
-            data-tauri-drag-region
-          >
+          <div class="flex w-full flex-col gap-4 flex-wrap justify-between items-center">
             <img
               src="/assets/images/logo.svg"
               class="h-6"
