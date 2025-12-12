@@ -5,15 +5,8 @@ import MenuBar from "../ui/MenuBar/MenuBar";
 import SideBar from "../ui/SideBar/SideBar";
 import PlayBar from "../ui/PlayBar/PlayBar";
 import TopBar from "../ui/Topbar/TopBar";
-// Hooks
-import { useShowSideBar } from "../hooks/ui/useShowSideBar";
-// Stores
-import { uiStore } from "../stores/uiStore";
-
+// Function
 const Layout: ParentComponent = (props) => {
-  const [menuCollapsed, setMenuCollapsed] = uiStore.menuCollapsed;
-  const { showSideBar } = useShowSideBar();
-
   return (
     <main class="overflow-hidden">
       <div

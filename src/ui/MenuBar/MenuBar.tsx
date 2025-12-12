@@ -54,9 +54,11 @@ export default function MenuBar() {
           <Show
             when={!menuCollapsed()}
             fallback={
-              <button class="flex  items-center justify-center rounded-lg h-10 w-10 hover:bg-zinc-800 focus:bg-zinc-900  text-zinc-300 hover:cursor-pointer">
-                <span class="icon-[solar--magnifer-linear] h-5 w-5 "></span>
-              </button>
+              <A href="/search">
+                <button class="flex  items-center justify-center rounded-lg h-10 w-10 hover:bg-zinc-800 focus:bg-zinc-900  text-zinc-300 hover:cursor-pointer">
+                  <span class="icon-[solar--magnifer-linear] h-5 w-5 "></span>
+                </button>
+              </A>
             }
           >
             <input
