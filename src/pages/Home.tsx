@@ -21,7 +21,7 @@ export default function Page() {
       <div class="relative w-full shadow-xl">
         <div class="absolute w-full text-white  bg-zinc-900/50  z-1  border-b border-zinc-700/50">
           <div
-            class="backdrop-blur-3xl flex flex-row items-center gap-2 pt-3 px-4 pb-3 w-full h-full "
+            class="backdrop-blur-xl flex flex-row items-center gap-2 pt-3 px-4 pb-3 w-full h-full "
             data-tauri-drag-region
           >
             <span class="icon-[solar--home-angle-2-linear] h-6 w-6 text-zinc-400 "></span>

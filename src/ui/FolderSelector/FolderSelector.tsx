@@ -164,7 +164,7 @@ export default function FolderSelector() {
 
           <Show when={showPopup()}>
             <div class="absolute inset-0 z-500">
-              <div class="w-full h-full bg-zinc-900/50 backdrop-blur-3xl flex items-center justify-center p-4 z-100">
+              <div class="w-full h-full bg-zinc-900/50 backdrop-blur-xl flex items-center justify-center p-4 z-100">
                 <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
                   <h2 class="text-xl font-semibold text-gray-800 mb-4">
                     Select Folder to Scan

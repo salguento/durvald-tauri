@@ -34,7 +34,7 @@ export default function ReleasePage() {
     <div class="h-full">
       <div class="relative w-full shadow-xl">
         <div class="absolute  w-full text-white  bg-zinc-900/50  z-1  border-b border-zinc-700/50">
-          <div class="backdrop-blur-2xl grid grid-cols-5 items-center  pt-3 px-4 pb-3 w-full h-full">
+          <div class="backdrop-blur-xl grid grid-cols-5 items-center  pt-3 px-4 pb-3 w-full h-full">
             <div
               class="flex items-center gap-2 col-span-2"
               data-tauri-drag-region
@@ -83,7 +83,7 @@ export default function ReleasePage() {
       >
         <div class="h-96 relative flex items-center">
           <div class="absolute w-full h-full  overflow-hidden flex items-center">
-            <div class="bg-black/50 backdrop-blur-2xl absolute w-full h-full"></div>
+            <div class="bg-zinc-950/50 backdrop-blur-xl absolute w-full h-full"></div>
             <img src={release()?.artwork} class="w-full"></img>
           </div>
           <div class="flex flex-col gap-8 w-full relative pt-14">
