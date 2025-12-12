@@ -83,7 +83,7 @@ export default function ReleasePage() {
       >
         <div class="h-96 relative flex items-center">
           <div class="absolute w-full h-full  overflow-hidden flex items-center">
-            <div class="bg-zinc-950/50 backdrop-blur-xl absolute w-full h-full"></div>
+            <div class="bg-zinc-900/50 backdrop-blur-xl absolute w-full h-full"></div>
             <img src={release()?.artwork} class="w-full"></img>
           </div>
           <div class="flex flex-col gap-8 w-full relative pt-14">

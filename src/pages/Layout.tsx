@@ -21,15 +21,11 @@ const Layout: ParentComponent = (props) => {
         data-tauri-drag-region
       >
         <TopBar />
-        <div
-          class={`${menuCollapsed() ? "flex" : "grid grid-cols-12 grid-rows-1"} gap-2 flex-1 overflow-hidden relative`}
-        >
+        <div class={`flex gap-2 flex-1 overflow-hidden relative`}>
           <MenuBar />
-          <div
-            class={`${menuCollapsed() ? "flex grow" : "grid grid-cols-9 col-span-9 xl:col-span-10"} relative gap-2 w-full overflow-hidden`}
-          >
+          <div class={`flex grow relative gap-2 w-full overflow-hidden`}>
             <div
-              class={`${menuCollapsed() ? "w-full " : `col-span-6  ${showSideBar() ? "xl:col-span-7" : "col-span-full"}`} ${showSideBar() ? "" : "col-span-full"} h-full rounded-3xl grow overflow-hidden border border-zinc-700/50 bg-zinc-900`}
+              class={`w-full h-full rounded-3xl grow overflow-hidden border border-zinc-700/50 bg-zinc-900`}
             >
               {props.children}
             </div>

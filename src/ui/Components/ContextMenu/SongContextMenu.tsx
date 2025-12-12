@@ -15,7 +15,7 @@ export default function ContextMenuComponent(props: Props) {
         {props.children}
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
-        <ContextMenu.Content class="relative min-w-3xs p-1 border bg-black/50 backdrop-blur-xl border-zinc-700/50  text-zinc-200 rounded-2xl z-1  outline-none cursor-default text-sm  overflow-hidden ">
+        <ContextMenu.Content class="relative min-w-3xs p-1 border bg-zinc-900/50 backdrop-blur-xl border-zinc-700/50  text-zinc-200 rounded-2xl z-1  outline-none cursor-default text-sm  overflow-hidden ">
           <div class=" flex flex-col w-full h-full overflow-hidden">
             <ContextMenu.Sub overlap gutter={-1} shift={8}>
               <ContextMenu.SubTrigger class="flex justify-between items-center cursor-default  hover:bg-zinc-600/50  px-2 py-2 rounded-xl  outline-0 ">
@@ -26,7 +26,7 @@ export default function ContextMenuComponent(props: Props) {
                 <span class="icon-[solar--alt-arrow-right-linear] w-4 h-4"></span>
               </ContextMenu.SubTrigger>
               <ContextMenu.Portal>
-                <ContextMenu.SubContent class="bg-black/50 backdrop-blur-xl border border-zinc-700/50 rounded-2xl z-100 overflow-hidden p-1 w-64 text-sm outline-0 text-zinc-200">
+                <ContextMenu.SubContent class="bg-zinc-900/50 backdrop-blur-xl border border-zinc-700/50 rounded-2xl z-100 overflow-hidden p-1 w-64 text-sm outline-0 text-zinc-200">
                   <ContextMenu.Item class="px-2 py-2  bg-transparent hover:bg-zinc-600/50 rounded-xl  outline-0 cursor-default">
                     <div class=" flex gap-2 items-center">
                       <span class="icon-[solar--magnifer-linear] w-4 h-4"></span>

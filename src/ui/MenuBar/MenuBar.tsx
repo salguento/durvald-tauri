@@ -11,9 +11,11 @@ export default function MenuBar() {
   }
   return (
     <div
-      class={`${menuCollapsed() ? "col-span-1 max-w-20" : "col-span-3 xl:col-span-2"} rounded-3xl border p-4 h-full`}
+      class={`${menuCollapsed() ? "w-[60px] max-w-16" : "max-w-72 w-72"} rounded-3xl border  h-full`}
     >
-      <div class="flex flex-col gap-6 h-full">
+      <div
+        class={`flex flex-col gap-6 h-full  items-center  ${menuCollapsed() ? "py-4" : "p-4"}`}
+      >
         <Show when={!menuCollapsed()}>
           <div class="flex w-full flex-row flex-wrap justify-between items-center">
             <img
@@ -53,11 +55,11 @@ export default function MenuBar() {
             </button>
           </div>
         </Show>
-        <div class="relative w-full">
+        <div class="relative">
           <Show
             when={!menuCollapsed()}
             fallback={
-              <button class="flex flex-row p-2.5 rounded-lg h-10 w-10 hover:bg-zinc-800 focus:bg-zinc-900 font-medium text-zinc-300 hover:cursor-pointer">
+              <button class="flex  items-center justify-center rounded-lg h-10 w-10 hover:bg-zinc-800 focus:bg-zinc-900  text-zinc-300 hover:cursor-pointer">
                 <span class="icon-[solar--magnifer-linear] h-5 w-5 "></span>
               </button>
             }
@@ -70,7 +72,7 @@ export default function MenuBar() {
             <span class="absolute left-2.5 top-2.5 icon-[solar--magnifer-linear] h-5 w-5 text-zinc-600 :text-white"></span>
           </Show>
         </div>
-        <div class="flex flex-col ">
+        <div class={`flex flex-col ${menuCollapsed() ? "" : "w-full"} `}>
           <A href="/">
             <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
               <span class="icon-[solar--home-angle-2-linear] h-5 w-5 "></span>
@@ -86,7 +88,7 @@ export default function MenuBar() {
             <Show when={!menuCollapsed()}>Recently Added</Show>
           </button>
         </div>
-        <div class="flex flex-col">
+        <div class={`flex flex-col ${menuCollapsed() ? "" : "w-full"} `}>
           <Show when={!menuCollapsed()}>
             <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500 items-center">
               <span class="icon-[solar--music-library-2-linear] h-5 w-5 "></span>
@@ -119,14 +121,16 @@ export default function MenuBar() {
           </A>
         </div>
         <Show when={!menuCollapsed()}>
-          <div class="flex flex-col">
+          <div class={`flex flex-col ${menuCollapsed() ? "" : "w-full"} `}>
             <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500 items-center">
               <span class="icon-[solar--playlist-minimalistic-2-bold] h-5 w-5 "></span>
               <span class="">Playlists</span>
             </div>
           </div>
         </Show>
-        <div class="flex flex-col h-full justify-end">
+        <div
+          class={`flex flex-col h-full justify-end ${menuCollapsed() ? "" : "w-full"} `}
+        >
           <A href="/settings">
             <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-400 hover:cursor-pointer">
               <span class="icon-[solar--settings-bold] h-5 w-5 "></span>
