@@ -128,7 +128,7 @@ export default function ReleasePage() {
             <div class="relative overflow-hidden">
               <For each={songs()}>
                 {(song: SongType) => (
-                  <SongContextMenu track={song} isOpen={isOpen()}>
+                  <SongContextMenu track={song}>
                     <div class="flex justify-center items-center content-center h-12  min-w-8 pl-2 ">
                       <button
                         class="text-zinc-300 hover:text-white hover:cursor-pointer w-4 h-4"
