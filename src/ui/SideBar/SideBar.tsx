@@ -7,14 +7,16 @@ import { Show } from "solid-js";
 // Store
 import { playerStore } from "../../stores/playerStore";
 import { uiStore } from "../../stores/uiStore";
+// Components
+import Queue from "./Queue/Queue";
+// Function
 export default function SideBar() {
   const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
-  const [menuCollapsed, setMenuCollapsed] = uiStore.menuCollapsed;
   const [sideBarTab, setSideBarTab] = uiStore.sideBarTab;
   const [showSideBar, setShowSideBar] = uiStore.showSideBar;
 
   return (
-    <Show when={showSideBar() && currentTrack()}>
+    <Show when={showSideBar()}>
       <div
         class={`max-w-2xs w-2xs min-w-2xs h-full rounded-3xl border border-zinc-700/50 bg-zinc-900 z-1 overflow-hidden relative`}
       >
@@ -28,7 +30,7 @@ export default function SideBar() {
               },
             }}
             defer
-            class="h-full  rounded-2xl relative overflow-auto px-4 pt-4"
+            class="h-full  rounded-2xl relative overflow-auto"
           >
             <Tabs
               aria-label="Main navigation"
@@ -157,7 +159,7 @@ export default function SideBar() {
                 Dashboard details
               </Tabs.Content>
               <Tabs.Content class="" value="queue">
-                Settings details
+                <Queue />
               </Tabs.Content>
             </Tabs>
           </OverlayScrollbarsComponent>

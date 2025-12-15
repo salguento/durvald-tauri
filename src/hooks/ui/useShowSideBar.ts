@@ -10,7 +10,6 @@ export function useShowSideBar() {
 
   const closeSideBar = () => {
     setShowSideBar(false);
-    console.log("closed");
   };
 
   return {

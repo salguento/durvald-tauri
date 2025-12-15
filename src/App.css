@@ -4,7 +4,7 @@
 @font-face {
     font-family: "Adwaita Sans";
     src: url("./assets/fonts/AdwaitaSans-Regular.ttf") format("truetype");
-    font-weight: 400;
+    font-weight: 100 900;
     font-style: normal;
     font-display: swap;
 }
@@ -15,7 +15,6 @@ body {
 
 :root {
     font-family: "Adwaita Sans", sans-serif;
-    font-weight: 400;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
