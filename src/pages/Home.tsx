@@ -59,7 +59,7 @@ export default function Page() {
               defer
               class="px-4"
             >
-              <div class="grid grid-cols-4 gap-4 w-full">
+              <div class="grid grid-flow-row grid-cols-3 gap-3 w-full">
                 <For each={releases()}>
                   {(releases) => (
                     <ReleaseItem
