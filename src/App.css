@@ -1,16 +1,21 @@
 @import "tailwindcss";
 @plugin "@iconify/tailwind4";
 
+@font-face {
+    font-family: "Adwaita Sans";
+    src: url("./assets/fonts/AdwaitaSans-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
 body {
     @apply bg-white dark:bg-black;
 }
 
 :root {
-    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-    font-size: 16px;
-    line-height: 24px;
+    font-family: "Adwaita Sans", sans-serif;
     font-weight: 400;
-
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
