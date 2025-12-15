@@ -40,8 +40,8 @@ export default function Page() {
         defer
         class="w-full flex flex-col gap-4 h-full"
       >
-        <div class="flex flex-col gap-2 w-full pt-18 relative">
-          <div class="flex flex-row justify-between items-center px-12">
+        <div class="flex flex-col gap-2 w-full pt-16 relative">
+          <div class="flex flex-row justify-between items-center px-4">
             <span class="text-base text-zinc-300 font-medium">Top Picks</span>
             <span class="text-xs text-zinc-300 hover:underline hover:cursor-pointer hover:text-white">
               See all
@@ -57,9 +57,9 @@ export default function Page() {
                 },
               }}
               defer
-              class="px-12"
+              class="px-4"
             >
-              <div class="flex flex-row gap-3 w-[1364px]">
+              <div class="grid grid-cols-4 gap-4 w-full">
                 <For each={releases()}>
                   {(releases) => (
                     <ReleaseItem

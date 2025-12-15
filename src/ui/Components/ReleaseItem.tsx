@@ -16,7 +16,7 @@ export default function ReleaseItem(props: PropsReleaseItem) {
       <Show
         when={props.artwork != "" && props.artwork != undefined}
         fallback={
-          <div class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl">
+          <div class="min-h-40 min-w-40 max-h-64 max-w-64 rounded-xl">
             <span class="icon-[solar--music-notes-bold-duotone] h-12 w-12 "></span>
           </div>
         }
@@ -28,7 +28,7 @@ export default function ReleaseItem(props: PropsReleaseItem) {
           <img
             src={props.artwork}
             alt=""
-            class="min-h-40 min-w-40 max-h-40 max-w-40 rounded-xl hover:border-white border border-transparent"
+            class="min-h-40 min-w-40 max-h-64 max-w-64 w-full h-full rounded-lg hover:border-white border border-transparent"
           />
         </A>
       </Show>
