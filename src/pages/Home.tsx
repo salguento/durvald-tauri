@@ -42,7 +42,7 @@ export default function Page() {
       >
         <div class="flex flex-col gap-2 w-full pt-16 relative">
           <div class="flex flex-row justify-between items-center px-4">
-            <span class="text-base text-zinc-300 font-medium">Top Picks</span>
+            <span class="text-base text-zinc-300 font-semibold">Top Picks</span>
             <span class="text-xs text-zinc-300 hover:underline hover:cursor-pointer hover:text-white">
               See all
             </span>

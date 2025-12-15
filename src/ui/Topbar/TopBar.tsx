@@ -5,6 +5,8 @@ import { useFullscreen } from "../../hooks/ui/useFullscreen";
 import { useShowSideBar } from "../../hooks/ui/useShowSideBar";
 // Store
 import { uiStore } from "../../stores/uiStore";
+// Components
+import MainMenu from "../Components/MainMenu";
 // Function
 export default function TopBar() {
   const appWindow = getCurrentWindow();
@@ -23,12 +25,14 @@ export default function TopBar() {
   return (
     <div class="h-10 grid grid-cols-3 px-3.5">
       <div class="flex flex-row gap-4 justify-start" data-tauri-drag-region>
-        <button
-          class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
-          title="Menu"
-        >
-          <span class="icon-[solar--hamburger-menu-linear] h-6 w-6 "></span>
-        </button>
+        <MainMenu>
+          <button
+            class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
+            title="Menu"
+          >
+            <span class="icon-[solar--hamburger-menu-linear] h-6 w-6 "></span>
+          </button>
+        </MainMenu>
         <button
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
           title="Miniplayer"
@@ -46,7 +50,7 @@ export default function TopBar() {
         class="flex flex-row items-center h-full gap-4 justify-center"
         data-tauri-drag-region
       >
-        <button
+        {/*<button
           id="playing-tab"
           title="Playing"
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
@@ -65,7 +69,7 @@ export default function TopBar() {
           }}
         >
           <span class="icon-[solar--document-add-linear] h-6 w-6 "></span>
-        </button>
+        </button>*/}
         <button
           id="queue-tab"
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"

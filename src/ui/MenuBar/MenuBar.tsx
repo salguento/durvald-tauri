@@ -76,14 +76,14 @@ export default function MenuBar() {
               <Show when={!menuCollapsed()}>Home</Show>
             </button>
           </A>
-          <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+          {/*<button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--bell-linear] h-5 w-5 "></span>
             <Show when={!menuCollapsed()}>New</Show>
           </button>
           <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--clock-circle-linear] h-5 w-5 "></span>
             <Show when={!menuCollapsed()}>Recently Added</Show>
-          </button>
+          </button>*/}
         </div>
         <div class={`flex flex-col ${menuCollapsed() ? "" : "w-full"} `}>
           <Show when={!menuCollapsed()}>
@@ -125,7 +125,7 @@ export default function MenuBar() {
             </div>
           </div>
         </Show>
-        <div
+        {/*<div
           class={`flex flex-col h-full justify-end ${menuCollapsed() ? "" : "w-full"} `}
         >
           <A href="/settings">
@@ -134,7 +134,7 @@ export default function MenuBar() {
               <Show when={!menuCollapsed()}>Settings</Show>
             </button>
           </A>
-        </div>
+        </div>*/}
       </div>
     </div>
   );
