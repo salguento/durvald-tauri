@@ -1,13 +1,14 @@
-use kira::sound::static_sound::{StaticSoundData, StaticSoundHandle};
+use kira::sound::streaming::{StreamingSoundData, StreamingSoundHandle};
+use kira::sound::FromFileError;
 use kira::Tween;
 use kira::{AudioManager, AudioManagerSettings, DefaultBackend};
 use std::time::Duration;
-use tokio::fs::File;
-use tokio::io::AsyncReadExt;
+
+type SoundHandle = StreamingSoundHandle<FromFileError>;
 
 pub struct AudioPlayer {
     manager: AudioManager<DefaultBackend>,
-    current_sound: Option<StaticSoundHandle>,
+    current_sound: Option<SoundHandle>,
     total_duration: Option<Duration>,
     current_path: Option<String>,
     paused_position: Option<f64>,
@@ -30,13 +31,12 @@ impl AudioPlayer {
     pub async fn play(&mut self, path: String) -> Result<(), Box<dyn std::error::Error>> {
         self.stop();
 
-        // Load file asynchronously to avoid blocking
-        let mut file = File::open(&path).await?;
-        let mut buffer = Vec::new();
-        file.read_to_end(&mut buffer).await?;
+        let path_clone = path.clone();
 
-        // Parse audio data from buffer (this is fast)
-        let sound_data = StaticSoundData::from_cursor(std::io::Cursor::new(buffer))?;
+        // Load streaming sound data - starts playing immediately
+        let sound_data =
+            tokio::task::spawn_blocking(move || StreamingSoundData::from_file(&path_clone))
+                .await??;
 
         self.total_duration = Some(sound_data.duration());
         self.current_path = Some(path.clone());
@@ -52,20 +52,20 @@ impl AudioPlayer {
     pub fn pause(&mut self) {
         if let Some(sound) = &mut self.current_sound {
             self.paused_position = Some(sound.position());
-            sound.pause(Tween::default());
+            let _ = sound.pause(Tween::default());
         }
     }
 
     pub fn resume(&mut self) {
         if let Some(sound) = &mut self.current_sound {
-            sound.resume(Tween::default());
+            let _ = sound.resume(Tween::default());
             self.paused_position = None;
         }
     }
 
     pub fn stop(&mut self) {
         if let Some(mut sound) = self.current_sound.take() {
-            sound.stop(Tween::default());
+            let _ = sound.stop(Tween::default());
         }
         self.total_duration = None;
         self.current_path = None;
