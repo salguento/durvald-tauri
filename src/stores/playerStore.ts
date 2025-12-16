@@ -7,6 +7,7 @@ import { createRoot } from "solid-js";
 import PlayBackStateType from "../types/Playback";
 import TrackType from "../types/Track";
 import ProgressPayloadType from "../types/ProgressPayload";
+import { QueueItemType } from "../types/QueueItemType";
 // Function
 export const playerStore = {
   playBackState: createSignal<PlayBackStateType>(),
@@ -16,6 +17,7 @@ export const playerStore = {
     duration: null,
     percentage: null,
   }),
+  queueList: createSignal<QueueItemType[]>([]),
 };
 
 let dispose: (() => void) | undefined;

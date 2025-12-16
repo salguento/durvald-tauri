@@ -39,7 +39,7 @@ export default function SideBar() {
               onChange={setSideBarTab}
             >
               <Tabs.Content class="" value="playing">
-                <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-3 p-4">
                   <img
                     src={currentTrack()?.artwork}
                     class="rounded-2xl w-full"

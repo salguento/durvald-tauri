@@ -5,13 +5,17 @@ import { invoke } from "@tauri-apps/api/core";
 import ReleaseItem from "../ui/Components/ReleaseItem";
 // Types
 import { ReleaseType } from "../types/ReleaseType";
-
+// Stores
+import { playerStore } from "../stores/playerStore";
+// Function
 export default function Page() {
   const [releases, setReleases] = createSignal<ReleaseType[]>([]);
-
+  const [, setQueueList] = playerStore.queueList;
   onMount(async () => {
     try {
       setReleases(await invoke("get_releases"));
+      await invoke("load_queue_from_db");
+      setQueueList(await invoke("get_queue"));
     } catch (error) {
       console.log("Startup error:", error);
     }

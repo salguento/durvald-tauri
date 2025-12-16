@@ -178,7 +178,6 @@ export default function ReleasePage() {
                         </DropdownMenuComponent>
                       </button>
                     </div>
-                    {/*</div>*/}
                   </SongContextMenu>
                 )}
               </For>

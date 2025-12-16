@@ -5,7 +5,12 @@ import SongType from "../../../types/Track";
 // Components
 import QueueContextMenu from "./QueueContextMenu";
 import QueueDropdownMenu from "./QueueDropdownMenu";
-export default function QueueTrack() {
+import { QueueItemType } from "../../../types/QueueItemType";
+
+interface QueueTrackProps {
+  item: QueueItemType;
+}
+export default function QueueTrack({ item }: QueueTrackProps) {
   const [isOpen, setIsOpen] = createSignal<boolean>(false);
   const song: SongType = {
     song_id: 1,
@@ -30,9 +35,9 @@ export default function QueueTrack() {
     updated_at: "date",
   };
   return (
-    <div class="py-4 w-full relative">
+    <div class="w-full relative">
       <QueueContextMenu track={song}>
-        <div class="flex justify-between gap-2 group  px-2 py-2 overflow-hidden rounded-xl">
+        <div class="flex justify-between gap-2 group  px-1.5 py-1.5 overflow-hidden rounded-xl">
           <div class="min-w-10 min-h-10 relative flex items-center justify-center rounded-sm overflow-hidden ">
             <div class="absolute w-full h-full  bg-red-500/50 hidden  group-hover:flex ">
               <button
@@ -52,9 +57,7 @@ export default function QueueTrack() {
             <span class="text-sm truncate">
               Track name that can be really very tottaly long
             </span>
-            <span class="text-xs text-zinc-400 truncate">
-              Artist - Release name that can be very tottaly long
-            </span>
+            <span class="text-xs text-zinc-400 truncate">{item[1]}</span>
           </div>
           <div class="flex items-center justify-end text-right min-w-8">
             <QueueDropdownMenu track={song}>
