@@ -31,3 +31,6 @@ rusqlite = {version = "0.37.0", features = ["bundled"] }
 tokio = {version = "1.48.0", features = ["full"] }
 thiserror = "2.0.17"
 kira = {version = "0.11.0", features = ["mp3", "ogg", "flac", "wav"] }
+tokio-rusqlite = "0.7.0"
+r2d2 = "0.8.10"
+r2d2_sqlite = "0.31.0"

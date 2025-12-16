@@ -2,9 +2,22 @@ use kira::sound::streaming::{StreamingSoundData, StreamingSoundHandle};
 use kira::sound::FromFileError;
 use kira::Tween;
 use kira::{AudioManager, AudioManagerSettings, DefaultBackend};
+use std::collections::VecDeque;
 use std::time::Duration;
 
 type SoundHandle = StreamingSoundHandle<FromFileError>;
+
+#[derive(Clone)]
+pub struct QueueItem {
+    pub song_id: i64,
+    pub path: String,
+}
+
+#[derive(Clone)]
+pub struct QueueData {
+    pub items: Vec<QueueItem>,
+    pub history: Vec<QueueItem>,
+}
 
 pub struct AudioPlayer {
     manager: AudioManager<DefaultBackend>,
@@ -13,6 +26,9 @@ pub struct AudioPlayer {
     current_path: Option<String>,
     paused_position: Option<f64>,
     current_volume: f32,
+    queue: VecDeque<QueueItem>,
+    history: Vec<QueueItem>,
+    current_song_id: Option<i64>,
 }
 
 impl AudioPlayer {
@@ -25,6 +41,9 @@ impl AudioPlayer {
             current_path: None,
             paused_position: None,
             current_volume: 1.0,
+            queue: VecDeque::new(),
+            history: Vec::new(),
+            current_song_id: None,
         })
     }
 
@@ -167,12 +186,192 @@ impl AudioPlayer {
         }
     }
 
-    pub async fn add_to_queue(&mut self, path: String) -> Result<(), Box<dyn std::error::Error>> {
-        if self.is_empty() {
+    // Queue management methods
+    pub async fn add_to_queue(
+        &mut self,
+        song_id: i64,
+        path: String,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if self.is_empty() && self.queue.is_empty() {
+            // Nothing playing, start immediately
+            self.current_song_id = Some(song_id);
             self.play(path).await?;
         } else {
-            return Err("Queue not implemented yet - current track still playing".into());
+            // Add to queue
+            self.queue.push_back(QueueItem { song_id, path });
         }
+        Ok(())
+    }
+
+    pub fn insert_at_position(&mut self, song_id: i64, path: String, position: usize) {
+        let item = QueueItem { song_id, path };
+        if position >= self.queue.len() {
+            self.queue.push_back(item);
+        } else {
+            self.queue.insert(position, item);
+        }
+    }
+
+    pub async fn play_next(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
+        // Add current song to history if playing
+        if let (Some(song_id), Some(path)) = (self.current_song_id, &self.current_path) {
+            self.history.push(QueueItem {
+                song_id,
+                path: path.clone(),
+            });
+        }
+
+        if let Some(next_item) = self.queue.pop_front() {
+            self.current_song_id = Some(next_item.song_id);
+            self.play(next_item.path).await?;
+            Ok(true)
+        } else {
+            self.current_song_id = None;
+            Ok(false)
+        }
+    }
+
+    pub async fn play_previous(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
+        if let Some(prev_item) = self.history.pop() {
+            // Add current song back to front of queue if playing
+            if let (Some(song_id), Some(path)) = (self.current_song_id, &self.current_path) {
+                self.queue.push_front(QueueItem {
+                    song_id,
+                    path: path.clone(),
+                });
+            }
+
+            self.current_song_id = Some(prev_item.song_id);
+            self.play(prev_item.path).await?;
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+
+    pub async fn skip_to(&mut self, position: usize) -> Result<(), Box<dyn std::error::Error>> {
+        if position >= self.queue.len() {
+            return Err("Position out of bounds".into());
+        }
+
+        // Remove all items before the target position and add them to history
+        for _ in 0..position {
+            if let Some(item) = self.queue.pop_front() {
+                self.history.push(item);
+            }
+        }
+
+        // Play the target song
+        self.play_next().await?;
+        Ok(())
+    }
+
+    pub fn remove_from_queue(
+        &mut self,
+        position: usize,
+    ) -> Result<QueueItem, Box<dyn std::error::Error>> {
+        if position >= self.queue.len() {
+            return Err("Position out of bounds".into());
+        }
+        self.queue
+            .remove(position)
+            .ok_or("Failed to remove item".into())
+    }
+
+    pub fn clear_queue(&mut self) {
+        self.queue.clear();
+    }
+
+    pub fn get_queue(&self) -> Vec<(i64, String)> {
+        self.queue
+            .iter()
+            .map(|item| (item.song_id, item.path.clone()))
+            .collect()
+    }
+
+    pub fn get_current_song_id(&self) -> Option<i64> {
+        self.current_song_id
+    }
+
+    pub fn move_in_queue(
+        &mut self,
+        from: usize,
+        to: usize,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if from >= self.queue.len() || to >= self.queue.len() {
+            return Err("Position out of bounds".into());
+        }
+
+        let item = self.queue.remove(from).ok_or("Failed to remove item")?;
+        self.queue.insert(to, item);
+        Ok(())
+    }
+
+    pub async fn check_and_play_next(&mut self) -> Result<bool, Box<dyn std::error::Error>> {
+        if self.is_empty() && !self.queue.is_empty() {
+            self.play_next().await
+        } else {
+            Ok(false)
+        }
+    }
+
+    // Database persistence methods
+    pub fn get_queue_data_for_db(&self) -> QueueData {
+        QueueData {
+            items: self.queue.iter().cloned().collect(),
+            history: self.history.clone(),
+        }
+    }
+
+    pub fn load_queue(&mut self, data: QueueData) -> Result<(), Box<dyn std::error::Error>> {
+        self.queue = data.items.into_iter().collect();
+        self.history = data.history;
+        Ok(())
+    }
+
+    pub fn load_queue_from_db_blocking(
+        conn: &rusqlite::Connection,
+    ) -> Result<QueueData, Box<dyn std::error::Error>> {
+        let mut stmt = conn.prepare(
+            "SELECT q.song_id, s.file_path
+             FROM queue q
+             JOIN songs s ON q.song_id = s.song_id
+             ORDER BY q.position ASC",
+        )?;
+
+        let items: Result<Vec<QueueItem>, _> = stmt
+            .query_map([], |row| {
+                Ok(QueueItem {
+                    song_id: row.get(0)?,
+                    path: row.get(1)?,
+                })
+            })?
+            .collect();
+
+        Ok(QueueData {
+            items: items?,
+            history: Vec::new(), // History not persisted in DB
+        })
+    }
+
+    pub fn save_queue_to_db_blocking(
+        conn: &mut rusqlite::Connection,
+        data: &QueueData,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let tx = conn.transaction()?;
+
+        // Clear existing queue
+        tx.execute("DELETE FROM queue", ())?;
+
+        // Insert current queue
+        for (position, item) in data.items.iter().enumerate() {
+            tx.execute(
+                "INSERT INTO queue (song_id, position) VALUES (?1, ?2)",
+                (item.song_id, position as i64),
+            )?;
+        }
+
+        tx.commit()?;
         Ok(())
     }
 }

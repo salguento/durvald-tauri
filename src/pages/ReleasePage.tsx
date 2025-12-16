@@ -8,7 +8,7 @@ import { A } from "@solidjs/router";
 // Hooks
 import playBack from "../hooks/audio/play";
 // Utils
-import msToMinSec from "../utils/msToSec";
+import { secToMin } from "../utils/secToMin";
 // Types
 import { ReleaseType } from "../types/ReleaseType";
 import SongType from "../types/Track";
@@ -114,7 +114,7 @@ export default function ReleasePage() {
                   <Show when={release()?.duration}>
                     <span class="text-md text-zinc-400 font-medium">•</span>
                     <span class="text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
-                      {msToMinSec(release()!.duration)}
+                      {secToMin(release()!.duration)}
                     </span>
                   </Show>
                 </div>
@@ -165,7 +165,7 @@ export default function ReleasePage() {
                       </div>
                     </div>
                     <div class="flex items-center justify-end text-sm text-zinc-400 text-right l min-w-16 px-2">
-                      {msToMinSec(song.duration)}
+                      {secToMin(song.duration)}
                     </div>
                     <div class="flex min-w-8 pr-2  hover:text-white text-transparent  items-center justify-center  text-sm group-hover:text-zinc-400 text-right">
                       <button

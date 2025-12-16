@@ -95,6 +95,30 @@ pub fn create_tables() -> Result<(), String> {
     .map_err(|e| format!("Failed to create table: {}", e))?;
 
     db.execute(
+        "CREATE TABLE IF NOT EXISTS queue (
+            queue_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            song_id INTEGER NOT NULL,
+            position INTEGER NOT NULL UNIQUE,
+            added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (song_id) REFERENCES songs(song_id) ON DELETE CASCADE
+        )",
+        (),
+    )
+    .map_err(|e| format!("Failed to create table: {}", e))?;
+
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS listening_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            song_id INTEGER NOT NULL,
+            played_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            play_duration INTEGER, -- Seconds actually listened (optional)
+            FOREIGN KEY (song_id) REFERENCES songs(song_id) ON DELETE CASCADE
+        )",
+        (),
+    )
+    .map_err(|e| format!("Failed to create table: {}", e))?;
+
+    db.execute(
         "CREATE TABLE IF NOT EXISTS genres (
             genre_id   INTEGER PRIMARY KEY,
             name TEXT,
@@ -631,7 +655,7 @@ pub fn get_songs_by_release_id(release_id: &str) -> Result<Vec<SongItem>, String
                 release_title: row.get(6)?,
                 track_number: row.get(7)?,
                 disc_number: row.get(8)?,
-                duration: row.get::<_, f64>(9)?.round() as u64,
+                duration: row.get::<_, f64>(9)? as u64,
                 bitrate: row.get(10)?,
                 sample_rate: row.get(11)?,
                 play_count: row.get(12)?,
@@ -653,3 +677,9 @@ pub fn get_songs_by_release_id(release_id: &str) -> Result<Vec<SongItem>, String
 
     Ok(songs)
 }
+
+// #[tauri::command]
+// pub fn add_song_to_queue(song_id: &str) -> Result<Vec<SongItem>, String> {
+
+//     Ok(song)
+// }

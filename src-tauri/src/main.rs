@@ -7,13 +7,11 @@ use serde::Serialize;
 use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
-use tauri::async_runtime::Mutex;
 use tauri::command;
 use tauri::Emitter;
 
-use rusqlite::Connection;
-use tokio::sync::Mutex as TokioMutex;
-
+use r2d2::Pool;
+use r2d2_sqlite::SqliteConnectionManager;
 use std::sync::Arc;
 
 use commands::database_commands::{
@@ -25,9 +23,10 @@ use commands::get_audio_metadata;
 mod audio;
 use audio::AudioPlayer;
 
-pub struct AppState {
-    pub db: Mutex<Connection>,
-    pub audio_player: Arc<TokioMutex<AudioPlayer>>,
+#[derive(Clone)]
+struct AppState {
+    db_pool: Arc<Pool<SqliteConnectionManager>>,
+    audio_player: Arc<tokio::sync::Mutex<AudioPlayer>>,
 }
 
 #[derive(Clone, Serialize)]
@@ -55,14 +54,14 @@ async fn play_file(path: String, state: tauri::State<'_, AppState>) -> Result<()
 
 #[command]
 async fn pause_playback(state: tauri::State<'_, AppState>) -> Result<(), String> {
-    let mut player = state.audio_player.lock().await; // Changed to mut
+    let mut player = state.audio_player.lock().await;
     player.pause();
     Ok(())
 }
 
 #[command]
 async fn resume_playback(state: tauri::State<'_, AppState>) -> Result<(), String> {
-    let mut player = state.audio_player.lock().await; // Changed to mut
+    let mut player = state.audio_player.lock().await;
     player.resume();
     Ok(())
 }
@@ -107,9 +106,121 @@ async fn get_playback_state(
 }
 
 #[command]
-async fn add_to_queue(path: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
+async fn add_to_queue(
+    state: tauri::State<'_, AppState>,
+    song_id: i64,
+    path: String,
+) -> Result<(), String> {
     let mut player = state.audio_player.lock().await;
-    player.add_to_queue(path).await.map_err(|e| e.to_string())
+
+    player
+        .add_to_queue(song_id, path)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // Save to DB in a blocking task
+    let db_pool = state.db_pool.clone();
+    let queue_data = player.get_queue_data_for_db();
+
+    tokio::task::spawn_blocking(move || {
+        let mut conn = db_pool.get().map_err(|e| e.to_string())?;
+        AudioPlayer::save_queue_to_db_blocking(&mut *conn, &queue_data).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    Ok(())
+}
+
+#[command]
+async fn play_next(state: tauri::State<'_, AppState>) -> Result<bool, String> {
+    let mut player = state.audio_player.lock().await;
+    let result = player.play_next().await.map_err(|e| e.to_string())?;
+
+    // Save queue to DB in blocking task
+    let db_pool = state.db_pool.clone();
+    let queue_data = player.get_queue_data_for_db();
+
+    tokio::task::spawn_blocking(move || {
+        let mut conn = db_pool.get().map_err(|e| e.to_string())?;
+        AudioPlayer::save_queue_to_db_blocking(&mut *conn, &queue_data).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    Ok(result)
+}
+
+#[command]
+async fn remove_from_queue(
+    state: tauri::State<'_, AppState>,
+    position: usize,
+) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await;
+    player
+        .remove_from_queue(position)
+        .map_err(|e| e.to_string())?;
+
+    // Save to DB in a blocking task
+    let db_pool = state.db_pool.clone();
+    let queue_data = player.get_queue_data_for_db();
+
+    tokio::task::spawn_blocking(move || {
+        let mut conn = db_pool.get().map_err(|e| e.to_string())?;
+        AudioPlayer::save_queue_to_db_blocking(&mut *conn, &queue_data).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    Ok(())
+}
+
+#[command]
+async fn get_queue(state: tauri::State<'_, AppState>) -> Result<Vec<(i64, String)>, String> {
+    let player = state.audio_player.lock().await;
+    Ok(player.get_queue())
+}
+
+#[command]
+async fn clear_queue(state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await;
+    player.clear_queue();
+
+    // Clear from DB in a blocking task
+    let db_pool = state.db_pool.clone();
+
+    tokio::task::spawn_blocking(move || {
+        let conn = db_pool.get().map_err(|e| e.to_string())?;
+        conn.execute("DELETE FROM queue", ())
+            .map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    Ok(())
+}
+
+#[command]
+async fn move_in_queue(
+    state: tauri::State<'_, AppState>,
+    from: usize,
+    to: usize,
+) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await;
+    player.move_in_queue(from, to).map_err(|e| e.to_string())?;
+
+    // Save to DB in a blocking task
+    let db_pool = state.db_pool.clone();
+    let queue_data = player.get_queue_data_for_db();
+
+    tokio::task::spawn_blocking(move || {
+        let mut conn = db_pool.get().map_err(|e| e.to_string())?;
+        AudioPlayer::save_queue_to_db_blocking(&mut *conn, &queue_data).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    Ok(())
 }
 
 #[command]
@@ -134,12 +245,103 @@ async fn seek_to_percentage(
 }
 
 #[command]
+async fn play_previous(state: tauri::State<'_, AppState>) -> Result<bool, String> {
+    let mut player = state.audio_player.lock().await;
+    let result = player.play_previous().await.map_err(|e| e.to_string())?;
+
+    // Save queue to DB in blocking task
+    let db_pool = state.db_pool.clone();
+    let queue_data = player.get_queue_data_for_db();
+
+    tokio::task::spawn_blocking(move || {
+        let mut conn = db_pool.get().map_err(|e| e.to_string())?;
+        AudioPlayer::save_queue_to_db_blocking(&mut *conn, &queue_data).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    Ok(result)
+}
+
+#[command]
+async fn skip_to(state: tauri::State<'_, AppState>, position: usize) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await;
+    player.skip_to(position).await.map_err(|e| e.to_string())?;
+
+    // Save queue to DB in blocking task
+    let db_pool = state.db_pool.clone();
+    let queue_data = player.get_queue_data_for_db();
+
+    tokio::task::spawn_blocking(move || {
+        let mut conn = db_pool.get().map_err(|e| e.to_string())?;
+        AudioPlayer::save_queue_to_db_blocking(&mut *conn, &queue_data).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    Ok(())
+}
+
+#[command]
+async fn insert_at_position(
+    state: tauri::State<'_, AppState>,
+    song_id: i64,
+    path: String,
+    position: usize,
+) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await;
+
+    player.insert_at_position(song_id, path, position);
+
+    // Save to DB in a blocking task
+    let db_pool = state.db_pool.clone();
+    let queue_data = player.get_queue_data_for_db();
+
+    tokio::task::spawn_blocking(move || {
+        let mut conn = db_pool.get().map_err(|e| e.to_string())?;
+        AudioPlayer::save_queue_to_db_blocking(&mut *conn, &queue_data).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    Ok(())
+}
+
+#[command]
+async fn check_and_play_next(state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await;
+    player
+        .check_and_play_next()
+        .await
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[command]
+async fn load_queue_from_db(state: tauri::State<'_, AppState>) -> Result<(), String> {
+    let db_pool = state.db_pool.clone();
+
+    // Load queue data in a blocking task
+    let queue_data = tokio::task::spawn_blocking(move || {
+        let conn = db_pool.get().map_err(|e| e.to_string())?;
+        AudioPlayer::load_queue_from_db_blocking(&conn).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    // Apply loaded queue to player
+    let mut player = state.audio_player.lock().await;
+    player.load_queue(queue_data).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[command]
 async fn start_progress_tracking(
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
     let app_clone = app.clone();
-    let player = state.audio_player.clone(); // Clone the Arc<TokioMutex>
+    let player = state.audio_player.clone();
 
     tokio::spawn(async move {
         loop {
@@ -177,7 +379,7 @@ struct PlaybackStateInfo {
 
 #[command]
 async fn select_folder() -> Result<String, String> {
-    let handle = tauri::async_runtime::spawn(async move {
+    let handle = tokio::spawn(async move {
         if let Some(folder) = rfd::AsyncFileDialog::new()
             .set_title("Select folder to scan")
             .pick_folder()
@@ -262,12 +464,17 @@ fn is_audio_file(extension: &str) -> bool {
 fn main() {
     tauri::async_runtime::block_on(async {
         let player = AudioPlayer::new().expect("Failed to create audio player");
-        let conn = Connection::open("music.db3").expect("Failed to open database");
+        let manager = SqliteConnectionManager::file("music.db3");
+        let pool = r2d2::Pool::new(manager).expect("Failed to create pool");
+
+        // Create AppState
+        let app_state = AppState {
+            db_pool: Arc::new(pool),
+            audio_player: Arc::new(tokio::sync::Mutex::new(player)),
+        };
+
         tauri::Builder::default()
-            .manage(AppState {
-                db: Mutex::new(conn),
-                audio_player: Arc::new(TokioMutex::new(player)),
-            })
+            .manage(app_state)
             .setup(|_app| {
                 create_tables().expect("failed to create tables");
                 Ok(())
@@ -296,6 +503,16 @@ fn main() {
                 start_progress_tracking,
                 seek_to_position,
                 seek_to_percentage,
+                insert_at_position,
+                play_next,
+                play_previous,
+                skip_to,
+                remove_from_queue,
+                get_queue,
+                move_in_queue,
+                check_and_play_next,
+                load_queue_from_db,
+                clear_queue,
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
