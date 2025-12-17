@@ -6,12 +6,11 @@ import TrackType from "../../types/Track";
 import ProgressPayload from "../../types/ProgressPayload";
 // Store
 import { playerStore } from "../../stores/playerStore";
-import { ReleaseType } from "../../types/ReleaseType";
 // Function
 export default async function playBack(track: TrackType) {
-  const [playBackState, setPlayBackState] = playerStore.playBackState;
-  const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
-  const [playbackProgress, setPlaybackProgress] = playerStore.playbackProgress;
+  const [, setPlayBackState] = playerStore.playBackState;
+  const [, setCurrentTrack] = playerStore.currentTrack;
+  const [, setPlaybackProgress] = playerStore.playbackProgress;
   const [queueList, setQueueList] = playerStore.queueList;
   try {
     await invoke("play_file", { path: track.file_path });
@@ -28,12 +27,12 @@ export default async function playBack(track: TrackType) {
         songId: item.song_id,
         path: item.file_path,
       });
+      setQueueList([item, ...queueList()]);
     });
   } catch (error) {
     console.error("Failed to play audio:", error);
   } finally {
     setCurrentTrack(track);
     setPlayBackState(await invoke("get_playback_state"));
-    setQueueList(await invoke("get_queue"));
   }
 }

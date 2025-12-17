@@ -8,6 +8,7 @@ import { playerStore } from "../../../stores/playerStore";
 import { QueueItemType } from "../../../types/QueueItemType";
 // Components
 import QueueTrack from "./QueueTrack";
+import TrackType from "../../../types/Track";
 export default function Queue() {
   const [queueList, setQueueList] = playerStore.queueList;
   const [queueTab, setQueueTab] = createSignal<string>("queue");
@@ -19,24 +20,32 @@ export default function Queue() {
     }
   };
   return (
-    <Tabs aria-label="Queue navigation" class="max-w-2xs overflow-hidden">
-      <Tabs.List class="w-full flex justify-between text-center gap-2 px-3 py-3 relative ">
-        <Tabs.Trigger
-          class={`w-full ${queueTab() == "queue" ? "bg-white text-zinc-950" : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800"} rounded-lg h-8 cursor-pointer font-medium text-sm`}
-          value="queue"
-          onClick={() => handleTab("queue")}
-        >
-          Queue
-        </Tabs.Trigger>
-        <Tabs.Trigger
-          class={`w-full ${queueTab() == "history" ? "bg-white text-zinc-950" : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800"} rounded-lg h-8 cursor-pointer font-medium text-sm`}
-          value="history"
-          onClick={() => handleTab("history")}
-        >
-          History
-        </Tabs.Trigger>
+    <Tabs
+      aria-label="Queue navigation"
+      class="max-w-2xs overflow-hidden relative h-full"
+    >
+      <Tabs.List class="w-full  text-center absolute top-0 z-1 border-b bg-zinc-900/50  border-zinc-700/50  ">
+        <div class=" h-full  flex justify-between px-2.5 py-2.5 gap-2 backdrop-blur-xl  w-full">
+          <Tabs.Trigger
+            class={`w-full ${queueTab() == "queue" ? "bg-white text-zinc-950" : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800"} rounded-xl h-8 cursor-pointer font-medium text-sm`}
+            value="queue"
+            onClick={() => handleTab("queue")}
+          >
+            Queue
+          </Tabs.Trigger>
+          <Tabs.Trigger
+            class={`w-full ${queueTab() == "history" ? "bg-white text-zinc-950" : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800"} rounded-xl h-8 cursor-pointer font-medium text-sm`}
+            value="history"
+            onClick={() => handleTab("history")}
+          >
+            History
+          </Tabs.Trigger>
+        </div>
       </Tabs.List>
-      <Tabs.Content class="w-full relative px-1" value="queue">
+      <Tabs.Content
+        class="w-full relative h-full overflow-hidden"
+        value="queue"
+      >
         <OverlayScrollbarsComponent
           element="div"
           options={{ scrollbars: { autoHide: "scroll" } }}
@@ -46,14 +55,14 @@ export default function Queue() {
             },
           }}
           defer
-          class="overflow-y-hidden max-w-2xs flex flex-col gap-1 "
+          class="overflow-y-hidden max-w-2xs flex flex-col gap-1 h-full pt-15 pb-5 px-1.5"
         >
           <For each={queueList()}>
-            {(item: QueueItemType) => <QueueTrack item={item} />}
+            {(item: TrackType) => <QueueTrack item={item} />}
           </For>
         </OverlayScrollbarsComponent>
       </Tabs.Content>
-      <Tabs.Content class="w-full relative px-1" value="history">
+      <Tabs.Content class="w-full relative h-full" value="history">
         <OverlayScrollbarsComponent
           element="div"
           options={{ scrollbars: { autoHide: "scroll" } }}
@@ -66,7 +75,7 @@ export default function Queue() {
           class="overflow-y-hidden max-w-2xs "
         >
           <For each={queueList()}>
-            {(item: QueueItemType) => <QueueTrack item={item} />}
+            {(item: TrackType) => <QueueTrack item={item} />}
           </For>
         </OverlayScrollbarsComponent>
       </Tabs.Content>

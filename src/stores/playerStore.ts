@@ -17,7 +17,7 @@ export const playerStore = {
     duration: null,
     percentage: null,
   }),
-  queueList: createSignal<QueueItemType[]>([]),
+  queueList: createSignal<TrackType[]>([]),
 };
 
 let dispose: (() => void) | undefined;

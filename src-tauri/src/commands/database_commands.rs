@@ -678,8 +678,46 @@ pub fn get_songs_by_release_id(release_id: &str) -> Result<Vec<SongItem>, String
     Ok(songs)
 }
 
-// #[tauri::command]
-// pub fn add_song_to_queue(song_id: &str) -> Result<Vec<SongItem>, String> {
+#[tauri::command]
+pub fn get_song_by_id(song_id: &str) -> Result<Vec<SongItem>, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
 
-//     Ok(song)
-// }
+    let mut stmt = db
+        .prepare("SELECT * FROM songs WHERE song_id = ?1")
+        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+
+    let song_iter = stmt
+        .query_map([song_id], |row| {
+            Ok(SongItem {
+                song_id: row.get(0)?,
+                title: row.get(1)?,
+                artwork: row.get(2)?,
+                artist_id: row.get(3)?,
+                artist_name: row.get(4)?,
+                release_id: row.get(5)?,
+                release_title: row.get(6)?,
+                track_number: row.get(7)?,
+                disc_number: row.get(8)?,
+                duration: row.get::<_, f64>(9)? as u64,
+                bitrate: row.get(10)?,
+                sample_rate: row.get(11)?,
+                play_count: row.get(12)?,
+                last_played: row.get(13)?,
+                rating: row.get(14)?,
+                lyrics: row.get(15)?,
+                is_favorite: row.get(16)?,
+                file_path: row.get(17)?,
+                created_at: row.get::<_, String>(18)?.to_string(),
+                updated_at: row.get::<_, String>(19)?.to_string(),
+            })
+        })
+        .map_err(|e| format!("Failed to query songs: {}", e))?;
+
+    let mut songs = Vec::new();
+    for song in song_iter {
+        songs.push(song.map_err(|e| format!("Failed to process song row: {}", e))?);
+    }
+
+    Ok(songs)
+}

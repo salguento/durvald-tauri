@@ -7,15 +7,25 @@ import ReleaseItem from "../ui/Components/ReleaseItem";
 import { ReleaseType } from "../types/ReleaseType";
 // Stores
 import { playerStore } from "../stores/playerStore";
+import { QueueItemType } from "../types/QueueItemType";
+import TrackType from "../types/Track";
 // Function
 export default function Page() {
   const [releases, setReleases] = createSignal<ReleaseType[]>([]);
-  const [, setQueueList] = playerStore.queueList;
+  const [queueList, setQueueList] = playerStore.queueList;
   onMount(async () => {
     try {
       setReleases(await invoke("get_releases"));
       await invoke("load_queue_from_db");
-      setQueueList(await invoke("get_queue"));
+      const queue: QueueItemType[] = await invoke("get_queue");
+      queue.forEach(async (i: QueueItemType) => {
+        const trackItem: TrackType[] = await invoke("get_song_by_id", {
+          songId: i[0].toString(),
+        });
+        console.log(trackItem);
+        setQueueList([...queueList(), trackItem[0]]);
+      });
+      console.log(queueList());
     } catch (error) {
       console.log("Startup error:", error);
     }

@@ -16,7 +16,7 @@ use std::sync::Arc;
 
 use commands::database_commands::{
     add_path_to_library_paths, create_tables, get_paths_from_library_paths, get_release_by_id,
-    get_releases, get_songs_by_release_id, update_database,
+    get_releases, get_song_by_id, get_songs_by_release_id, update_database,
 };
 use commands::get_audio_metadata;
 
@@ -513,6 +513,7 @@ fn main() {
                 check_and_play_next,
                 load_queue_from_db,
                 clear_queue,
+                get_song_by_id,
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

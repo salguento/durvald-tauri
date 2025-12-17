@@ -5,13 +5,14 @@ import SongType from "../../../types/Track";
 // Components
 import QueueContextMenu from "./QueueContextMenu";
 import QueueDropdownMenu from "./QueueDropdownMenu";
-import { QueueItemType } from "../../../types/QueueItemType";
+import TrackType from "../../../types/Track";
+import { secToMin } from "../../../utils/secToMin";
 
 interface QueueTrackProps {
-  item: QueueItemType;
+  item: TrackType;
 }
 export default function QueueTrack({ item }: QueueTrackProps) {
-  const [isOpen, setIsOpen] = createSignal<boolean>(false);
+  const [, setIsOpen] = createSignal<boolean>(false);
   const song: SongType = {
     song_id: 1,
     title: "title",
@@ -39,7 +40,7 @@ export default function QueueTrack({ item }: QueueTrackProps) {
       <QueueContextMenu track={song}>
         <div class="flex justify-between gap-2 group  px-1.5 py-1.5 overflow-hidden rounded-xl">
           <div class="min-w-10 min-h-10 relative flex items-center justify-center rounded-sm overflow-hidden ">
-            <div class="absolute w-full h-full  bg-red-500/50 hidden  group-hover:flex ">
+            <div class="absolute w-full h-full  bg-zinc-500/75 hidden   group-hover:flex ">
               <button
                 class="w-full h-full items-center justify-center flex cursor-pointer"
                 title="Remove from queue"
@@ -48,23 +49,20 @@ export default function QueueTrack({ item }: QueueTrackProps) {
                 <span class="icon-[solar--minus-circle-linear] h-6 w-6 text-white"></span>
               </button>
             </div>
-            <img
-              src="/assets/images/britpop-agcook.jpg"
-              class="w-10 h-10"
-            ></img>
+            <img src={item.artwork} class="w-10 h-10"></img>
           </div>
           <div class="flex flex-col grow text-left overflow-hidden">
-            <span class="text-sm truncate">
-              Track name that can be really very tottaly long
+            <span class="text-sm truncate">{item.title}</span>
+            <span class="text-xs text-zinc-400 truncate">
+              {item.artist_name + "-" + item.release_title}
             </span>
-            <span class="text-xs text-zinc-400 truncate">{item[1]}</span>
           </div>
           <div class="flex items-center justify-end text-right min-w-8">
             <QueueDropdownMenu track={song}>
               <span
-                class={`group-hover:hidden block text-sm text-zinc-400 h-6`}
+                class={`group-hover:hidden block text-xs text-zinc-400 h-6`}
               >
-                2:11
+                {secToMin(item.duration)}
               </span>
               <div class={`group-hover:block hidden`}>
                 <button

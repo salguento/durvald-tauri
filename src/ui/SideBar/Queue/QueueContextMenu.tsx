@@ -11,7 +11,7 @@ interface Props {
 export default function QueueContextMenu(props: Props) {
   return (
     <ContextMenu>
-      <ContextMenu.Trigger class="relative w-full h-full flex group bg-zinc-900 hover:bg-zinc-800 rounded-xl">
+      <ContextMenu.Trigger class="relative w-full h-full flex group bg-zinc-900 hover:bg-zinc-800 rounded-lg">
         {props.children}
       </ContextMenu.Trigger>
       <ContextMenu.Portal>

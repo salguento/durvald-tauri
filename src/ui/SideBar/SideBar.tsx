@@ -21,24 +21,24 @@ export default function SideBar() {
         class={`max-w-2xs w-2xs min-w-2xs h-full rounded-3xl border border-zinc-700/50 bg-zinc-900 z-1 overflow-hidden relative`}
       >
         <div class="flex flex-col gap-4 h-full relative">
-          <OverlayScrollbarsComponent
-            element="div"
-            options={{ scrollbars: { autoHide: "scroll" } }}
-            events={{
-              scroll: () => {
-                /* ... */
-              },
-            }}
-            defer
-            class="h-full  rounded-2xl relative overflow-auto"
+          <Tabs
+            aria-label="Main navigation"
+            class="text-white h-full relative"
+            value={sideBarTab()}
+            onChange={setSideBarTab}
           >
-            <Tabs
-              aria-label="Main navigation"
-              class="text-white"
-              value={sideBarTab()}
-              onChange={setSideBarTab}
-            >
-              <Tabs.Content class="" value="playing">
+            <Tabs.Content class="" value="playing">
+              <OverlayScrollbarsComponent
+                element="div"
+                options={{ scrollbars: { autoHide: "scroll" } }}
+                events={{
+                  scroll: () => {
+                    /* ... */
+                  },
+                }}
+                defer
+                class="h-full  rounded-2xl relative overflow-auto"
+              >
                 <div class="flex flex-col gap-3 p-4">
                   <img
                     src={currentTrack()?.artwork}
@@ -154,15 +154,15 @@ export default function SideBar() {
                     </div>
                   </OverlayScrollbarsComponent>
                 </div>
-              </Tabs.Content>
-              <Tabs.Content class="" value="lyrics">
-                Dashboard details
-              </Tabs.Content>
-              <Tabs.Content class="" value="queue">
-                <Queue />
-              </Tabs.Content>
-            </Tabs>
-          </OverlayScrollbarsComponent>
+              </OverlayScrollbarsComponent>
+            </Tabs.Content>
+            <Tabs.Content class="" value="lyrics">
+              Dashboard details
+            </Tabs.Content>
+            <Tabs.Content class="h-full relative" value="queue">
+              <Queue />
+            </Tabs.Content>
+          </Tabs>
         </div>
       </div>
     </Show>
