@@ -18,11 +18,11 @@ export default function Page() {
       setReleases(await invoke("get_releases"));
       await invoke("load_queue_from_db");
       const queue: QueueItemType[] = await invoke("get_queue");
+      setQueueList([]);
       queue.forEach(async (i: QueueItemType) => {
         const trackItem: TrackType[] = await invoke("get_song_by_id", {
           songId: i[0].toString(),
         });
-        console.log(trackItem);
         setQueueList([...queueList(), trackItem[0]]);
       });
       console.log(queueList());

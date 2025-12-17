@@ -7,6 +7,7 @@ import playBack from "../../hooks/audio/play";
 import pausePlayback from "../../hooks/audio/pause";
 import resumePlayback from "../../hooks/audio/resume";
 import { useVolume } from "../../hooks/audio/useVolume";
+import playNext from "../../hooks/audio/next";
 // Utils
 import { secToMin } from "../../utils/secToMin";
 // Store
@@ -164,6 +165,7 @@ export default function PlayBar() {
                   <button
                     class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                     title="Foward"
+                    onClick={async () => playNext()}
                   >
                     <span class="icon-[solar--rewind-forward-bold] h-6 w-6 "></span>
                   </button>

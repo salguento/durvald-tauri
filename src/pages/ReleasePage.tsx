@@ -20,7 +20,7 @@ import DropdownMenuComponent from "../ui/Components/ContextMenu/SongDropdownMenu
 export default function ReleasePage() {
   const [release, setRelease] = createSignal<ReleaseType>();
   const [songs, setSongs] = createSignal<SongType[]>([]);
-  const [isOpen, setIsOpen] = createSignal<boolean>(false);
+  const [, setIsOpen] = createSignal<boolean>(false);
 
   onMount(async () => {
     const params = useParams();

@@ -27,7 +27,7 @@ export default async function playBack(track: TrackType) {
         songId: item.song_id,
         path: item.file_path,
       });
-      setQueueList([item, ...queueList()]);
+      setQueueList([...queueList(), item]);
     });
   } catch (error) {
     console.error("Failed to play audio:", error);
