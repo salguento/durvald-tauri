@@ -8,6 +8,7 @@ import pausePlayback from "../../hooks/audio/pause";
 import resumePlayback from "../../hooks/audio/resume";
 import { useVolume } from "../../hooks/audio/useVolume";
 import playNext from "../../hooks/audio/next";
+import playPrevious from "../../hooks/audio/previous";
 // Utils
 import { secToMin } from "../../utils/secToMin";
 // Store
@@ -19,21 +20,20 @@ import ProgressPayload from "../../types/ProgressPayload";
 // Function
 export default function PlayBar() {
   const [isDragging, setIsDragging] = createSignal(false);
-  const [lastSeekTime, setLastSeekTime] = createSignal(0);
+  const [, setLastSeekTime] = createSignal(0);
   const [previewPosition, setPreviewPosition] = createSignal<number | null>(
     null,
   );
-  const [lastProgressUpdate, setLastProgressUpdate] = createSignal(0);
+  const [, setLastProgressUpdate] = createSignal(0);
   const [previousVolume, setPreviousVolume] = createSignal<number>(0);
   // Imported Hooks
-  const { volume, handleVolumeChange, setVolumeImmediate, resetVolume } =
-    useVolume({
-      initialVolume: 50,
-      debounceDelay: 100,
-    });
+  const { volume, handleVolumeChange, setVolumeImmediate } = useVolume({
+    initialVolume: 50,
+    debounceDelay: 100,
+  });
   // Imported Stores
   const [playBackState, setPlayBackState] = playerStore.playBackState;
-  const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
+  const [currentTrack] = playerStore.currentTrack;
   const [playbackProgress, setPlaybackProgress] = playerStore.playbackProgress;
 
   onMount(async () => {
@@ -119,6 +119,7 @@ export default function PlayBar() {
                   <button
                     class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                     title="Backwards"
+                    onClick={async () => playPrevious()}
                   >
                     <span class="icon-[solar--rewind-back-bold] h-6 w-6"></span>
                   </button>

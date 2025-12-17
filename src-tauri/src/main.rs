@@ -335,6 +335,12 @@ async fn load_queue_from_db(state: tauri::State<'_, AppState>) -> Result<(), Str
     Ok(())
 }
 
+#[tauri::command]
+async fn get_current_song_id(state: tauri::State<'_, AppState>) -> Result<Option<i64>, String> {
+    let player = state.audio_player.lock().await;
+    Ok(player.get_current_song_id())
+}
+
 #[command]
 async fn start_progress_tracking(
     app: tauri::AppHandle,
@@ -514,6 +520,7 @@ fn main() {
                 load_queue_from_db,
                 clear_queue,
                 get_song_by_id,
+                get_current_song_id,
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

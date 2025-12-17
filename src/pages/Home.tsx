@@ -25,7 +25,6 @@ export default function Page() {
         });
         setQueueList([...queueList(), trackItem[0]]);
       });
-      console.log(queueList());
     } catch (error) {
       console.log("Startup error:", error);
     }

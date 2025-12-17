@@ -15,6 +15,8 @@ export default async function playBack(track: TrackType) {
   try {
     await invoke("play_file", { path: track.file_path });
     await invoke("start_progress_tracking");
+    await invoke("clear_queue");
+    setQueueList([]);
     await listen<ProgressPayload>("progress-update", (event) => {
       setPlaybackProgress(event.payload);
     });

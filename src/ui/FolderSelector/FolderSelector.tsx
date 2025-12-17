@@ -117,7 +117,6 @@ export default function FolderSelector() {
       setFiles(filesWithMetadata);
       const grouped = await groupByAlbum(filesWithMetadata);
       setGroupedFiles(grouped);
-      console.log(files());
 
       await invoke("add_path_to_library_paths", { folderPath });
       // await invoke("add_local_files_to_library", {
