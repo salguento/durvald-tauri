@@ -69,7 +69,7 @@ export default function MenuBar() {
             <span class="absolute left-2.5 top-2.5 icon-[solar--magnifer-linear] h-5 w-5 text-zinc-600 :text-white"></span>
           </Show>
         </div>
-        <div class={`flex flex-col ${menuCollapsed() ? "" : "w-full"} `}>
+        <div class={`flex flex-col ${menuCollapsed() ? "" : "w-full"} gap-0.5`}>
           <A href="/">
             <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
               <span class="icon-[solar--home-angle-2-linear] h-5 w-5 "></span>
@@ -85,7 +85,9 @@ export default function MenuBar() {
             <Show when={!menuCollapsed()}>Recently Added</Show>
           </button>*/}
         </div>
-        <div class={`flex flex-col ${menuCollapsed() ? "" : "w-full"} `}>
+        <div
+          class={`flex flex-col ${menuCollapsed() ? "" : "w-full"}  gap-0.5`}
+        >
           <Show when={!menuCollapsed()}>
             <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500 items-center">
               <span class="icon-[solar--music-library-2-linear] h-5 w-5 "></span>
@@ -118,7 +120,9 @@ export default function MenuBar() {
           </A>
         </div>
         <Show when={!menuCollapsed()}>
-          <div class={`flex flex-col ${menuCollapsed() ? "" : "w-full"} `}>
+          <div
+            class={`flex flex-col ${menuCollapsed() ? "" : "w-full"} gap-0.5`}
+          >
             <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-medium text-zinc-500 items-center">
               <span class="icon-[solar--playlist-minimalistic-2-bold] h-5 w-5 "></span>
               <span class="">Playlists</span>
