@@ -14,28 +14,39 @@ import TrackType from "../types/Track";
 // Function
 export default function Page() {
   const [releases, setReleases] = createSignal<ReleaseType[]>([]);
-  const [queueList, setQueueList] = playerStore.queueList;
-  const [, setCurrentTrack] = playerStore.currentTrack;
-  const [, setShowSidebar] = uiStore.showSideBar;
   onMount(async () => {
+    const [queueList, setQueueList] = playerStore.queueList;
+    const [, setCurrentTrack] = playerStore.currentTrack;
+    const [, setShowSidebar] = uiStore.showSideBar;
+
     try {
       setReleases(await invoke("get_releases"));
       await invoke("load_queue_from_db");
       const queue: QueueItemType[] = await invoke("get_queue");
+
       setQueueList([]);
-      queue.forEach(async (i: QueueItemType, index) => {
+
+      const trackPromises = queue.map(async (i: QueueItemType, index) => {
         const trackItem: TrackType[] = await invoke("get_song_by_id", {
           songId: i[0].toString(),
         });
-        setQueueList([...queueList(), trackItem[0]]);
-        if (index == 0) {
-          setCurrentTrack(trackItem[0]);
-        }
+        return { track: trackItem[0], isFirst: index === 0 };
       });
+
+      const results = await Promise.all(trackPromises);
+
+      const tracks = results.map((r) => r.track);
+      setQueueList(tracks);
+
+      if (results.length > 0 && results[0].isFirst) {
+        setCurrentTrack(results[0].track);
+      }
     } catch (error) {
       console.log("Startup error:", error);
     } finally {
-      if (queueList().length == 0) setShowSidebar(false);
+      if (queueList().length == 0) {
+        setShowSidebar(false);
+      }
     }
   });
   return (
