@@ -3,10 +3,12 @@ import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { createSignal, For, onMount } from "solid-js";
 import { invoke } from "@tauri-apps/api/core";
 import ReleaseItem from "../ui/Components/ReleaseItem";
-// Types
-import { ReleaseType } from "../types/ReleaseType";
+
 // Stores
 import { playerStore } from "../stores/playerStore";
+import { uiStore } from "../stores/uiStore";
+// Types
+import { ReleaseType } from "../types/ReleaseType";
 import { QueueItemType } from "../types/QueueItemType";
 import TrackType from "../types/Track";
 // Function
@@ -14,6 +16,7 @@ export default function Page() {
   const [releases, setReleases] = createSignal<ReleaseType[]>([]);
   const [queueList, setQueueList] = playerStore.queueList;
   const [, setCurrentTrack] = playerStore.currentTrack;
+  const [, setShowSidebar] = uiStore.showSideBar;
   onMount(async () => {
     try {
       setReleases(await invoke("get_releases"));
@@ -31,6 +34,8 @@ export default function Page() {
       });
     } catch (error) {
       console.log("Startup error:", error);
+    } finally {
+      if (queueList().length == 0) setShowSidebar(false);
     }
   });
   return (

@@ -4,5 +4,5 @@ import { createSignal } from "solid-js";
 export const uiStore = {
   menuCollapsed: createSignal<boolean>(false),
   showSideBar: createSignal<boolean>(true),
-  sideBarTab: createSignal<string>("playing"),
+  sideBarTab: createSignal<string>("queue"),
 };
