@@ -1,6 +1,5 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
-import { A } from "@solidjs/router";
 import { Tabs } from "@kobalte/core/tabs";
 import { Show } from "solid-js";
 // Hooks
@@ -11,9 +10,9 @@ import { uiStore } from "../../stores/uiStore";
 import Queue from "./Queue/Queue";
 // Function
 export default function SideBar() {
-  const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
+  const [currentTrack] = playerStore.currentTrack;
   const [sideBarTab, setSideBarTab] = uiStore.sideBarTab;
-  const [showSideBar, setShowSideBar] = uiStore.showSideBar;
+  const [showSideBar] = uiStore.showSideBar;
 
   return (
     <Show when={showSideBar()}>

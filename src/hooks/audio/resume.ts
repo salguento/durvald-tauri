@@ -4,7 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { playerStore } from "../../stores/playerStore";
 // Function
 export default async function resumePlayback() {
-  const [playBackState, setPlayBackState] = playerStore.playBackState;
+  const [, setPlayBackState] = playerStore.playBackState;
   try {
     await invoke("resume_playback");
   } catch (error) {

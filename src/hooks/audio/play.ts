@@ -11,7 +11,7 @@ export default async function playBack(track: TrackType) {
   const [, setPlayBackState] = playerStore.playBackState;
   const [, setCurrentTrack] = playerStore.currentTrack;
   const [, setPlaybackProgress] = playerStore.playbackProgress;
-  const [queueList, setQueueList] = playerStore.queueList;
+  const [, setQueueList] = playerStore.queueList;
   try {
     await invoke("play_file", { path: track.file_path });
     await invoke("start_progress_tracking");

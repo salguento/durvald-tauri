@@ -5,14 +5,12 @@ import { createSignal, For } from "solid-js";
 // Store
 import { playerStore } from "../../../stores/playerStore";
 // Types
-import { QueueItemType } from "../../../types/QueueItemType";
 // Components
 import QueueTrack from "./QueueTrack";
 import TrackType from "../../../types/Track";
 export default function Queue() {
-  const [queueList, setQueueList] = playerStore.queueList;
+  const [queueList] = playerStore.queueList;
   const [queueTab, setQueueTab] = createSignal<string>("queue");
-  const [isOpen, setIsOpen] = createSignal<boolean>(false);
 
   const handleTab = (value: string) => {
     if (queueTab() != value) {
