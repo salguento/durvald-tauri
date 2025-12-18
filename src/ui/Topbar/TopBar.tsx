@@ -33,7 +33,7 @@ export default function TopBar() {
             <span class="icon-[solar--hamburger-menu-linear] h-6 w-6 "></span>
           </button>
         </MainMenu>
-        <button
+        {/*<button
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
           title="Miniplayer"
         >
@@ -44,7 +44,7 @@ export default function TopBar() {
           title="Visualizer"
         >
           <span class="icon-[solar--full-screen-square-linear] h-6 w-6 "></span>
-        </button>
+        </button>*/}
       </div>
       <div
         class="flex flex-row items-center h-full gap-4 justify-center"
