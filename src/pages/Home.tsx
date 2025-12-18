@@ -1,54 +1,13 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
-import { createSignal, For, onMount } from "solid-js";
-import { invoke } from "@tauri-apps/api/core";
+import { For } from "solid-js";
 import ReleaseItem from "../ui/Components/ReleaseItem";
-
 // Stores
-import { playerStore } from "../stores/playerStore";
-import { uiStore } from "../stores/uiStore";
-// Types
-import { ReleaseType } from "../types/ReleaseType";
-import { QueueItemType } from "../types/QueueItemType";
-import TrackType from "../types/Track";
+import { libraryStore } from "../stores/libraryStore";
 // Function
 export default function Page() {
-  const [releases, setReleases] = createSignal<ReleaseType[]>([]);
-  onMount(async () => {
-    const [queueList, setQueueList] = playerStore.queueList;
-    const [, setCurrentTrack] = playerStore.currentTrack;
-    const [, setShowSidebar] = uiStore.showSideBar;
+  const [releaseStore] = libraryStore.releaseStore;
 
-    try {
-      setReleases(await invoke("get_releases"));
-      await invoke("load_queue_from_db");
-      const queue: QueueItemType[] = await invoke("get_queue");
-
-      setQueueList([]);
-
-      const trackPromises = queue.map(async (i: QueueItemType, index) => {
-        const trackItem: TrackType[] = await invoke("get_song_by_id", {
-          songId: i[0].toString(),
-        });
-        return { track: trackItem[0], isFirst: index === 0 };
-      });
-
-      const results = await Promise.all(trackPromises);
-
-      const tracks = results.map((r) => r.track);
-      setQueueList(tracks);
-
-      if (results.length > 0 && results[0].isFirst) {
-        setCurrentTrack(results[0].track);
-      }
-    } catch (error) {
-      console.log("Startup error:", error);
-    } finally {
-      if (queueList().length == 0) {
-        setShowSidebar(false);
-      }
-    }
-  });
   return (
     <div>
       <div class="relative w-full shadow-xl">
@@ -93,7 +52,7 @@ export default function Page() {
               class="px-4"
             >
               <div class="grid grid-flow-row grid-cols-3 gap-3 w-full">
-                <For each={releases()}>
+                <For each={releaseStore()}>
                   {(releases) => (
                     <ReleaseItem
                       artwork={releases.artwork}

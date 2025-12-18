@@ -1,9 +1,18 @@
 // Dependencies
 import "./App.css";
 import { Router, Route } from "@solidjs/router";
+import { onMount } from "solid-js";
 import "overlayscrollbars/overlayscrollbars.css";
+import { invoke } from "@tauri-apps/api/core";
+// Hooks
+import { playerStore } from "./stores/playerStore";
+import { uiStore } from "./stores/uiStore";
+import { libraryStore } from "./stores/libraryStore";
 // Store
 import { initializePlayerStore } from "./stores/playerStore";
+// Types
+import { QueueItemType } from "./types/QueueItemType";
+import TrackType from "./types/Track";
 // Pages
 import Routes from "./Routes";
 import Layout from "./pages/Layout";
@@ -12,6 +21,42 @@ import { ErrorBoundary } from "solid-js";
 
 function App() {
   initializePlayerStore();
+  onMount(async () => {
+    const [queueList, setQueueList] = playerStore.queueList;
+    const [, setCurrentTrack] = playerStore.currentTrack;
+    const [, setShowSidebar] = uiStore.showSideBar;
+    const [, setReleaseStore] = libraryStore.releaseStore;
+
+    try {
+      setReleaseStore(await invoke("get_releases"));
+      await invoke("load_queue_from_db");
+      const queue: QueueItemType[] = await invoke("get_queue");
+
+      setQueueList([]);
+
+      const trackPromises = queue.map(async (i: QueueItemType, index) => {
+        const trackItem: TrackType[] = await invoke("get_song_by_id", {
+          songId: i[0].toString(),
+        });
+        return { track: trackItem[0], isFirst: index === 0 };
+      });
+
+      const results = await Promise.all(trackPromises);
+
+      const tracks = results.map((r) => r.track);
+      setQueueList(tracks);
+
+      if (results.length > 0 && results[0].isFirst) {
+        setCurrentTrack(results[0].track);
+      }
+    } catch (error) {
+      console.log("Startup error:", error);
+    } finally {
+      if (queueList().length == 0) {
+        setShowSidebar(false);
+      }
+    }
+  });
   return (
     <ErrorBoundary
       fallback={(err) => {
