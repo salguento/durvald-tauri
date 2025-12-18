@@ -1,7 +1,9 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { Tabs } from "@kobalte/core/tabs";
-import { createSignal, For } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
+// Hooks
+import clearQueue from "../../../hooks/audio/clearQueue";
 // Store
 import { playerStore } from "../../../stores/playerStore";
 // Types
@@ -53,11 +55,39 @@ export default function Queue() {
             },
           }}
           defer
-          class="overflow-y-hidden max-w-2xs flex flex-col gap-1 h-full pt-15 pb-5 px-1.5"
+          class="overflow-y-hidden max-w-2xs flex flex-col gap-1 h-full pt-13 pb-5 px-1.5"
         >
-          <For each={queueList()}>
-            {(item: TrackType) => <QueueTrack item={item} />}
-          </For>
+          <Show
+            when={queueList().length > 0}
+            fallback={
+              <div class="flex justify-center px-1.5 py-3.5">
+                <span class="text-zinc-500 text-sm text-center">
+                  There's no song in the queue
+                </span>
+              </div>
+            }
+          >
+            <div class="text-zinc-300 flex justify-between items-center px-1.5 border-b border-zinc-700/50 py-2.5">
+              <button
+                class="hover:text-white p-1 rounded-full h-7 w-7 cursor-pointer hover:bg-zinc-700/50"
+                title="Autoplay"
+              >
+                <span class="icon-[solar--infinity-linear] h-5 w-5"></span>
+              </button>
+              <button
+                class="hover:text-white cursor-pointer h-7 hover:bg-zinc-700/50 px-2 py-.5 flex items-center rounded-lg"
+                title="Clear queue"
+                onClick={() => {
+                  clearQueue();
+                }}
+              >
+                <span class="text-xs ">Clear</span>
+              </button>
+            </div>
+            <For each={queueList()}>
+              {(item: TrackType) => <QueueTrack item={item} />}
+            </For>
+          </Show>
         </OverlayScrollbarsComponent>
       </Tabs.Content>
       <Tabs.Content class="w-full relative h-full" value="history">
