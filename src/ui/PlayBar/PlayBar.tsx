@@ -181,9 +181,9 @@ export default function PlayBar() {
                   <div class="flex flex-row justify-between items-center gap-2.5 text-xs text-zinc-400 relative w-full">
                     <Show
                       when={!playBackState()?.is_empty}
-                      fallback={<span class="h-4"></span>}
+                      fallback={<span class="h-4 w-8 "></span>}
                     >
-                      <span>
+                      <span class="w-8">
                         {isDragging() && previewPosition() !== null
                           ? secToMin(previewPosition()!)
                           : secToMin(playbackProgress().position)}
@@ -240,9 +240,9 @@ export default function PlayBar() {
                     </Slider>
                     <Show
                       when={!playBackState()?.is_empty}
-                      fallback={<span class="h-4"></span>}
+                      fallback={<span class="h-4 w-8"></span>}
                     >
-                      <span>
+                      <span class="w-8">
                         {playbackProgress().duration
                           ? secToMin(playbackProgress().duration)
                           : "0:00"}
