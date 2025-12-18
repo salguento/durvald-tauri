@@ -13,17 +13,21 @@ import TrackType from "../types/Track";
 export default function Page() {
   const [releases, setReleases] = createSignal<ReleaseType[]>([]);
   const [queueList, setQueueList] = playerStore.queueList;
+  const [, setCurrentTrack] = playerStore.currentTrack;
   onMount(async () => {
     try {
       setReleases(await invoke("get_releases"));
       await invoke("load_queue_from_db");
       const queue: QueueItemType[] = await invoke("get_queue");
       setQueueList([]);
-      queue.forEach(async (i: QueueItemType) => {
+      queue.forEach(async (i: QueueItemType, index) => {
         const trackItem: TrackType[] = await invoke("get_song_by_id", {
           songId: i[0].toString(),
         });
         setQueueList([...queueList(), trackItem[0]]);
+        if (index == 0) {
+          setCurrentTrack(trackItem[0]);
+        }
       });
     } catch (error) {
       console.log("Startup error:", error);
