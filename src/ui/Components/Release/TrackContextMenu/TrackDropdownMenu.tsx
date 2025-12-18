@@ -2,13 +2,13 @@
 import { DropdownMenu } from "@kobalte/core/dropdown-menu";
 // Types
 import { JSX } from "solid-js";
-import TrackType from "../../../types/Track";
+import TrackType from "../../../../types/Track";
 interface Props {
   children: JSX.Element;
   track: TrackType;
 }
 // Function
-export default function DropdownMenuComponent(props: Props) {
+export default function TrackDropdownMenu(props: Props) {
   return (
     <DropdownMenu
       fitViewport={true}

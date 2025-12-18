@@ -2,13 +2,13 @@
 import { ContextMenu } from "@kobalte/core/context-menu";
 // Types
 import { JSX } from "solid-js";
-import TrackType from "../../../types/Track";
+import TrackType from "../../../../types/Track";
 interface Props {
   children: JSX.Element;
   track: TrackType;
 }
 // Function
-export default function ContextMenuComponent(props: Props) {
+export default function TrackContextMenu(props: Props) {
   return (
     <ContextMenu>
       <ContextMenu.Trigger class="relative w-full h-full flex group bg-zinc-900 hover:bg-zinc-800 hover:cursor-pointer">

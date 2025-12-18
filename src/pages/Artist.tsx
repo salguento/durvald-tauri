@@ -1,7 +1,7 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { For } from "solid-js";
-import BackButton from "../ui/Components/BackButton";
+import ReturnButton from "../ui/Components/Buttons/ReturnButton/ReturnButton";
 
 interface SongInfo {
   track: number;
@@ -79,7 +79,7 @@ export default function Album() {
             class="backdrop-blur-xl flex flex-row items-center gap-2 pt-3 px-4 pb-3 w-full h-full "
             data-tauri-drag-region
           >
-            <BackButton />
+            <ReturnButton />
             <span class="text-xl font-semibold">Artist</span>
           </div>
         </div>

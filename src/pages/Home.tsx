@@ -1,7 +1,7 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 import { For } from "solid-js";
-import ReleaseItem from "../ui/Components/ReleaseItem";
+import ReleaseItem from "../ui/Components/Release/ReleaseItem/ReleaseItem";
 // Stores
 import { libraryStore } from "../stores/libraryStore";
 // Function

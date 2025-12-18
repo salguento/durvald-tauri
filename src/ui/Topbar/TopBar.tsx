@@ -6,7 +6,7 @@ import { useShowSideBar } from "../../hooks/ui/useShowSideBar";
 // Store
 import { uiStore } from "../../stores/uiStore";
 // Components
-import MainMenu from "../Components/MainMenu";
+import MainMenu from "../Components/Buttons/MainMenu/MainMenu";
 // Function
 export default function TopBar() {
   const appWindow = getCurrentWindow();

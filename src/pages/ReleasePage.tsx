@@ -13,9 +13,9 @@ import { secToMin } from "../utils/secToMin";
 import { ReleaseType } from "../types/ReleaseType";
 import SongType from "../types/Track";
 // UI
-import BackButton from "../ui/Components/BackButton";
-import SongContextMenu from "../ui/Components/ContextMenu/SongContextMenu";
-import DropdownMenuComponent from "../ui/Components/ContextMenu/SongDropdownMenu";
+import BackButton from "../ui/Components/Buttons/ReturnButton/ReturnButton";
+import TrackContextMenu from "../ui/Components/Release/TrackContextMenu/TrackContextMenu";
+import TrackDropdownMenu from "../ui/Components/Release/TrackContextMenu/TrackDropdownMenu";
 
 export default function ReleasePage() {
   const [release, setRelease] = createSignal<ReleaseType>();
@@ -118,7 +118,7 @@ export default function ReleasePage() {
             <div class="relative overflow-hidden">
               <For each={songs()}>
                 {(song: SongType) => (
-                  <SongContextMenu track={song}>
+                  <TrackContextMenu track={song}>
                     <div class="flex justify-center items-center content-center h-12  min-w-8 pl-2 ">
                       <button
                         class="text-zinc-300 hover:text-white hover:cursor-pointer w-4 h-4"
@@ -164,12 +164,12 @@ export default function ReleasePage() {
                         title="Options"
                         onClick={() => setIsOpen(true)}
                       >
-                        <DropdownMenuComponent track={song}>
+                        <TrackDropdownMenu track={song}>
                           <span class="icon-[solar--menu-dots-bold] h-4 w-4"></span>
-                        </DropdownMenuComponent>
+                        </TrackDropdownMenu>
                       </button>
                     </div>
-                  </SongContextMenu>
+                  </TrackContextMenu>
                 )}
               </For>
             </div>
