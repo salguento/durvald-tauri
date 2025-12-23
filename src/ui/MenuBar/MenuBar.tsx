@@ -50,25 +50,7 @@ export default function MenuBar() {
             </button>
           </div>
         </Show>
-        <div class="relative">
-          <Show
-            when={!menuCollapsed()}
-            fallback={
-              <A href="/search">
-                <button class="flex  items-center justify-center rounded-lg h-10 w-10 hover:bg-zinc-800 focus:bg-zinc-900  text-zinc-300 hover:cursor-pointer">
-                  <span class="icon-[solar--magnifer-linear] h-5 w-5 "></span>
-                </button>
-              </A>
-            }
-          >
-            <input
-              type="text"
-              class="rounded-lg w-full border border-transparent bg-zinc-800 focus:bg-zinc-900 hover:border-zinc-600 pl-10 placeholder:text-zinc-600 text-base h-10 font-medium text-white inline-block align-middle pt-1"
-              placeholder="Search"
-            ></input>
-            <span class="absolute left-2.5 top-2.5 icon-[solar--magnifer-linear] h-5 w-5 text-zinc-600 :text-white"></span>
-          </Show>
-        </div>
+
         <div class={`flex flex-col ${menuCollapsed() ? "" : "w-full"} gap-0.5`}>
           <A href="/">
             <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
