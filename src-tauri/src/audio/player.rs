@@ -40,7 +40,7 @@ impl AudioPlayer {
             total_duration: None,
             current_path: None,
             paused_position: None,
-            current_volume: 1.0,
+            current_volume: 0.0,
             queue: VecDeque::new(),
             history: Vec::new(),
             current_song_id: None,
@@ -61,10 +61,9 @@ impl AudioPlayer {
         self.current_path = Some(path.clone());
         self.paused_position = None;
 
-        let mut sound_handle = self.manager.play(sound_data)?;
-        sound_handle.set_volume(self.current_volume, Tween::default());
+        let sound_handle = self.manager.play(sound_data)?;
         self.current_sound = Some(sound_handle);
-
+        self.set_volume(self.current_volume);
         Ok(())
     }
 
