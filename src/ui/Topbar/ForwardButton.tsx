@@ -1,6 +1,6 @@
 // Dependencies
 import { useNavigate, useLocation } from "@solidjs/router";
-import { createMemo, onMount, onCleanup } from "solid-js";
+import { createMemo, createEffect } from "solid-js";
 // Store
 import { uiStore } from "../../stores/uiStore";
 // Types
@@ -20,14 +20,21 @@ export default function ForwardButton() {
     });
   };
 
-  // Listen for navigation events
-  onMount(() => {
-    window.addEventListener("popstate", updateNavigationState);
-    updateNavigationState(); // Initial update
-  });
+  createEffect(() => {
+    // React to both pathname and key changes
+    location.pathname;
+    location.key;
 
-  onCleanup(() => {
-    window.removeEventListener("popstate", updateNavigationState);
+    // Small delay to let browser history update
+    requestAnimationFrame(() => {
+      const currentDepth = history.state?._depth ?? 0;
+      const currentLength = history.length;
+
+      setNavigationHistory({
+        depth: currentDepth,
+        length: currentLength,
+      });
+    });
   });
 
   const handleClick = () => {
