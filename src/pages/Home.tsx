@@ -16,7 +16,6 @@ export default function Page() {
             class="backdrop-blur-xl flex flex-row items-center gap-2 pt-3 px-4 pb-3 w-full h-full "
             data-tauri-drag-region
           >
-            <span class="icon-[solar--home-angle-2-linear] h-6 w-6 text-zinc-400 "></span>
             <span class="text-xl font-semibold">Home</span>
           </div>
         </div>

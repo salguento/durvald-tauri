@@ -1,8 +1,17 @@
+// Dependencies
+import { useNavigate } from "@solidjs/router";
+// Function
 export default function SearchBar() {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate("/search");
+  };
   return (
     <div class="relative w-56">
       <input
         type="text"
+        onClick={handleClick}
         class="rounded-lg w-full border border-transparent bg-zinc-800 focus:bg-zinc-900  items-center hover:border-zinc-600 pl-8 placeholder:text-zinc-600 text-base h-8 font-medium text-white inline-block "
         placeholder="Search"
       ></input>
