@@ -13,7 +13,7 @@ export default function MenuBar() {
     <div
       class={`${menuCollapsed() ? "w-[58px] max-w-[58px] min-w-[58px]" : "max-w-72 w-72"} rounded-3xl border  h-full`}
     >
-      <div class={`flex flex-col gap-6 h-full  items-center  p-3.5 `}>
+      <div class={`flex flex-col gap-6 h-full  items-center  p-4 `}>
         <Show when={!menuCollapsed()}>
           <div class="flex w-full flex-row flex-wrap justify-between items-center">
             <img
