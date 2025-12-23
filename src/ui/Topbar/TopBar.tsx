@@ -9,7 +9,7 @@ import { uiStore } from "../../stores/uiStore";
 import MainMenu from "../Components/Buttons/MainMenu/MainMenu";
 import SearchBar from "./SearchBar";
 import ReturnButton from "./ReturnButton";
-import FowardButton from "./FowardButton";
+import ForwardButton from "./ForwardButton";
 // Function
 export default function TopBar() {
   const appWindow = getCurrentWindow();
@@ -26,7 +26,10 @@ export default function TopBar() {
   }
 
   return (
-    <div class="h-10 flex gap-8 px-3.5 justify-between items-center">
+    <div
+      class="h-10 flex gap-8 px-3.5 justify-between items-center"
+      data-tauri-drag-region
+    >
       <MainMenu>
         <button
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
@@ -53,7 +56,7 @@ export default function TopBar() {
         data-tauri-drag-region
       >
         <ReturnButton />
-        <FowardButton />
+        <ForwardButton />
         <SearchBar />
       </div>
       <div

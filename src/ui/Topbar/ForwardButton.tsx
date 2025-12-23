@@ -1,4 +1,4 @@
-// Depencendies
+// Dependencies
 import { useNavigate, useLocation } from "@solidjs/router";
 import { createMemo, onMount, onCleanup } from "solid-js";
 // Store
@@ -7,8 +7,7 @@ import { uiStore } from "../../stores/uiStore";
 interface LocationState {
   previous?: string;
 }
-
-export default function ReturnButton() {
+export default function ForwardButton() {
   const [navigationHistory, setNavigationHistory] = uiStore.navigationHistory;
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,7 +35,7 @@ export default function ReturnButton() {
 
     // Check if we have history and can go forward
     if (state?.previous || history.length > 1) {
-      navigate(-1);
+      navigate(1);
     } else {
       navigate("/"); // Fallback to home
     }
@@ -44,20 +43,24 @@ export default function ReturnButton() {
     setTimeout(updateNavigationState, 0);
   };
 
-  const canNavigateBackwards = createMemo(() => {
+  const cantNavigateForward = createMemo(() => {
     const state = navigationHistory();
-    return state.depth > 0;
+    return state.depth >= state.length - 1;
   });
 
   return (
     <button
-      id="navigate-backwards"
-      class={`text-zinc-400  flex items-center justify-center h-8 w-8   rounded-xl ${canNavigateBackwards() ? "hover:text-white cursor-pointer hover:bg-zinc-700" : " text-zinc-400/50"}`}
-      title="Backward"
+      id="navigate-forward"
+      class={`text-zinc-400 flex items-center justify-center h-8 w-8 rounded-xl ${
+        cantNavigateForward()
+          ? "text-zinc-400/50"
+          : "cursor-pointer hover:bg-zinc-700 hover:text-white"
+      }`}
+      title="Forward"
       onclick={handleClick}
-      disabled={!canNavigateBackwards()}
+      disabled={cantNavigateForward()}
     >
-      <span class="icon-[solar--alt-arrow-left-linear] h-6 w-6 "></span>
+      <span class="icon-[solar--alt-arrow-right-linear] h-6 w-6"></span>
     </button>
   );
 }

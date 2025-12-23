@@ -31,6 +31,8 @@ export default function PlayBar() {
     initialVolume: 50,
     debounceDelay: 100,
   });
+  setVolumeImmediate(50);
+
   // Imported Stores
   const [playBackState, setPlayBackState] = playerStore.playBackState;
   const [currentTrack] = playerStore.currentTrack;
@@ -165,7 +167,7 @@ export default function PlayBar() {
                   </Show>
                   <button
                     class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
-                    title="Foward"
+                    title="Forward"
                     onClick={async () => playNext()}
                   >
                     <span class="icon-[solar--rewind-forward-bold] h-6 w-6 "></span>

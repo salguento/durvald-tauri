@@ -13,7 +13,7 @@ export default function MenuBar() {
     <div
       class={`${menuCollapsed() ? "w-[58px] max-w-[58px] min-w-[58px]" : "max-w-72 w-72"} rounded-3xl border  h-full`}
     >
-      <div class={`flex flex-col gap-6 h-full  items-center  p-4 `}>
+      <div class={`flex flex-col gap-6 h-full  items-center  p-3.5 `}>
         <Show when={!menuCollapsed()}>
           <div class="flex w-full flex-row flex-wrap justify-between items-center">
             <img
@@ -33,14 +33,14 @@ export default function MenuBar() {
           </div>
         </Show>
         <Show when={menuCollapsed()}>
-          <div class="flex w-full flex-col gap-4 flex-wrap justify-between items-center">
+          <div class="flex w-full flex-col gap-4 flex-wrap justify-between items-center group">
             <img
               src="/assets/images/logo.svg"
-              class="h-6"
+              class="h-6 group-hover:invisible"
               alt="durvald logotype"
             />
             <button
-              class="hover:text-zinc-200 text-zinc-600 h-6 w-6 hover:cursor-pointer active:cursor-text"
+              class="hover:text-zinc-200 text-zinc-600 h-6 w-6 hover:cursor-pointer active:cursor-text absolute invisible group-hover:visible"
               title="Expand"
               onClick={() => {
                 collapseMenu();
@@ -53,19 +53,31 @@ export default function MenuBar() {
 
         <div class={`flex flex-col ${menuCollapsed() ? "" : "w-full"} gap-0.5`}>
           <A href="/">
-            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer items-center">
               <span class="icon-[solar--home-angle-2-linear] h-5 w-5 "></span>
               <Show when={!menuCollapsed()}>Home</Show>
             </button>
           </A>
-          {/*<button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+          <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--bell-linear] h-5 w-5 "></span>
             <Show when={!menuCollapsed()}>New</Show>
           </button>
+          <A href="/">
+            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer items-center">
+              <span class="icon-[solar--bookmark-square-outline] h-5 w-5 "></span>
+              <Show when={!menuCollapsed()}>Listen later</Show>
+            </button>
+          </A>
           <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
             <span class="icon-[solar--clock-circle-linear] h-5 w-5 "></span>
             <Show when={!menuCollapsed()}>Recently Added</Show>
-          </button>*/}
+          </button>
+          <A href="/">
+            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer items-center">
+              <span class="icon-[solar--round-graph-linear] h-5 w-5 "></span>
+              <Show when={!menuCollapsed()}>Stats</Show>
+            </button>
+          </A>
         </div>
         <div
           class={`flex flex-col ${menuCollapsed() ? "" : "w-full"}  gap-0.5`}
@@ -77,25 +89,25 @@ export default function MenuBar() {
             </div>
           </Show>
           <A href="/all-artists">
-            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer items-center">
               <span class="icon-[solar--microphone-2-linear] h-5 w-5 "></span>
               <Show when={!menuCollapsed()}>Artists</Show>
             </button>
           </A>
           <A href="/all-releases">
-            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer items-center">
               <span class="icon-[solar--library-linear] h-5 w-5 "></span>
               <Show when={!menuCollapsed()}> Albuns</Show>
             </button>
           </A>
           <A href="/all-songs">
-            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer items-center">
               <span class="icon-[solar--music-notes-linear] h-5 w-5 "></span>
               <Show when={!menuCollapsed()}>Songs</Show>
             </button>
           </A>
           <A href="/all-genres">
-            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer">
+            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-base h-10 font-medium text-zinc-300 hover:cursor-pointer items-center">
               <span class="icon-[solar--music-note-slider-linear] h-5 w-5 "></span>
               <Show when={!menuCollapsed()}>Genres</Show>
             </button>
