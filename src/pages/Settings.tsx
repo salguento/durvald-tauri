@@ -1,7 +1,6 @@
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 // Components
 import FolderSelector from "../ui/FolderSelector/FolderSelector";
-import ReturnButton from "../ui/Components/Buttons/ReturnButton/ReturnButton";
 
 export default function Settings() {
   return (
@@ -9,7 +8,6 @@ export default function Settings() {
       <div class="relative w-full shadow-xl">
         <div class="absolute  w-full text-white  bg-zinc-900/50  z-1  border-b border-zinc-500/50">
           <div class="backdrop-blur-xl flex flex-row items-center gap-2 pt-3 px-4 pb-3 w-full h-full ">
-            <ReturnButton />
             <span class="text-xl font-semibold">Settings</span>
           </div>
         </div>

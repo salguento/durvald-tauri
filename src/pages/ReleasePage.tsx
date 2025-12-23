@@ -13,7 +13,6 @@ import { secToMin } from "../utils/secToMin";
 import { ReleaseType } from "../types/ReleaseType";
 import SongType from "../types/Track";
 // UI
-import BackButton from "../ui/Components/Buttons/ReturnButton/ReturnButton";
 import TrackContextMenu from "../ui/Components/Release/TrackContextMenu/TrackContextMenu";
 import TrackDropdownMenu from "../ui/Components/Release/TrackContextMenu/TrackDropdownMenu";
 
@@ -35,7 +34,6 @@ export default function ReleasePage() {
         <div class="absolute w-full text-white  bg-zinc-900/50  z-1 border-b border-zinc-700/50">
           <div class="backdrop-blur-xl grid grid-cols-5 items-center  pt-3 px-4 pb-3 w-full h-full">
             <div class="flex items-center gap-2 col-span-2">
-              <BackButton />
               <span class="text-xl font-semibold">Album</span>
             </div>
             <div class="col-span-1 flex gap-4 items-center justify-center">

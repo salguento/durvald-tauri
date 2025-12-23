@@ -1,7 +1,6 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
-// UI
-import ReturnButton from "../ui/Components/Buttons/ReturnButton/ReturnButton";
+
 // Function
 export default function AllArtists() {
   return (
@@ -12,7 +11,6 @@ export default function AllArtists() {
             class="backdrop-blur-xl flex flex-row items-center gap-2 pt-3 px-4 pb-3 w-full h-full "
             data-tauri-drag-region
           >
-            <ReturnButton />
             <span class="text-xl font-semibold">All Releases</span>
           </div>
         </div>
