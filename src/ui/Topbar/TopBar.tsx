@@ -2,32 +2,20 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 // Hooks
 import { useFullscreen } from "../../hooks/ui/useFullscreen";
-import { useShowSideBar } from "../../hooks/ui/useShowSideBar";
-// Store
-import { uiStore } from "../../stores/uiStore";
 // Components
 import MainMenu from "../Components/Buttons/MainMenu/MainMenu";
 import SearchBar from "./SearchBar";
 import ReturnButton from "./ReturnButton";
 import ForwardButton from "./ForwardButton";
+import SidebarButtons from "./SideBarButtons";
 // Function
 export default function TopBar() {
   const appWindow = getCurrentWindow();
   const { isFullscreen, toogleFullscreen } = useFullscreen();
-  const { openSideBar, closeSideBar, showSideBar } = useShowSideBar();
-  const [sideBarTab, setSideBarTab] = uiStore.sideBarTab;
-  function handleTab(tabName: string) {
-    if (sideBarTab() == tabName && showSideBar()) {
-      closeSideBar();
-    } else {
-      setSideBarTab(tabName);
-      openSideBar();
-    }
-  }
 
   return (
     <div
-      class="h-10 flex gap-8 px-3.5 justify-between items-center"
+      class="h-10 flex gap-2 sm:gap-5 px-3.5 justify-between items-center"
       data-tauri-drag-region
     >
       <MainMenu>
@@ -52,48 +40,15 @@ export default function TopBar() {
         </button>*/}
 
       <div
-        class="flex flex-row items-center h-full gap-1"
+        class="flex flex-row items-center h-full gap-1 w-full "
         data-tauri-drag-region
       >
         <ReturnButton />
         <ForwardButton />
         <SearchBar />
+        <SidebarButtons />
       </div>
-      <div
-        class="flex flex-row items-center h-full gap-1 w-full"
-        data-tauri-drag-region
-      >
-        <button
-          id="playing-tab"
-          title="Playing"
-          class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
-          onClick={() => {
-            handleTab("playing");
-          }}
-        >
-          <span class="icon-[solar--play-stream-linear] h-6 w-6 "></span>
-        </button>
-        <button
-          id="lyrics-tab"
-          class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
-          title="Lyrics"
-          onClick={() => {
-            handleTab("lyrics");
-          }}
-        >
-          <span class="icon-[solar--document-add-linear] h-6 w-6 "></span>
-        </button>
-        <button
-          id="queue-tab"
-          class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
-          title="Queue"
-          onClick={() => {
-            handleTab("queue");
-          }}
-        >
-          <span class="icon-[solar--playlist-linear] h-6 w-6 "></span>
-        </button>
-      </div>
+
       <div
         class="flex flex-row gap-2 h-full items-center justify-end"
         data-tauri-drag-region

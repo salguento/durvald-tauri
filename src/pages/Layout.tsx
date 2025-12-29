@@ -5,6 +5,8 @@ import MenuBar from "../ui/MenuBar/MenuBar";
 import SideBar from "../ui/SideBar/SideBar";
 import PlayBar from "../ui/PlayBar/PlayBar";
 import TopBar from "../ui/Topbar/TopBar";
+import MobileMenu from "../ui/MobileMenu/MobileMenu";
+import MobilePlaybar from "../ui/MobilePlaybar.tsx/MobilePlaybar";
 // Function
 const Layout: ParentComponent = (props) => {
   return (
@@ -26,6 +28,8 @@ const Layout: ParentComponent = (props) => {
           </div>
         </div>
         <PlayBar />
+        <MobilePlaybar />
+        <MobileMenu />
       </div>
     </main>
   );

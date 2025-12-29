@@ -32,7 +32,7 @@ export default function ReleasePage() {
     <div class="h-full">
       <div class="relative w-full shadow-xl">
         <div class="absolute w-full text-white  bg-zinc-900/50  z-1 border-b border-zinc-700/50">
-          <div class="backdrop-blur-xl grid grid-cols-5 items-center  pt-3 px-4 pb-3 w-full h-full">
+          <div class="backdrop-blur-xl grid grid-cols-5 items-center h-13 px-4  w-full ">
             <div class="flex items-center gap-2 col-span-2">
               <span class="text-xl font-semibold">Album</span>
             </div>
@@ -67,42 +67,46 @@ export default function ReleasePage() {
           },
         }}
         defer
-        class="w-full flex flex-col gap-4 h-full"
+        class="w-full flex flex-col gap-4 h-full pb-32 sm:pb-0"
       >
-        <div class="h-96 relative flex items-center">
+        <div class="sm:h-96 relative flex items-center">
           <div class="absolute w-full h-full  overflow-hidden flex items-center">
             <div class="bg-zinc-900/50 backdrop-blur-xl absolute w-full h-full"></div>
-            <img src={release()?.artwork} class="w-full"></img>
+            <img src={release()?.artwork} class="w-full h-full"></img>
           </div>
           <div class="flex flex-col gap-8 w-full relative pt-14">
-            <div class="flex flex-row gap-8 items-center px-10">
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-8 items-center px-10 py-8 sm:py-0">
               <div>
                 <img
                   src={release()?.artwork}
-                  class="w-64 min-w-48 rounded-xl"
+                  class="sm:w-64 min-w-48 w-64 rounded-xl"
                   alt=""
                 />
               </div>
-              <div class="flex flex-col gap-1">
-                <span class="text-2xl text-white font-semibold line-clamp-2">
+              <div class="flex flex-col gap-1 text-center sm:text-left">
+                <span class="text-xl sm:text-2xl text-white font-semibold line-clamp-2">
                   {release()?.title}
                 </span>
                 <A href={`/artist/${release()?.artist_id}`}>
-                  <span class="text-xl text-white/35 font-semibold hover:underline hover:cursor-pointer mix-blend-plus-lighter">
+                  <span class="text-lg sm:text-xl text-white/35 font-semibold hover:underline hover:cursor-pointer mix-blend-plus-lighter">
                     {release()?.artist_name}
                   </span>
                 </A>
-                <div class="flex flex-rol gap-2">
-                  <span class="text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
+                <div class="flex flex-rol gap-2 justify-center sm:justify-start">
+                  <span class="text-sm sm:text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
                     Electronic
                   </span>
-                  <span class="text-md text-zinc-400 font-medium">•</span>
-                  <span class="text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
+                  <span class="text-sm sm:text-md text-zinc-400 font-medium">
+                    •
+                  </span>
+                  <span class="text-sm sm:text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
                     {release()?.release_date}
                   </span>
                   <Show when={release()?.duration}>
-                    <span class="text-md text-zinc-400 font-medium">•</span>
-                    <span class="text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
+                    <span class="text-sm sm:text-md text-zinc-400 font-medium">
+                      •
+                    </span>
+                    <span class="text-sm sm:text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
                       {secToMin(release()!.duration)}
                     </span>
                   </Show>

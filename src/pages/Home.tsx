@@ -12,10 +12,7 @@ export default function Page() {
     <div>
       <div class="relative w-full shadow-xl">
         <div class="absolute w-full text-white  bg-zinc-900/50  z-1  border-b border-zinc-700/50">
-          <div
-            class="backdrop-blur-xl flex flex-row items-center gap-2 pt-3 px-4 pb-3 w-full h-full "
-            data-tauri-drag-region
-          >
+          <div class="backdrop-blur-xl flex flex-row items-center gap-2 pt-3 px-4 pb-3 w-full  ">
             <span class="text-xl font-semibold">Home</span>
           </div>
         </div>
@@ -50,7 +47,7 @@ export default function Page() {
               defer
               class="px-4"
             >
-              <div class="grid grid-flow-row grid-cols-3 gap-3 w-full">
+              <div class="flex gap-3 w-full">
                 <For each={releaseStore()}>
                   {(releases) => (
                     <ReleaseItem

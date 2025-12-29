@@ -8,7 +8,7 @@ export default function SearchBar() {
     navigate("/search");
   };
   return (
-    <div class="relative w-56">
+    <div class="relative w-56 hidden sm:block">
       <input
         type="text"
         onClick={handleClick}
