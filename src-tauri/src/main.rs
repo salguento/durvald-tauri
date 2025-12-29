@@ -53,6 +53,61 @@ async fn play_file(path: String, state: tauri::State<'_, AppState>) -> Result<()
 }
 
 #[command]
+async fn start_auto_play(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, AppState>,
+) -> Result<(), String> {
+    let app_clone = app.clone();
+    let player = state.audio_player.clone();
+    let db_pool = state.db_pool.clone();
+
+    tokio::spawn(async move {
+        let mut was_playing = false;
+
+        loop {
+            tokio::time::sleep(Duration::from_millis(100)).await;
+
+            let player_lock = player.lock().await;
+            let current_state = player_lock.get_playback_state();
+            let has_queue = !player_lock.queue_is_empty();
+            drop(player_lock);
+
+            match current_state {
+                Some(kira::sound::PlaybackState::Playing) => {
+                    was_playing = true;
+                }
+                Some(kira::sound::PlaybackState::Stopped) if was_playing && has_queue => {
+                    // Song just finished and there's more in queue
+                    was_playing = false;
+
+                    let mut player_lock = player.lock().await;
+                    if let Ok(true) = player_lock.play_next().await {
+                        let queue_data = player_lock.get_queue_data_for_db();
+                        drop(player_lock);
+
+                        let db_pool_clone = db_pool.clone();
+                        tokio::task::spawn_blocking(move || {
+                            if let Ok(mut conn) = db_pool_clone.get() {
+                                let _ =
+                                    AudioPlayer::save_queue_to_db_blocking(&mut *conn, &queue_data);
+                            }
+                        });
+
+                        let _ = app_clone.emit("song-changed", ());
+                    }
+                }
+                Some(kira::sound::PlaybackState::Stopped) => {
+                    was_playing = false;
+                }
+                _ => {}
+            }
+        }
+    });
+
+    Ok(())
+}
+
+#[command]
 async fn pause_playback(state: tauri::State<'_, AppState>) -> Result<(), String> {
     let mut player = state.audio_player.lock().await;
     player.pause();
@@ -521,6 +576,7 @@ fn main() {
                 clear_queue,
                 get_song_by_id,
                 get_current_song_id,
+                start_auto_play,
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

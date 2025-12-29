@@ -4,6 +4,7 @@ import { Router, Route } from "@solidjs/router";
 import { onMount } from "solid-js";
 import "overlayscrollbars/overlayscrollbars.css";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 // Hooks
 import { playerStore } from "./stores/playerStore";
 import { uiStore } from "./stores/uiStore";
@@ -26,7 +27,16 @@ function App() {
     const [, setCurrentTrack] = playerStore.currentTrack;
     const [, setShowSidebar] = uiStore.showSideBar;
     const [, setReleaseStore] = libraryStore.releaseStore;
-
+    await invoke("start_auto_play");
+    await listen("song-changed", async () => {
+      console.log("changed!");
+      const trackId: number = await invoke("get_current_song_id");
+      const trackObj: TrackType[] = await invoke("get_song_by_id", {
+        songId: trackId.toString(),
+      });
+      setCurrentTrack(trackObj[0]);
+      setQueueList((prev) => prev.slice(1));
+    });
     try {
       setReleaseStore(await invoke("get_releases"));
       await invoke("load_queue_from_db");

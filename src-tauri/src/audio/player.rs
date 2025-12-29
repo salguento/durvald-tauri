@@ -373,4 +373,12 @@ impl AudioPlayer {
         tx.commit()?;
         Ok(())
     }
+
+    pub fn queue_is_empty(&self) -> bool {
+        self.queue.is_empty()
+    }
+
+    pub fn get_playback_state(&self) -> Option<kira::sound::PlaybackState> {
+        self.current_sound.as_ref().map(|sound| sound.state())
+    }
 }
