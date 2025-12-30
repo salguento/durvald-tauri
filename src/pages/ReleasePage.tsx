@@ -32,26 +32,23 @@ export default function ReleasePage() {
     <div class="h-full">
       <div class="relative w-full shadow-xl">
         <div class="absolute w-full text-white  bg-zinc-900/50  z-1 border-b border-zinc-700/50">
-          <div class="backdrop-blur-xl grid grid-cols-5 items-center h-13 px-4  w-full ">
-            <div class="flex items-center gap-2 col-span-2">
-              <span class="text-xl font-semibold">Album</span>
-            </div>
+          <div class="backdrop-blur-xl flex justify-between items-center h-13 px-4  w-full ">
             <div class="col-span-1 flex gap-4 items-center justify-center">
-              <button class="w-8 h-8">
+              <button class="w-8 h-8 cursor-pointer" title="Play release">
                 <span class="icon-[solar--play-circle-bold] w-8 h-8 text-white"></span>
               </button>
-              <button class="w-6 h-6">
+              <button class="w-6 h-6 cursor-pointer" title="Shuffle release">
                 <span class="icon-[solar--shuffle-linear] w-6 h-6 text-white"></span>
               </button>
             </div>
             <div class="col-span-2 flex gap-4 items-center justify-end">
-              <button class="w-6 h-6">
+              <button class="w-6 h-6 cursor-pointer" title="Add to library">
                 <span class="icon-[solar--add-square-linear] w-6 h-6 text-white"></span>
               </button>
-              <button class="w-6 h-6">
+              <button class="w-6 h-6 cursor-pointer" title="Favorite">
                 <span class="icon-[solar--heart-angle-linear] w-6 h-6 text-white"></span>
               </button>
-              <button class="w-6 h-6">
+              <button class="w-6 h-6 cursor-pointer" title="Options">
                 <span class="icon-[solar--menu-dots-bold] w-6 h-6 text-white"></span>
               </button>
             </div>
