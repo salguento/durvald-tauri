@@ -7,7 +7,7 @@ import MainMenu from "../Components/Buttons/MainMenu/MainMenu";
 import SearchBar from "./SearchBar";
 import ReturnButton from "./ReturnButton";
 import ForwardButton from "./ForwardButton";
-import SidebarButtons from "./SideBarButtons";
+import SidebarButtons from "./SidebarButtons";
 // Function
 export default function TopBar() {
   const appWindow = getCurrentWindow();
