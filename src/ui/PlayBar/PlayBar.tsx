@@ -134,7 +134,7 @@ export default function PlayBar() {
                       }}
                       disabled={!currentTrack()}
                     >
-                      <span class="icon-[solar--play-circle-bold] h-8 w-8 "></span>
+                      <span class="icon-[solar--play-bold] h-8 w-8 "></span>
                     </button>
                   </Show>
                   <Show
@@ -148,7 +148,7 @@ export default function PlayBar() {
                       title="Resume"
                       onclick={async () => resumePlayback()}
                     >
-                      <span class="icon-[solar--play-circle-bold] h-8 w-8 "></span>
+                      <span class="icon-[solar--play-bold] h-8 w-8 "></span>
                     </button>
                   </Show>
                   <Show
@@ -162,7 +162,7 @@ export default function PlayBar() {
                       title="Pause"
                       onclick={async () => pausePlayback()}
                     >
-                      <span class="icon-[solar--pause-circle-bold] h-8 w-8 "></span>
+                      <span class="icon-[solar--pause-bold] h-8 w-8 "></span>
                     </button>
                   </Show>
                   <button
