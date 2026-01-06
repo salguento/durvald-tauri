@@ -15,6 +15,8 @@ import SongType from "../types/Track";
 // UI
 import TrackContextMenu from "../ui/Components/Release/TrackContextMenu/TrackContextMenu";
 import TrackDropdownMenu from "../ui/Components/Release/TrackContextMenu/TrackDropdownMenu";
+import ReleaseContextMenu from "../ui/Components/Release/ReleaseContextMenu/ReleaseContextMenu";
+import ReleaseDropdownMenu from "../ui/Components/Release/ReleaseContextMenu/ReleaseDropdownMenu";
 
 export default function ReleasePage() {
   const [release, setRelease] = createSignal<ReleaseType>();
@@ -31,29 +33,33 @@ export default function ReleasePage() {
   return (
     <div class="h-full">
       <div class="relative w-full shadow-xl">
-        <div class="absolute w-full text-white  bg-zinc-900/50  z-1 border-b border-zinc-700/50">
-          <div class="backdrop-blur-xl flex justify-between items-center h-13 px-4  w-full ">
-            <div class="col-span-1 flex gap-4 items-center justify-center">
-              <button class="w-8 h-8 cursor-pointer" title="Play release">
-                <span class="icon-[solar--play-circle-bold] w-8 h-8 text-white"></span>
-              </button>
-              <button class="w-6 h-6 cursor-pointer" title="Shuffle release">
-                <span class="icon-[solar--shuffle-linear] w-6 h-6 text-white"></span>
-              </button>
-            </div>
-            <div class="col-span-2 flex gap-4 items-center justify-end">
-              <button class="w-6 h-6 cursor-pointer" title="Add to library">
-                <span class="icon-[solar--add-square-linear] w-6 h-6 text-white"></span>
-              </button>
-              <button class="w-6 h-6 cursor-pointer" title="Favorite">
-                <span class="icon-[solar--heart-angle-linear] w-6 h-6 text-white"></span>
-              </button>
-              <button class="w-6 h-6 cursor-pointer" title="Options">
-                <span class="icon-[solar--menu-dots-bold] w-6 h-6 text-white"></span>
-              </button>
+        <ReleaseContextMenu release={release()!}>
+          <div class="absolute w-full text-white  bg-zinc-900/50  z-1 border-b border-zinc-700/50">
+            <div class="backdrop-blur-xl flex justify-between items-center h-13 px-4  w-full ">
+              <div class="col-span-1 flex gap-4 items-center justify-center">
+                <button class="w-8 h-8 cursor-pointer" title="Play release">
+                  <span class="icon-[solar--play-circle-bold] w-8 h-8 text-white"></span>
+                </button>
+                <button class="w-6 h-6 cursor-pointer" title="Shuffle release">
+                  <span class="icon-[solar--shuffle-linear] w-6 h-6 text-white"></span>
+                </button>
+              </div>
+              <div class="col-span-2 flex gap-4 items-center justify-end">
+                <button class="w-6 h-6 cursor-pointer" title="Add to library">
+                  <span class="icon-[solar--add-square-linear] w-6 h-6 text-white"></span>
+                </button>
+                <button class="w-6 h-6 cursor-pointer" title="Favorite">
+                  <span class="icon-[solar--heart-angle-linear] w-6 h-6 text-white"></span>
+                </button>
+                <ReleaseDropdownMenu release={release()!}>
+                  <button class="w-6 h-6 cursor-pointer" title="Options">
+                    <span class="icon-[solar--menu-dots-bold] w-6 h-6 text-white"></span>
+                  </button>
+                </ReleaseDropdownMenu>
+              </div>
             </div>
           </div>
-        </div>
+        </ReleaseContextMenu>
       </div>
       <OverlayScrollbarsComponent
         element="span"
@@ -66,52 +72,54 @@ export default function ReleasePage() {
         defer
         class="w-full flex flex-col gap-4 h-full pb-32 sm:pb-0"
       >
-        <div class="sm:h-96 relative flex items-center">
-          <div class="absolute w-full h-full  overflow-hidden flex items-center">
-            <div class="bg-zinc-900/50 backdrop-blur-xl absolute w-full h-full"></div>
-            <img src={release()?.artwork} class="w-full h-full"></img>
-          </div>
-          <div class="flex flex-col gap-8 w-full relative pt-14">
-            <div class="flex flex-col sm:flex-row gap-2 sm:gap-8 items-center px-10 py-8 sm:py-0">
-              <div>
-                <img
-                  src={release()?.artwork}
-                  class="sm:w-64 min-w-48 w-64 rounded-xl"
-                  alt=""
-                />
-              </div>
-              <div class="flex flex-col gap-1 text-center sm:text-left">
-                <span class="text-xl sm:text-2xl text-white font-semibold line-clamp-2">
-                  {release()?.title}
-                </span>
-                <A href={`/artist/${release()?.artist_id}`}>
-                  <span class="text-lg sm:text-xl text-white/35 font-semibold hover:underline hover:cursor-pointer mix-blend-plus-lighter">
-                    {release()?.artist_name}
+        <ReleaseContextMenu release={release()!}>
+          <div class="sm:h-96 relative flex items-center">
+            <div class="absolute w-full h-full  overflow-hidden flex items-center">
+              <div class="bg-zinc-900/50 backdrop-blur-xl absolute w-full h-full"></div>
+              <img src={release()?.artwork} class="w-full h-full"></img>
+            </div>
+            <div class="flex flex-col gap-8 w-full relative pt-14">
+              <div class="flex flex-col sm:flex-row gap-2 sm:gap-8 items-center px-10 py-8 sm:py-0">
+                <div>
+                  <img
+                    src={release()?.artwork}
+                    class="sm:w-64 min-w-48 w-64 rounded-xl"
+                    alt=""
+                  />
+                </div>
+                <div class="flex flex-col gap-1 text-center sm:text-left">
+                  <span class="text-xl sm:text-2xl text-white font-semibold line-clamp-2">
+                    {release()?.title}
                   </span>
-                </A>
-                <div class="flex flex-rol gap-2 justify-center sm:justify-start">
-                  <span class="text-sm sm:text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
-                    Electronic
-                  </span>
-                  <span class="text-sm sm:text-md text-zinc-400 font-medium">
-                    •
-                  </span>
-                  <span class="text-sm sm:text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
-                    {release()?.release_date}
-                  </span>
-                  <Show when={release()?.duration}>
+                  <A href={`/artist/${release()?.artist_id}`}>
+                    <span class="text-lg sm:text-xl text-white/35 font-semibold hover:underline hover:cursor-pointer mix-blend-plus-lighter">
+                      {release()?.artist_name}
+                    </span>
+                  </A>
+                  <div class="flex flex-rol gap-2 justify-center sm:justify-start">
+                    <span class="text-sm sm:text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
+                      Electronic
+                    </span>
                     <span class="text-sm sm:text-md text-zinc-400 font-medium">
                       •
                     </span>
                     <span class="text-sm sm:text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
-                      {secToMin(release()!.duration)}
+                      {release()?.release_date}
                     </span>
-                  </Show>
+                    <Show when={release()?.duration}>
+                      <span class="text-sm sm:text-md text-zinc-400 font-medium">
+                        •
+                      </span>
+                      <span class="text-sm sm:text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
+                        {secToMin(release()!.duration)}
+                      </span>
+                    </Show>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </ReleaseContextMenu>
         <div>
           <div class="overflow-hidden relative">
             <div class="relative overflow-hidden">
