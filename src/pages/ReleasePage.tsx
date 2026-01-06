@@ -73,7 +73,7 @@ export default function ReleasePage() {
         class="w-full flex flex-col gap-4 h-full pb-32 sm:pb-0"
       >
         <ReleaseContextMenu release={release()!}>
-          <div class="sm:h-96 relative flex items-center">
+          <div class="sm:h-96 relative flex items-center w-full">
             <div class="absolute w-full h-full  overflow-hidden flex items-center">
               <div class="bg-zinc-900/50 backdrop-blur-xl absolute w-full h-full"></div>
               <img src={release()?.artwork} class="w-full h-full"></img>

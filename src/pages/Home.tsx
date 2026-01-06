@@ -49,16 +49,7 @@ export default function Page() {
             >
               <div class="flex gap-3 w-full">
                 <For each={releaseStore()}>
-                  {(releases) => (
-                    <ReleaseItem
-                      artwork={releases.artwork}
-                      releaseId={releases.id}
-                      releaseTitle={releases.title}
-                      artistId={releases.artist_id}
-                      artistName={releases.artist_name}
-                      isFavorite={releases.is_favorite}
-                    />
-                  )}
+                  {(release) => <ReleaseItem release={release} />}
                 </For>
               </div>
             </OverlayScrollbarsComponent>
