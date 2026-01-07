@@ -26,7 +26,7 @@ export default function ReleaseItem(props: { release: ReleaseType }) {
               <img
                 src={props.release.artwork}
                 alt=""
-                class="min-h-40 min-w-40 max-h-64 max-w-64 w-full h-full rounded-lg hover:border-white border border-transparent"
+                class="min-h-40 min-w-40 max-h-64 max-w-64 w-full h-full rounded-lg group-hover:border-white border border-transparent"
               />
             </A>
             <div class="absolute invisible group-hover:visible top-2 right-2 z-1">
@@ -39,13 +39,14 @@ export default function ReleaseItem(props: { release: ReleaseType }) {
                 </button>
               </ReleaseDropdownMenu>
             </div>
-            <div class="absolute invisible group-hover:visible bottom-1 right-1">
+            <div class="absolute invisible group-hover:visible  bottom-2 right-2">
               <button
                 class="cursor-pointer items-center flex relative justify-center"
                 title="Play release"
               >
-                <span class="h-6 w-6 bg-zinc-900/50 backdrop-blur-lg absolute"></span>
-                <span class="icon-[solar--play-circle-bold] w-12 h-12 text-white "></span>
+                <span class="bg-zinc-900/50 rounded-full backdrop-blur-lg h-12 w-12 flex items-center justify-center">
+                  <span class="icon-[solar--play-bold] min-w-6 min-h-6 hover:text-white text-zinc-300 backdrop-blur-lg"></span>
+                </span>
               </button>
             </div>
           </div>
