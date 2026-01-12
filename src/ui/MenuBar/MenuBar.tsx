@@ -1,8 +1,9 @@
 // Dependencies
 import { Show } from "solid-js";
-import { A } from "@solidjs/router";
 // Store
 import { uiStore } from "../../stores/uiStore";
+// Components
+import MenubarButton from "./MenubarButton";
 // Function
 export default function MenuBar() {
   const [menuCollapsed, setMenuCollaped] = uiStore.menuCollapsed;
@@ -52,32 +53,31 @@ export default function MenuBar() {
         </Show>
 
         <div class={`flex flex-col ${menuCollapsed() ? "" : "w-full"} gap-0.5`}>
-          <A href="/">
-            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-sm h-10 font-normal text-zinc-300 hover:cursor-pointer items-center">
-              <span class="icon-[solar--home-angle-2-linear] h-5 w-5 "></span>
-              <Show when={!menuCollapsed()}>Home</Show>
-            </button>
-          </A>
-          <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-sm h-10 font-normal text-zinc-300 hover:cursor-pointer">
-            <span class="icon-[solar--bell-linear] h-5 w-5 "></span>
-            <Show when={!menuCollapsed()}>New</Show>
-          </button>
-          <A href="/">
-            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-sm h-10 font-normal text-zinc-300 hover:cursor-pointer items-center">
-              <span class="icon-[solar--bookmark-square-outline] h-5 w-5 "></span>
-              <Show when={!menuCollapsed()}>Listen later</Show>
-            </button>
-          </A>
-          <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-sm h-10 font-normal text-zinc-300 hover:cursor-pointer items-center">
-            <span class="icon-[solar--clock-circle-linear] h-5 w-5 "></span>
-            <Show when={!menuCollapsed()}>Recently added</Show>
-          </button>
-          <A href="/">
-            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-sm h-10 font-normal text-zinc-300 hover:cursor-pointer items-center">
-              <span class="icon-[solar--round-graph-linear] h-5 w-5 "></span>
-              <Show when={!menuCollapsed()}>Stats</Show>
-            </button>
-          </A>
+          <MenubarButton
+            href="/"
+            title="Home"
+            icon="icon-[solar--home-angle-2-linear]"
+          />
+          <MenubarButton
+            href="/new"
+            title="New"
+            icon="icon-[solar--bell-linear]"
+          />
+          <MenubarButton
+            href="/listen-later"
+            title="Listen later"
+            icon="icon-[solar--bookmark-square-outline]"
+          />
+          <MenubarButton
+            href="/recently-added"
+            title="Recently added"
+            icon="icon-[solar--clock-circle-linear]"
+          />
+          <MenubarButton
+            href="/stats"
+            title="Stats"
+            icon="icon-[solar--round-graph-linear]"
+          />
         </div>
         <div
           class={`flex flex-col ${menuCollapsed() ? "" : "w-full"}  gap-0.5 `}
@@ -88,30 +88,26 @@ export default function MenuBar() {
               <span>Library</span>
             </div>
           </Show>
-          <A href="/all-artists">
-            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-sm h-10 font-normal text-zinc-300 hover:cursor-pointer items-center">
-              <span class="icon-[solar--microphone-2-linear] h-5 w-5 "></span>
-              <Show when={!menuCollapsed()}>Artists</Show>
-            </button>
-          </A>
-          <A href="/all-releases">
-            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-sm h-10 font-normal text-zinc-300 hover:cursor-pointer items-center">
-              <span class="icon-[solar--library-linear] h-5 w-5 "></span>
-              <Show when={!menuCollapsed()}> Albuns</Show>
-            </button>
-          </A>
-          <A href="/all-songs">
-            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-sm h-10 font-normal text-zinc-300 hover:cursor-pointer items-center">
-              <span class="icon-[solar--music-notes-linear] h-5 w-5 "></span>
-              <Show when={!menuCollapsed()}>Songs</Show>
-            </button>
-          </A>
-          <A href="/all-genres">
-            <button class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900  text-sm h-10 font-normal text-zinc-300 hover:cursor-pointer items-center">
-              <span class="icon-[solar--music-note-slider-linear] h-5 w-5 "></span>
-              <Show when={!menuCollapsed()}>Genres</Show>
-            </button>
-          </A>
+          <MenubarButton
+            href="/artists"
+            title="Artists"
+            icon="icon-[solar--microphone-2-linear]"
+          />
+          <MenubarButton
+            href="/albuns"
+            title="Albuns"
+            icon="icon-[solar--library-linear]"
+          />
+          <MenubarButton
+            href="/songs"
+            title="Songs"
+            icon="icon-[solar--music-notes-linear]"
+          />
+          <MenubarButton
+            href="/genres"
+            title="Genres"
+            icon="icon-[solar--music-note-slider-linear]"
+          />
         </div>
         <Show when={!menuCollapsed()}>
           <div
