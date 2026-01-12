@@ -89,22 +89,22 @@ export default function MenuBar() {
             </div>
           </Show>
           <MenubarButton
-            href="/artists"
+            href="/all-artists"
             title="Artists"
             icon="icon-[solar--microphone-2-linear]"
           />
           <MenubarButton
-            href="/albuns"
+            href="/all-releases"
             title="Albuns"
             icon="icon-[solar--library-linear]"
           />
           <MenubarButton
-            href="/songs"
+            href="/all-songs"
             title="Songs"
             icon="icon-[solar--music-notes-linear]"
           />
           <MenubarButton
-            href="/genres"
+            href="/all-genres"
             title="Genres"
             icon="icon-[solar--music-note-slider-linear]"
           />
@@ -117,6 +117,16 @@ export default function MenuBar() {
               <span class="icon-[solar--playlist-minimalistic-2-bold] h-5 w-5 "></span>
               <span class="">Playlists</span>
             </div>
+            <MenubarButton
+              href="/all-playlists"
+              title="All Playlists"
+              icon="icon-[solar--widget-linear]"
+            />
+            <MenubarButton
+              href="/favorite-songs"
+              title="Favorite Songs"
+              icon="icon-[solar--heart-angle-bold]"
+            />
           </div>
         </Show>
       </div>

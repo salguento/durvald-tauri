@@ -10,6 +10,12 @@ const AllReleases = lazy(() => import("./pages/AllReleases"));
 const AllSongs = lazy(() => import("./pages/AllSongs"));
 const AllGenres = lazy(() => import("./pages/AllGenres"));
 const Search = lazy(() => import("./pages/Search"));
+const Stats = lazy(() => import("./pages/Stats"));
+const ListenLater = lazy(() => import("./pages/ListenLater"));
+const New = lazy(() => import("./pages/New"));
+const RecentlyAdded = lazy(() => import("./pages/RecentlyAdded"));
+const AllPlaylists = lazy(() => import("./pages/AllPlaylists"));
+const FavoriteSongs = lazy(() => import("./pages/FavoriteSongs"));
 
 export default function Routes() {
   return (
@@ -23,6 +29,12 @@ export default function Routes() {
       <Route path="/all-songs" component={AllSongs} />
       <Route path="/all-genres" component={AllGenres} />
       <Route path="/search" component={Search} />
+      <Route path="/stats" component={Stats} />
+      <Route path="/listen-later" component={ListenLater} />
+      <Route path="/new" component={New} />
+      <Route path="/recently-added" component={RecentlyAdded} />
+      <Route path="/all-playlists" component={AllPlaylists} />
+      <Route path="/favorite-songs" component={FavoriteSongs} />
     </>
   );
 }
