@@ -46,7 +46,7 @@ export default function MobilePlaybar() {
   return (
     <Show when={currentTrack()}>
       <div
-        class={`h-18 bottom-13 left-0 right-0 overflow-hidden absolute p-1 z-10 sm:hidden`}
+        class={`h-18 bottom-18 left-0 right-0 overflow-hidden absolute p-1 z-10 sm:hidden`}
       >
         <div class="bg-zinc-900/50 backdrop-blur-xl border border-zinc-700/50 w-full h-full rounded-2xl overflow-hidden">
           <div class="flex flex-row items-center justify-between p-2 h-full w-full">

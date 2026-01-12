@@ -16,6 +16,8 @@ const New = lazy(() => import("./pages/New"));
 const RecentlyAdded = lazy(() => import("./pages/RecentlyAdded"));
 const AllPlaylists = lazy(() => import("./pages/AllPlaylists"));
 const FavoriteSongs = lazy(() => import("./pages/FavoriteSongs"));
+const Create = lazy(() => import("./pages/Create"));
+const Library = lazy(() => import("./pages/Library"));
 
 export default function Routes() {
   return (
@@ -35,6 +37,8 @@ export default function Routes() {
       <Route path="/recently-added" component={RecentlyAdded} />
       <Route path="/all-playlists" component={AllPlaylists} />
       <Route path="/favorite-songs" component={FavoriteSongs} />
+      <Route path="/create" component={Create} />
+      <Route path="/library" component={Library} />
     </>
   );
 }
