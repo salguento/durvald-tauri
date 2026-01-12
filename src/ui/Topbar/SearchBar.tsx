@@ -1,17 +1,22 @@
 // Dependencies
 import { useNavigate } from "@solidjs/router";
+// Store
+import { searchStore } from "../../stores/searchStore";
 // Function
 export default function SearchBar() {
   const navigate = useNavigate();
-
-  const handleClick = () => {
+  const [searchInput, setSearchInput] = searchStore.searchInput;
+  const handleInput = (e: Event & { currentTarget: HTMLInputElement }) => {
+    setSearchInput(e.currentTarget.value);
     navigate("/search");
+    console.log(searchInput());
   };
   return (
     <div class="relative w-56 hidden sm:block">
       <input
         type="text"
-        onClick={handleClick}
+        value={searchInput()}
+        onInput={handleInput}
         class="rounded-lg w-full border border-transparent bg-zinc-800 focus:bg-zinc-900  items-center hover:border-zinc-600 pl-8 placeholder:text-zinc-600 text-base h-8 font-medium text-white inline-block "
         placeholder="Search"
       ></input>
