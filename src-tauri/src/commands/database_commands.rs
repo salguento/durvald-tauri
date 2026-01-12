@@ -28,6 +28,14 @@ pub struct Releases {
     updated_at: String,
 }
 
+#[derive(Serialize, Clone, Debug)]
+pub struct PlayHistory {
+    history_id: u64,
+    song_id: u64,
+    played_at: String,
+    duration: u64,
+}
+
 #[derive(Serialize, Clone, Debug, Hash, Eq, PartialEq)]
 pub struct ReleaseGroup {
     title: String,
@@ -737,4 +745,33 @@ pub fn add_song_to_history(song_id: u64, duration: u64) -> Result<(), String> {
     .map_err(|e| format!("Failed to insert song to history: {}", e))?;
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_play_history() -> Result<Vec<PlayHistory>, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let mut stmt = db
+        .prepare("SELECT * FROM play_history")
+        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+
+    let history = stmt
+        .query_map([], |row| {
+            Ok(PlayHistory {
+                history_id: row.get(0)?,
+                song_id: row.get(1)?,
+                played_at: row.get(2)?,
+                duration: row.get(3)?,
+            })
+        })
+        .map_err(|e| format!("Failed to query data: {}", e))?;
+
+    // Collect all results into a Vec
+    let mut results = Vec::new();
+    for item in history {
+        results.push(item.map_err(|e| format!("Failed to get row: {}", e))?);
+    }
+
+    Ok(results)
 }

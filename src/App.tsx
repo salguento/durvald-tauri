@@ -20,6 +20,7 @@ import Layout from "./pages/Layout";
 // Components
 import { ErrorBoundary } from "solid-js";
 import addToHistory from "./hooks/audio/addToHistory";
+import getHistory from "./hooks/audio/getPlayHistory";
 
 function App() {
   initializePlayerStore();
@@ -60,6 +61,8 @@ function App() {
       if (results.length > 0 && results[0].isFirst) {
         setCurrentTrack(results[0].track);
       }
+
+      getHistory();
     } catch (error) {
       console.log("Startup error:", error);
     } finally {
