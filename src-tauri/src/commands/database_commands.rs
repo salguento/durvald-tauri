@@ -1,4 +1,5 @@
 use crate::{commands::get_audio_metadata, scan_folder, FileInfo};
+use chrono::Utc;
 use rusqlite::OptionalExtension;
 use rusqlite::{params, Connection, Result};
 use serde::Serialize;
@@ -720,4 +721,20 @@ pub fn get_song_by_id(song_id: &str) -> Result<Vec<SongItem>, String> {
     }
 
     Ok(songs)
+}
+
+#[tauri::command]
+pub fn add_song_to_history(song_id: u64, duration: u64) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let played_at = Utc::now().to_rfc3339();
+
+    db.execute(
+        "INSERT INTO play_history (song_id, played_at, play_duration) VALUES (?1, ?2, ?3)",
+        params![song_id, played_at, duration,],
+    )
+    .map_err(|e| format!("Failed to insert song to history: {}", e))?;
+
+    Ok(())
 }
