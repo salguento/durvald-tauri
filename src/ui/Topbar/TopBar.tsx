@@ -40,45 +40,48 @@ export default function TopBar() {
         </button>*/}
 
       <div
-        class="flex flex-row items-center h-full gap-1 w-full "
+        class="flex flex-row items-center justify-center h-full gap-2 w-full "
         data-tauri-drag-region
       >
-        <ReturnButton />
-        <ForwardButton />
+        <div class="flex gap-0.5">
+          <ReturnButton />
+          <ForwardButton />
+        </div>
         <SearchBar />
-        <SidebarButtons />
       </div>
-
-      <div
-        class="flex flex-row gap-2 h-full items-center justify-end"
-        data-tauri-drag-region
-      >
-        <button
-          id="titlebar-minimize"
-          class="text-zinc-400 hover:text-white flex items-center justify-center h-6 w-6"
-          title="Minimize"
-          onclick={async () => await appWindow.minimize()}
+      <div class="flex w-2xs min-w-[260px] justify-between h-full items-center">
+        <SidebarButtons />
+        <div
+          class="flex flex-row gap-2 h-full items-center justify-end"
+          data-tauri-drag-region
         >
-          <span class="icon-[solar--square-top-up-linear] h-6 w-6 "></span>
-        </button>
-        <button
-          id="titlebar-maximize"
-          class="text-zinc-400 hover:text-white flex items-center justify-center h-6 w-6"
-          title={`${isFullscreen() ? "Windowed" : "Fullscreen"}`}
-          onclick={toogleFullscreen}
-        >
-          <span
-            class={`${isFullscreen() ? "icon-[solar--minimize-square-linear]" : "icon-[solar--maximize-square-linear]"} h-6 w-6`}
-          ></span>
-        </button>
-        <button
-          id="titlebar-close"
-          class="text-zinc-400 hover:text-white flex items-center justify-center h-6 w-6"
-          title="Close"
-          onclick={async () => appWindow.close()}
-        >
-          <span class="icon-[solar--close-square-linear] h-6 w-6 "></span>
-        </button>
+          <button
+            id="titlebar-minimize"
+            class="text-zinc-400 hover:text-white flex items-center justify-center h-6 w-6"
+            title="Minimize"
+            onclick={async () => await appWindow.minimize()}
+          >
+            <span class="icon-[solar--square-top-up-linear] h-6 w-6 "></span>
+          </button>
+          <button
+            id="titlebar-maximize"
+            class="text-zinc-400 hover:text-white flex items-center justify-center h-6 w-6"
+            title={`${isFullscreen() ? "Windowed" : "Fullscreen"}`}
+            onclick={toogleFullscreen}
+          >
+            <span
+              class={`${isFullscreen() ? "icon-[solar--minimize-square-linear]" : "icon-[solar--maximize-square-linear]"} h-6 w-6`}
+            ></span>
+          </button>
+          <button
+            id="titlebar-close"
+            class="text-zinc-400 hover:text-white flex items-center justify-center h-6 w-6"
+            title="Close"
+            onclick={async () => appWindow.close()}
+          >
+            <span class="icon-[solar--close-square-linear] h-6 w-6 "></span>
+          </button>
+        </div>
       </div>
     </div>
   );
