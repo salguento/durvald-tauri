@@ -2,7 +2,7 @@
 import { ContextMenu } from "@kobalte/core/context-menu";
 // Types
 import { JSX } from "solid-js";
-import TrackType from "../../../types/Track";
+import TrackType from "../../../../types/Track";
 interface Props {
   children: JSX.Element;
   track: TrackType;

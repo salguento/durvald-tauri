@@ -1,17 +1,18 @@
 // Dependencies
 import { createSignal } from "solid-js";
 // Types
-import SongType from "../../../types/Track";
+import SongType from "../../../../types/Track";
 // Components
 import QueueContextMenu from "./QueueContextMenu";
 import QueueDropdownMenu from "./QueueDropdownMenu";
-import TrackType from "../../../types/Track";
-import { secToMin } from "../../../utils/secToMin";
+import TrackType from "../../../../types/Track";
+import { secToMin } from "../../../../utils/secToMin";
 
 interface QueueTrackProps {
   item: TrackType;
+  isQueue: boolean;
 }
-export default function QueueTrack({ item }: QueueTrackProps) {
+export default function QueueTrack({ item, isQueue }: QueueTrackProps) {
   const [, setIsOpen] = createSignal<boolean>(false);
   const song: SongType = {
     song_id: 1,
@@ -35,6 +36,14 @@ export default function QueueTrack({ item }: QueueTrackProps) {
     created_at: "date",
     updated_at: "date",
   };
+
+  const handleRemove = async (e: boolean) => {
+    if (e) {
+      console.log("queue");
+    } else {
+      console.log("history");
+    }
+  };
   return (
     <div class="w-full relative">
       <QueueContextMenu track={song}>
@@ -43,8 +52,8 @@ export default function QueueTrack({ item }: QueueTrackProps) {
             <div class="absolute w-full h-full  bg-zinc-500/75 hidden   group-hover:flex ">
               <button
                 class="w-full h-full items-center justify-center flex cursor-pointer"
-                title="Remove from queue"
-                onClick={() => {}}
+                title={`Remove from ${isQueue ? "queue" : "history"}`}
+                onClick={() => handleRemove(isQueue)}
               >
                 <span class="icon-[solar--minus-circle-linear] h-6 w-6 text-white"></span>
               </button>

@@ -7,7 +7,7 @@ import { Show } from "solid-js";
 import { playerStore } from "../../stores/playerStore";
 import { uiStore } from "../../stores/uiStore";
 // Components
-import Queue from "./Queue/Queue";
+import Queue from "./QueueHistory/QueueHistory";
 // Function
 export default function SideBar() {
   const [currentTrack] = playerStore.currentTrack;

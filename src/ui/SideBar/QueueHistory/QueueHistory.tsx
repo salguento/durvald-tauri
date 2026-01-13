@@ -8,10 +8,12 @@ import clearQueue from "../../../hooks/audio/clearQueue";
 import { playerStore } from "../../../stores/playerStore";
 // Types
 // Components
-import QueueTrack from "./QueueTrack";
+import QueueTrack from "./Components/QHTrack";
 import TrackType from "../../../types/Track";
-export default function Queue() {
+import { historyStore } from "../../../stores/playHistoryStore";
+export default function QueueHistory() {
   const [queueList] = playerStore.queueList;
+  const [formattedHistory] = historyStore.formattedHistory;
   const [queueTab, setQueueTab] = createSignal<string>("queue");
 
   const handleTab = (value: string) => {
@@ -67,7 +69,7 @@ export default function Queue() {
               </div>
             }
           >
-            <div class="text-zinc-300 flex justify-between items-center px-1.5 border-b border-zinc-700/50 py-2.5">
+            <div class="text-zinc-300 flex justify-between items-center px-1.5 border-b border-zinc-700/50 py-2.5 mb-1">
               <button
                 class="hover:text-white p-1 rounded-full h-7 w-7 cursor-pointer hover:bg-zinc-700/50"
                 title="Autoplay"
@@ -85,7 +87,7 @@ export default function Queue() {
               </button>
             </div>
             <For each={queueList()}>
-              {(item: TrackType) => <QueueTrack item={item} />}
+              {(item: TrackType) => <QueueTrack item={item} isQueue={true} />}
             </For>
           </Show>
         </OverlayScrollbarsComponent>
@@ -100,10 +102,10 @@ export default function Queue() {
             },
           }}
           defer
-          class="overflow-y-hidden max-w-2xs "
+          class="overflow-y-hidden max-w-2xs flex flex-col gap-1 h-full pt-14.5 pb-4 px-1.5"
         >
-          <For each={queueList()}>
-            {(item: TrackType) => <QueueTrack item={item} />}
+          <For each={formattedHistory()}>
+            {(item: TrackType) => <QueueTrack item={item} isQueue={false} />}
           </For>
         </OverlayScrollbarsComponent>
       </Tabs.Content>
