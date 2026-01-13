@@ -37,10 +37,17 @@ export default function ReleasePage() {
           <div class="absolute w-full text-white  bg-zinc-900/50  z-1 border-b border-zinc-700/50">
             <div class="backdrop-blur-xl flex justify-between items-center h-13 px-4  w-full ">
               <div class="col-span-1 flex gap-4 items-center justify-center">
-                <button class="w-8 h-8 cursor-pointer" title="Play release">
-                  <span class="icon-[solar--play-circle-bold] w-8 h-8 text-white"></span>
+                <button
+                  class="w-6 h-6 cursor-pointer"
+                  title={`Play ${release()?.title}`}
+                  onClick={() => playBack(songs()[0])}
+                >
+                  <span class="icon-[solar--play-bold] w-6 h-6 text-white"></span>
                 </button>
-                <button class="w-6 h-6 cursor-pointer" title="Shuffle release">
+                <button
+                  class="w-6 h-6 cursor-pointer"
+                  title={`Shuffle ${release()?.title}`}
+                >
                   <span class="icon-[solar--shuffle-linear] w-6 h-6 text-white"></span>
                 </button>
               </div>
