@@ -11,6 +11,7 @@ import { playerStore } from "../../../stores/playerStore";
 import QueueTrack from "./Components/QHTrack";
 import TrackType from "../../../types/Track";
 import { historyStore } from "../../../stores/playHistoryStore";
+import { FormattedHistoryType } from "../../../types/PlayHistoryType";
 export default function QueueHistory() {
   const [queueList] = playerStore.queueList;
   const [formattedHistory] = historyStore.formattedHistory;
@@ -87,7 +88,7 @@ export default function QueueHistory() {
               </button>
             </div>
             <For each={queueList()}>
-              {(item: TrackType) => <QueueTrack item={item} isQueue={true} />}
+              {(item: TrackType) => <QueueTrack item={item} />}
             </For>
           </Show>
         </OverlayScrollbarsComponent>
@@ -105,7 +106,9 @@ export default function QueueHistory() {
           class="overflow-y-hidden max-w-2xs flex flex-col gap-1 h-full pt-14.5 pb-4 px-1.5"
         >
           <For each={formattedHistory()}>
-            {(item: TrackType) => <QueueTrack item={item} isQueue={false} />}
+            {(item: FormattedHistoryType) => (
+              <QueueTrack item={item.track[0]} historyId={item.historyId} />
+            )}
           </For>
         </OverlayScrollbarsComponent>
       </Tabs.Content>

@@ -775,3 +775,17 @@ pub fn get_play_history() -> Result<Vec<PlayHistory>, String> {
 
     Ok(results)
 }
+
+#[tauri::command]
+pub fn remove_song_from_history(history_id: u64) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    db.execute(
+        "DELETE FROM play_history WHERE history_id = ?1 ",
+        params![history_id],
+    )
+    .map_err(|e| format!("Failed to insert song to history: {}", e))?;
+
+    Ok(())
+}

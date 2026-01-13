@@ -7,12 +7,13 @@ import QueueContextMenu from "./QueueContextMenu";
 import QueueDropdownMenu from "./QueueDropdownMenu";
 import TrackType from "../../../../types/Track";
 import { secToMin } from "../../../../utils/secToMin";
+import removeFromHistory from "../../../../hooks/audio/removeFromHistory";
 
 interface QueueTrackProps {
   item: TrackType;
-  isQueue: boolean;
+  historyId?: number;
 }
-export default function QueueTrack({ item, isQueue }: QueueTrackProps) {
+export default function QueueTrack({ item, historyId }: QueueTrackProps) {
   const [, setIsOpen] = createSignal<boolean>(false);
   const song: SongType = {
     song_id: 1,
@@ -37,11 +38,11 @@ export default function QueueTrack({ item, isQueue }: QueueTrackProps) {
     updated_at: "date",
   };
 
-  const handleRemove = async (e: boolean) => {
-    if (e) {
-      console.log("queue");
+  const handleRemove = async () => {
+    if (historyId) {
+      removeFromHistory(historyId);
     } else {
-      console.log("history");
+      console.log("remove from queue");
     }
   };
   return (
@@ -52,8 +53,8 @@ export default function QueueTrack({ item, isQueue }: QueueTrackProps) {
             <div class="absolute w-full h-full  bg-zinc-500/75 hidden   group-hover:flex ">
               <button
                 class="w-full h-full items-center justify-center flex cursor-pointer"
-                title={`Remove from ${isQueue ? "queue" : "history"}`}
-                onClick={() => handleRemove(isQueue)}
+                title={`Remove from ${historyId ? "history" : "queue"}`}
+                onClick={() => handleRemove()}
               >
                 <span class="icon-[solar--minus-circle-linear] h-6 w-6 text-white"></span>
               </button>
