@@ -1,7 +1,7 @@
 // Dependencies
 import { getCurrentWindow } from "@tauri-apps/api/window";
 // Hooks
-import { useFullscreen } from "../../hooks/ui/useFullscreen";
+import { useFullscreen } from "../../hooks/interface/useFullscreen";
 // Components
 import MainMenu from "../Components/Buttons/MainMenu/MainMenu";
 import SearchBar from "./SearchBar";

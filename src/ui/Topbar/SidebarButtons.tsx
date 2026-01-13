@@ -1,5 +1,5 @@
 // Hooks
-import { useShowSideBar } from "../../hooks/ui/useShowSideBar";
+import { useShowSideBar } from "../../hooks/interface/useShowSideBar";
 // Stores
 import { uiStore } from "../../stores/uiStore";
 // Function

@@ -29,6 +29,12 @@ pub struct Releases {
 }
 
 #[derive(Serialize, Clone, Debug)]
+pub struct ArtistItem {
+    artist_id: u64,
+    artist_name: String,
+}
+
+#[derive(Serialize, Clone, Debug)]
 pub struct PlayHistory {
     history_id: u64,
     song_id: u64,
@@ -802,4 +808,108 @@ pub fn favorite_song(song_id: u64) -> Result<(), String> {
     .map_err(|e| format!("Failed to insert song to history: {}", e))?;
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_all_tracks() -> Result<Vec<SongItem>, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let mut tracks = db
+        .prepare("SELECT * FROM songs")
+        .map_err(|e| format!("Failed retrieve tracks: {}", e))?;
+
+    let tracks_map = tracks
+        .query_map([], |row| {
+            Ok(SongItem {
+                song_id: row.get(0)?,
+                title: row.get(1)?,
+                artwork: row.get(2)?,
+                artist_id: row.get(3)?,
+                artist_name: row.get(4)?,
+                release_id: row.get(5)?,
+                release_title: row.get(6)?,
+                track_number: row.get(7)?,
+                disc_number: row.get(8)?,
+                duration: row.get::<_, f64>(9)? as u64,
+                bitrate: row.get(10)?,
+                sample_rate: row.get(11)?,
+                play_count: row.get(12)?,
+                last_played: row.get(13)?,
+                rating: row.get(14)?,
+                lyrics: row.get(15)?,
+                is_favorite: row.get(16)?,
+                file_path: row.get(17)?,
+                created_at: row.get::<_, String>(18)?.to_string(),
+                updated_at: row.get::<_, String>(19)?.to_string(),
+            })
+        })
+        .map_err(|e| format!("Failed to query data: {}", e))?;
+
+    let mut results = Vec::new();
+    for item in tracks_map {
+        results.push(item.map_err(|e| format!("Failed to get row: {}", e))?);
+    }
+    Ok(results)
+}
+
+#[tauri::command]
+pub fn get_all_releases() -> Result<Vec<Releases>, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let mut releases = db
+        .prepare("SELECT * FROM releases")
+        .map_err(|e| format!("Failed retrieve releases: {}", e))?;
+
+    let releases_map = releases
+        .query_map([], |row| {
+            Ok(Releases {
+                id: row.get(0)?,
+                title: row.get(1)?,
+                artist_id: row.get(2)?,
+                artist_name: row.get(3)?,
+                release_date: row.get::<_, i64>(4)?.to_string(),
+                total_tracks: row.get(5)?,
+                total_discs: row.get(6)?,
+                duration: row.get(7)?,
+                artwork: row.get(8)?,
+                created_at: row.get::<_, String>(9)?.to_string(),
+                updated_at: row.get::<_, String>(10)?.to_string(),
+                is_favorite: row.get(11)?,
+                rating: row.get(12)?,
+            })
+        })
+        .map_err(|e| format!("Failed to query data: {}", e))?;
+
+    let mut results = Vec::new();
+    for item in releases_map {
+        results.push(item.map_err(|e| format!("Failed to get row: {}", e))?);
+    }
+    Ok(results)
+}
+
+#[tauri::command]
+pub fn get_all_artists() -> Result<Vec<ArtistItem>, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let mut artists = db
+        .prepare("SELECT * FROM artists")
+        .map_err(|e| format!("Failed retrieve artists: {}", e))?;
+
+    let artists_map = artists
+        .query_map([], |row| {
+            Ok(ArtistItem {
+                artist_id: row.get(0)?,
+                artist_name: row.get(1)?,
+            })
+        })
+        .map_err(|e| format!("Failed to query data: {}", e))?;
+
+    let mut results = Vec::new();
+    for item in artists_map {
+        results.push(item.map_err(|e| format!("Failed to get row: {}", e))?);
+    }
+    Ok(results)
 }

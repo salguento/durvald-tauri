@@ -21,10 +21,12 @@ import Layout from "./pages/Layout";
 import { ErrorBoundary } from "solid-js";
 import addToHistory from "./hooks/audio/addToHistory";
 import getHistory from "./hooks/audio/getPlayHistory";
+import mirrorDB from "./hooks/library/mirrorDB";
 
 function App() {
   initializePlayerStore();
   onMount(async () => {
+    mirrorDB();
     const [queueList, setQueueList] = playerStore.queueList;
     const [, setCurrentTrack] = playerStore.currentTrack;
     const [, setShowSidebar] = uiStore.showSideBar;
