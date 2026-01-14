@@ -13,7 +13,7 @@ import { libraryStore } from "../stores/libraryStore";
 import { secToMin } from "../utils/secToMin";
 // Types
 import { ReleaseType } from "../types/ReleaseType";
-import SongType from "../types/Track";
+import { TrackType } from "../types/DatabaseType";
 // UI
 import TrackContextMenu from "../ui/Components/Release/TrackContextMenu/TrackContextMenu";
 import TrackDropdownMenu from "../ui/Components/Release/TrackContextMenu/TrackDropdownMenu";
@@ -25,7 +25,7 @@ export default function ReleasePage() {
   const [releaseStore] = libraryStore.releaseStore;
   const [trackStore] = libraryStore.trackStore;
   const [release, setRelease] = createSignal<ReleaseType>();
-  const [songs, setSongs] = createSignal<SongType[]>([]);
+  const [songs, setSongs] = createSignal<TrackType[]>([]);
   const [, setIsOpen] = createSignal<boolean>(false);
 
   createEffect(() => {
@@ -142,9 +142,9 @@ export default function ReleasePage() {
           <div class="overflow-hidden relative">
             <div class="relative overflow-hidden">
               <For each={songs()}>
-                {(song: SongType) => (
+                {(song: TrackType) => (
                   <TrackContextMenu track={song}>
-                    <div class="flex justify-center items-center content-center h-12  min-w-8 pl-2 ">
+                    <div class="flex justify-center items-center content-center h-12  min-w-8 pl-2">
                       <button
                         class="text-zinc-300 hover:text-white hover:cursor-pointer w-4 h-4"
                         title={`${

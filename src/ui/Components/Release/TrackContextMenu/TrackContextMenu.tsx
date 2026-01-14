@@ -15,7 +15,9 @@ interface Props {
 export default function TrackContextMenu(props: Props) {
   return (
     <ContextMenu>
-      <ContextMenu.Trigger class="relative w-full h-full flex group bg-zinc-900 hover:bg-zinc-800 hover:cursor-pointer">
+      <ContextMenu.Trigger
+        class={`relative w-full h-full flex group bg-zinc-900 hover:bg-zinc-800 hover:cursor-pointer ${props.track.is_hidden ? "opacity-50" : ""}`}
+      >
         {props.children}
       </ContextMenu.Trigger>
       <ContextMenu.Portal>

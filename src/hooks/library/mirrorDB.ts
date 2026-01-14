@@ -9,6 +9,7 @@ import {
   ArtistType,
   HistoryType,
 } from "../../types/DatabaseType";
+import { createEffect } from "solid-js";
 // Function
 export default async function mirrorDB() {
   const [, setTrackStore] = libraryStore.trackStore;
@@ -21,10 +22,12 @@ export default async function mirrorDB() {
     const releases: ReleaseType[] = await invoke("get_all_releases");
     const artists: ArtistType[] = await invoke("get_all_artists");
     const history: HistoryType[] = await invoke("get_play_history");
-    setTrackStore(tracks);
-    setReleaseStore(releases);
-    setArtistStore(artists);
-    setHistoryStore(history);
+    createEffect(() => {
+      setTrackStore(tracks);
+      setReleaseStore(releases);
+      setArtistStore(artists);
+      setHistoryStore(history);
+    });
   } catch (err) {
     console.error("Error mirroring database:", err);
   } finally {
