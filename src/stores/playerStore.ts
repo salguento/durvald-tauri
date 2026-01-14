@@ -5,7 +5,7 @@ import { createSignal } from "solid-js";
 import { createRoot } from "solid-js";
 // Types
 import PlayBackStateType from "../types/Playback";
-import TrackType from "../types/Track";
+import { TrackType } from "../types/DatabaseType";
 import ProgressPayloadType from "../types/ProgressPayload";
 // Function
 export const playerStore = {

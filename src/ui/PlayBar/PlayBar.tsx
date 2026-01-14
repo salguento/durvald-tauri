@@ -9,12 +9,14 @@ import resumePlayback from "../../hooks/audio/resume";
 import { useVolume } from "../../hooks/audio/useVolume";
 import playNext from "../../hooks/audio/next";
 import playPrevious from "../../hooks/audio/previous";
+import favoriteTrack from "../../hooks/library/Tracks/favoriteTrack";
 // Utils
 import { secToMin } from "../../utils/secToMin";
 // Store
 import { playerStore } from "../../stores/playerStore";
 // UI
 import { Slider } from "@kobalte/core/slider";
+import TrackDropdownMenu from "../Components/Release/TrackContextMenu/TrackDropdownMenu";
 // Types
 import ProgressPayload from "../../types/ProgressPayload";
 // Function
@@ -35,7 +37,7 @@ export default function PlayBar() {
 
   // Imported Stores
   const [playBackState, setPlayBackState] = playerStore.playBackState;
-  const [currentTrack] = playerStore.currentTrack;
+  const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
   const [playbackProgress, setPlaybackProgress] = playerStore.playbackProgress;
 
   onMount(async () => {
@@ -52,6 +54,16 @@ export default function PlayBar() {
     });
   });
 
+  const handleFavorite = () => {
+    favoriteTrack(currentTrack()!.song_id);
+    setCurrentTrack((prev) => {
+      const track = prev!;
+      return {
+        ...track,
+        is_favorite: !track.is_favorite,
+      };
+    });
+  };
   return (
     <div class=" h-20 rounded-3xl border border-zinc-700/50 relative overflow-hidden hidden sm:block">
       <Show when={currentTrack()}>
@@ -87,7 +99,8 @@ export default function PlayBar() {
                   <div class="flex flex-row justify-start  gap-3">
                     <button
                       class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
-                      title="Favorite song"
+                      title={`${currentTrack()?.is_favorite ? "Unfavorite track" : "Favorite track"}`}
+                      onClick={() => handleFavorite()}
                     >
                       <span
                         class={` h-5 w-5 ${currentTrack()?.is_favorite ? "icon-[solar--heart-angle-bold]" : "icon-[solar--heart-angle-linear]"}`}
@@ -99,12 +112,14 @@ export default function PlayBar() {
                     >
                       <span class="icon-[solar--add-circle-linear] h-5 w-5 "></span>
                     </button>
-                    <button
-                      class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
-                      title="More options"
-                    >
-                      <span class="icon-[solar--menu-dots-bold] h-5 w-5 "></span>
-                    </button>
+                    <TrackDropdownMenu track={currentTrack()!}>
+                      <button
+                        class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                        title="More options"
+                      >
+                        <span class="icon-[solar--menu-dots-bold] h-5 w-5 "></span>
+                      </button>
+                    </TrackDropdownMenu>
                   </div>
                 </div>
               </Show>

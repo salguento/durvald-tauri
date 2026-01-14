@@ -2,7 +2,7 @@
 import { invoke } from "@tauri-apps/api/core";
 // Stores
 import { playerStore } from "../../stores/playerStore";
-import TrackType from "../../types/Track";
+import { TrackType } from "../../types/DatabaseType";
 export default async function playPrevious() {
   const [, setCurrentTrack] = playerStore.currentTrack;
   await invoke("play_previous");

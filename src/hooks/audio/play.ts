@@ -2,16 +2,18 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 // Types
-import TrackType from "../../types/Track";
+import { TrackType } from "../../types/DatabaseType";
 import ProgressPayload from "../../types/ProgressPayload";
 // Store
 import { playerStore } from "../../stores/playerStore";
+import { libraryStore } from "../../stores/libraryStore";
 // Function
 export default async function playBack(track: TrackType) {
   const [, setPlayBackState] = playerStore.playBackState;
   const [, setCurrentTrack] = playerStore.currentTrack;
   const [, setPlaybackProgress] = playerStore.playbackProgress;
   const [, setQueueList] = playerStore.queueList;
+  const [trackStore] = libraryStore.trackStore;
   try {
     await invoke("play_file", { path: track.file_path });
     await invoke("start_progress_tracking");
@@ -20,9 +22,13 @@ export default async function playBack(track: TrackType) {
     await listen<ProgressPayload>("progress-update", (event) => {
       setPlaybackProgress(event.payload);
     });
-    const trackList: TrackType[] = await invoke("get_songs_by_release_id", {
-      releaseId: track.release_id.toString(),
-    });
+
+    const trackList: TrackType[] = trackStore().filter(
+      (t) => t.release_id === track.release_id,
+    );
+    // const trackList: TrackType[] = await invoke("get_songs_by_release_id", {
+    //   releaseId: track.release_id.toString(),
+    // });
     const newQueueItems = await trackList.reduce(
       async (
         accPromise: Promise<TrackType[]>,
