@@ -72,6 +72,8 @@ pub struct SongItem {
     rating: Option<u8>,
     lyrics: Option<String>,
     is_favorite: bool,
+    is_hidden: bool,
+    sugest_less: bool,
     file_path: String,
     created_at: String,
     updated_at: String,
@@ -173,6 +175,8 @@ pub fn create_tables() -> Result<(), String> {
             rating INTEGER DEFAULT NULL,
             lyrics TEXT,
             is_favorite BOOL DEFAULT FALSE,
+            is_hidden BOOL DEFAULT FALSE,
+            sugest_less BOOL DEFAULT FALSE,
             file_path TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -678,9 +682,11 @@ pub fn get_songs_by_release_id(release_id: &str) -> Result<Vec<SongItem>, String
                 rating: row.get(14)?,
                 lyrics: row.get(15)?,
                 is_favorite: row.get(16)?,
-                file_path: row.get(17)?,
-                created_at: row.get::<_, String>(18)?.to_string(),
-                updated_at: row.get::<_, String>(19)?.to_string(),
+                is_hidden: row.get(17)?,
+                sugest_less: row.get(18)?,
+                file_path: row.get(19)?,
+                created_at: row.get::<_, String>(20)?.to_string(),
+                updated_at: row.get::<_, String>(21)?.to_string(),
             })
         })
         .map_err(|e| format!("Failed to query songs: {}", e))?;
@@ -722,9 +728,11 @@ pub fn get_song_by_id(song_id: &str) -> Result<Vec<SongItem>, String> {
                 rating: row.get(14)?,
                 lyrics: row.get(15)?,
                 is_favorite: row.get(16)?,
-                file_path: row.get(17)?,
-                created_at: row.get::<_, String>(18)?.to_string(),
-                updated_at: row.get::<_, String>(19)?.to_string(),
+                is_hidden: row.get(17)?,
+                sugest_less: row.get(18)?,
+                file_path: row.get(19)?,
+                created_at: row.get::<_, String>(20)?.to_string(),
+                updated_at: row.get::<_, String>(21)?.to_string(),
             })
         })
         .map_err(|e| format!("Failed to query songs: {}", e))?;
@@ -839,9 +847,11 @@ pub fn get_all_tracks() -> Result<Vec<SongItem>, String> {
                 rating: row.get(14)?,
                 lyrics: row.get(15)?,
                 is_favorite: row.get(16)?,
-                file_path: row.get(17)?,
-                created_at: row.get::<_, String>(18)?.to_string(),
-                updated_at: row.get::<_, String>(19)?.to_string(),
+                is_hidden: row.get(17)?,
+                sugest_less: row.get(18)?,
+                file_path: row.get(19)?,
+                created_at: row.get::<_, String>(20)?.to_string(),
+                updated_at: row.get::<_, String>(21)?.to_string(),
             })
         })
         .map_err(|e| format!("Failed to query data: {}", e))?;
