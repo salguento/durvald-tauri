@@ -11,7 +11,7 @@ interface Props {
 export default function ReleaseContextMenu(props: Props) {
   return (
     <ContextMenu>
-      <ContextMenu.Trigger class="relative w-full flex group">
+      <ContextMenu.Trigger class="relative flex group">
         {props.children}
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
