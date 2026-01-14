@@ -1,8 +1,12 @@
 // Dependencies
 import { ContextMenu } from "@kobalte/core/context-menu";
+// Hooks
+import favoriteTrack from "../../../../hooks/library/Tracks/favoriteTrack";
+import hideTrack from "../../../../hooks/library/Tracks/hideTrack";
+import suggestLessTrack from "../../../../hooks/library/Tracks/suggestLessTrack";
 // Types
 import { JSX } from "solid-js";
-import TrackType from "../../../../types/Track";
+import { TrackType } from "../../../../types/DatabaseType";
 interface Props {
   children: JSX.Element;
   track: TrackType;
@@ -53,10 +57,17 @@ export default function TrackContextMenu(props: Props) {
               </div>
             </ContextMenu.Item>
             <ContextMenu.Item class="bg-transparent hover:bg-zinc-600/50 relative px-2 py-2 flex justify-between rounded-xl  outline-0">
-              <div class=" flex gap-2 items-center">
-                <span class="icon-[solar--heart-angle-linear] w-4 h-4"></span>
-                <span class="">Favorite</span>
-              </div>
+              <button
+                class=" flex gap-2 items-center"
+                onClick={() => favoriteTrack(props.track.song_id)}
+              >
+                <span
+                  class={`${props.track.is_favorite ? "icon-[solar--heart-angle-bold]" : "icon-[solar--heart-angle-linear]"} w-4 h-4`}
+                ></span>
+                <span class="">
+                  {props.track.is_favorite ? "Unfavorite" : "Favorite"}
+                </span>
+              </button>
             </ContextMenu.Item>
             <ContextMenu.Separator class="h-px my-1 border-t border-zinc-700/50" />
             <ContextMenu.Item class="bg-transparent hover:bg-zinc-600/50 relative px-2 py-2 flex justify-between rounded-xl  outline-0">
@@ -79,16 +90,34 @@ export default function TrackContextMenu(props: Props) {
             </ContextMenu.Item>
             <ContextMenu.Separator class="h-px my-1 border-t border-zinc-700/50" />
             <ContextMenu.Item class="bg-transparent hover:bg-zinc-600/50 relative px-2 py-2 flex justify-between rounded-xl  outline-0">
-              <div class=" flex gap-2 items-center">
-                <span class="icon-[solar--eye-closed-linear] w-4 h-4"></span>
-                <span class="">Hide song</span>
-              </div>
+              <button
+                class=" flex gap-2 items-center"
+                onClick={() => {
+                  hideTrack(props.track.song_id);
+                }}
+              >
+                <span
+                  class={`${props.track.is_hidden ? "icon-[solar--eye-linear]" : "icon-[solar--eye-closed-linear]"} w-4 h-4`}
+                ></span>
+                <span class="">
+                  {props.track.is_hidden ? "Unhide song" : "Hide song"}
+                </span>
+              </button>
             </ContextMenu.Item>
             <ContextMenu.Item class="bg-transparent hover:bg-zinc-600/50 relative px-2 py-2 flex justify-between rounded-xl  outline-0">
-              <div class=" flex gap-2 items-center">
-                <span class="icon-[solar--dislike-linear] w-4 h-4"></span>
-                <span class="">Suggest less</span>
-              </div>
+              <button
+                class=" flex gap-2 items-center"
+                onClick={() => suggestLessTrack(props.track.song_id)}
+              >
+                <span
+                  class={`${props.track.suggest_less ? "icon-[solar--like-linear]" : "icon-[solar--dislike-linear]"} w-4 h-4`}
+                ></span>
+                <span class="">
+                  {props.track.suggest_less
+                    ? "Undo suggest less"
+                    : "Suggest less"}
+                </span>
+              </button>
             </ContextMenu.Item>
             <ContextMenu.Separator class="h-px my-1 border-t border-zinc-700/50" />
             <ContextMenu.Item class="bg-transparent hover:bg-zinc-600/50 relative px-2 py-2 flex justify-between rounded-xl  outline-0">

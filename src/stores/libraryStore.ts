@@ -1,10 +1,12 @@
 // Dependencies
 import { createSignal } from "solid-js";
 // Types
-import { ReleaseType } from "../types/ReleaseType";
-import TrackType from "../types/Track";
-import ArtistType from "../types/ArtistType";
-import { HistoryType } from "../types/PlayHistoryType";
+import {
+  ReleaseType,
+  TrackType,
+  ArtistType,
+  HistoryType,
+} from "../types/DatabaseType";
 // Function
 export const libraryStore = {
   releaseStore: createSignal<ReleaseType[]>([]),

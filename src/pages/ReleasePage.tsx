@@ -6,7 +6,7 @@ import { createSignal } from "solid-js";
 import { A } from "@solidjs/router";
 // Hooks
 import playBack from "../hooks/audio/play";
-import favoriteTrack from "../hooks/library/favoriteTrack";
+import favoriteTrack from "../hooks/library/Tracks/favoriteTrack";
 // Stores
 import { libraryStore } from "../stores/libraryStore";
 // Utils

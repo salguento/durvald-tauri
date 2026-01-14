@@ -16,6 +16,8 @@ export interface TrackType {
   rating: number | null;
   lyrics: string | null;
   is_favorite: boolean;
+  is_hidden: boolean;
+  suggest_less: boolean;
   file_path: string;
   created_at: string;
   updated_at: string;

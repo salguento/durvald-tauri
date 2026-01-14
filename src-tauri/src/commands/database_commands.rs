@@ -73,7 +73,7 @@ pub struct SongItem {
     lyrics: Option<String>,
     is_favorite: bool,
     is_hidden: bool,
-    sugest_less: bool,
+    suggest_less: bool,
     file_path: String,
     created_at: String,
     updated_at: String,
@@ -176,7 +176,7 @@ pub fn create_tables() -> Result<(), String> {
             lyrics TEXT,
             is_favorite BOOL DEFAULT FALSE,
             is_hidden BOOL DEFAULT FALSE,
-            sugest_less BOOL DEFAULT FALSE,
+            suggest_less BOOL DEFAULT FALSE,
             file_path TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -683,7 +683,7 @@ pub fn get_songs_by_release_id(release_id: &str) -> Result<Vec<SongItem>, String
                 lyrics: row.get(15)?,
                 is_favorite: row.get(16)?,
                 is_hidden: row.get(17)?,
-                sugest_less: row.get(18)?,
+                suggest_less: row.get(18)?,
                 file_path: row.get(19)?,
                 created_at: row.get::<_, String>(20)?.to_string(),
                 updated_at: row.get::<_, String>(21)?.to_string(),
@@ -729,7 +729,7 @@ pub fn get_song_by_id(song_id: &str) -> Result<Vec<SongItem>, String> {
                 lyrics: row.get(15)?,
                 is_favorite: row.get(16)?,
                 is_hidden: row.get(17)?,
-                sugest_less: row.get(18)?,
+                suggest_less: row.get(18)?,
                 file_path: row.get(19)?,
                 created_at: row.get::<_, String>(20)?.to_string(),
                 updated_at: row.get::<_, String>(21)?.to_string(),
@@ -805,7 +805,7 @@ pub fn remove_song_from_history(history_id: u64) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn favorite_song(song_id: u64) -> Result<(), String> {
+pub fn favorite_track(song_id: u64) -> Result<(), String> {
     let db =
         Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
 
@@ -813,7 +813,35 @@ pub fn favorite_song(song_id: u64) -> Result<(), String> {
         "UPDATE songs SET is_favorite = NOT is_favorite, updated_at = CURRENT_TIMESTAMP WHERE song_id = ?1 ",
         params![song_id],
     )
-    .map_err(|e| format!("Failed to insert song to history: {}", e))?;
+    .map_err(|e| format!("Failed to update favorite status of track: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn hide_track(song_id: u64) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    db.execute(
+        "UPDATE songs SET is_hidden = NOT is_favorite, updated_at = CURRENT_TIMESTAMP WHERE song_id = ?1 ",
+        params![song_id],
+    )
+    .map_err(|e| format!("Failed to update visibility status of track: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn suggest_less_track(song_id: u64) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    db.execute(
+        "UPDATE songs SET suggest_less = NOT suggest_less, updated_at = CURRENT_TIMESTAMP WHERE song_id = ?1 ",
+        params![song_id],
+    )
+    .map_err(|e| format!("Failed to update suggestion status of track: {}", e))?;
 
     Ok(())
 }
@@ -848,7 +876,7 @@ pub fn get_all_tracks() -> Result<Vec<SongItem>, String> {
                 lyrics: row.get(15)?,
                 is_favorite: row.get(16)?,
                 is_hidden: row.get(17)?,
-                sugest_less: row.get(18)?,
+                suggest_less: row.get(18)?,
                 file_path: row.get(19)?,
                 created_at: row.get::<_, String>(20)?.to_string(),
                 updated_at: row.get::<_, String>(21)?.to_string(),
