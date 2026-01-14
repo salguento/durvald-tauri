@@ -88,7 +88,7 @@ export default function ReleasePage() {
           },
         }}
         defer
-        class="w-full flex flex-col gap-4 h-full pb-32 sm:pb-0"
+        class="w-full flex flex-col gap-4 h-full pb-36 sm:pb-0"
       >
         <ReleaseContextMenu release={release()!}>
           <div class="sm:h-96 relative flex items-center w-full">

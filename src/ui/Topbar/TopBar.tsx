@@ -49,7 +49,7 @@ export default function TopBar() {
         </div>
         <SearchBar />
       </div>
-      <div class="flex w-2xs min-w-[260px] justify-between h-full items-center">
+      <div class="flex w-2xs md:min-w-[260px] justify-end  md:justify-between h-full items-center">
         <SidebarButtons />
         <div
           class="flex flex-row gap-2 h-full items-center justify-end"
