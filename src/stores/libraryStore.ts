@@ -11,4 +11,5 @@ export const libraryStore = {
   trackStore: createSignal<TrackType[]>([]),
   artistStore: createSignal<ArtistType[]>([]),
   historyStore: createSignal<HistoryType[]>([]),
+  initializeLibraryStore: createSignal<boolean>(false),
 };

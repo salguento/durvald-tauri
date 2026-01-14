@@ -1,12 +1,14 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
-import { For, onMount, Show } from "solid-js";
+import { createEffect, For, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { invoke } from "@tauri-apps/api/core";
 import { createSignal } from "solid-js";
 import { A } from "@solidjs/router";
 // Hooks
 import playBack from "../hooks/audio/play";
+import favoriteTrack from "../hooks/library/favoriteTrack";
+// Stores
+import { libraryStore } from "../stores/libraryStore";
 // Utils
 import { secToMin } from "../utils/secToMin";
 // Types
@@ -19,15 +21,24 @@ import ReleaseContextMenu from "../ui/Components/Release/ReleaseContextMenu/Rele
 import ReleaseDropdownMenu from "../ui/Components/Release/ReleaseContextMenu/ReleaseDropdownMenu";
 
 export default function ReleasePage() {
+  const [initializeLibraryStore] = libraryStore.initializeLibraryStore;
+  const [releaseStore] = libraryStore.releaseStore;
+  const [trackStore] = libraryStore.trackStore;
   const [release, setRelease] = createSignal<ReleaseType>();
   const [songs, setSongs] = createSignal<SongType[]>([]);
   const [, setIsOpen] = createSignal<boolean>(false);
 
-  onMount(async () => {
-    const params = useParams();
-    const releaseId = params.id;
-    setRelease(await invoke("get_release_by_id", { releaseId: releaseId }));
-    setSongs(await invoke("get_songs_by_release_id", { releaseId: releaseId }));
+  createEffect(() => {
+    if (initializeLibraryStore()) {
+      const params = useParams();
+      const releaseId = params.id;
+      setRelease(
+        releaseStore().filter((release) => release.id === Number(releaseId))[0],
+      );
+      setSongs(
+        trackStore().filter((track) => track.release_id === Number(releaseId)),
+      );
+    }
   });
 
   return (
@@ -139,12 +150,15 @@ export default function ReleasePage() {
                         title={`${
                           song.is_favorite ? "Unfavorite song" : "Favorite song"
                         }`}
+                        onClick={() => {
+                          favoriteTrack(song.song_id);
+                        }}
                       >
                         <span
                           class={`w-4 h-4  ${
                             song.is_favorite
-                              ? "icon-[solar--heart-bold] hover:icon-[solar--heart-linear]"
-                              : "group-hover:icon-[solar--heart-linear] hover:icon-[solar--heart-bold]"
+                              ? "icon-[solar--heart-bold] "
+                              : "group-hover:icon-[solar--heart-linear]"
                           }`}
                         ></span>
                       </button>

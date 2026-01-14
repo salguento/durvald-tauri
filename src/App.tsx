@@ -26,11 +26,13 @@ import mirrorDB from "./hooks/library/mirrorDB";
 function App() {
   initializePlayerStore();
   onMount(async () => {
-    mirrorDB();
     const [queueList, setQueueList] = playerStore.queueList;
     const [, setCurrentTrack] = playerStore.currentTrack;
     const [, setShowSidebar] = uiStore.showSideBar;
     const [, setReleaseStore] = libraryStore.releaseStore;
+    const [, setInitializeLibraryStore] = libraryStore.initializeLibraryStore;
+    mirrorDB();
+    setInitializeLibraryStore(true);
     await invoke("start_auto_play");
     await listen("song-changed", async () => {
       const trackId: number = await invoke("get_current_song_id");

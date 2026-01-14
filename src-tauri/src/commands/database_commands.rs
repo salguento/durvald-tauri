@@ -802,7 +802,7 @@ pub fn favorite_song(song_id: u64) -> Result<(), String> {
         Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
 
     db.execute(
-        "UPDATE songs SET is_favorite = NOT WHERE song_id = ?1 ",
+        "UPDATE songs SET is_favorite = NOT is_favorite, updated_at = CURRENT_TIMESTAMP WHERE song_id = ?1 ",
         params![song_id],
     )
     .map_err(|e| format!("Failed to insert song to history: {}", e))?;
