@@ -5,12 +5,12 @@ import ReleaseContextMenu from "../ReleaseContextMenu/ReleaseContextMenu";
 import ReleaseDropdownMenu from "../ReleaseContextMenu/ReleaseDropdownMenu";
 import { ReleaseType } from "../../../../types/ReleaseType";
 import playBack from "../../../../hooks/audio/play";
-import TrackType from "../../../../types/Track";
+import { TrackType } from "../../../../types/DatabaseType";
 
 export default function ReleaseItem({ release }: { release: ReleaseType }) {
   const handlePlay = async () => {
     const tracks: TrackType[] = await invoke("get_songs_by_release_id", {
-      releaseId: release.id.toString(),
+      releaseId: release.release_id.toString(),
     });
     playBack(tracks[0]);
   };
@@ -27,7 +27,7 @@ export default function ReleaseItem({ release }: { release: ReleaseType }) {
         >
           <div class="relative">
             <A
-              href={`/release/${release.id.toString()}`}
+              href={`/release/${release.release_id.toString()}`}
               class="hover:cursor-pointer relative"
             >
               <img
@@ -62,7 +62,7 @@ export default function ReleaseItem({ release }: { release: ReleaseType }) {
         <div class="flex flex-col">
           <div class="flex items-center gap-1">
             <A
-              href={`/release/${release.id.toString()}`}
+              href={`/release/${release.release_id.toString()}`}
               class="w-fit max-w-40 flex items-center h-fit"
             >
               <span class="text-sm text-zinc-300 font-medium hover:underline hover:text-white hover:cursor-pointer line-clamp-2">

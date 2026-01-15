@@ -13,7 +13,7 @@ pub struct LibraryPath {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct Releases {
-    id: u64,
+    release_id: u64,
     title: String,
     artist_id: u64,
     artist_name: String,
@@ -23,6 +23,8 @@ pub struct Releases {
     duration: u64,
     artwork: String,
     is_favorite: bool,
+    is_hidden: bool,
+    suggest_less: bool,
     rating: Option<u8>,
     created_at: String,
     updated_at: String,
@@ -229,7 +231,7 @@ pub fn create_tables() -> Result<(), String> {
 
     db.execute(
         "CREATE TABLE IF NOT EXISTS releases (
-            id   INTEGER PRIMARY KEY,
+            release_id   INTEGER PRIMARY KEY,
             title TEXT,
             artist_id INTEGER NOT NULL,
             artist_name TEXT NOT NULL,
@@ -241,6 +243,8 @@ pub fn create_tables() -> Result<(), String> {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             is_favorite BOOL DEFAULT FALSE,
+            is_hidden BOOL DEFAULT FALSE,
+            suggest_less BOOL DEFAULT FALSE,
             rating INTEGER DEFAULT NULL,
             FOREIGN KEY (artist_id) REFERENCES artists(artist_id) ON DELETE CASCADE
         )",
@@ -465,7 +469,7 @@ pub fn add_song(song: AudioMetadata) -> Result<(), String> {
     // Get release_id (release must exist)
     let release_id: i64 = match db
         .query_row(
-            "SELECT id FROM releases WHERE title = ?1 AND artist_id = ?2",
+            "SELECT release_id FROM releases WHERE title = ?1 AND artist_id = ?2",
             params![&song.release, artist_id],
             |row| row.get(0),
         )
@@ -602,7 +606,7 @@ pub fn get_releases() -> Result<Vec<Releases>, String> {
     let releases_iter = stmt
         .query_map([], |row| {
             Ok(Releases {
-                id: row.get(0)?,
+                release_id: row.get(0)?,
                 title: row.get(1)?,
                 artist_id: row.get(2)?,
                 artist_name: row.get(3)?,
@@ -614,7 +618,9 @@ pub fn get_releases() -> Result<Vec<Releases>, String> {
                 created_at: row.get::<_, String>(9)?.to_string(),
                 updated_at: row.get::<_, String>(10)?.to_string(),
                 is_favorite: row.get(11)?,
-                rating: row.get(12)?,
+                is_hidden: row.get(12)?,
+                suggest_less: row.get(13)?,
+                rating: row.get(14)?,
             })
         })
         .map_err(|e| format!("Failed to query data: {}", e))?;
@@ -634,7 +640,7 @@ pub fn get_release_by_id(release_id: &str) -> Result<Releases, String> {
         [release_id],
         |row| {
             Ok(Releases {
-                id: row.get(0)?,
+                release_id: row.get(0)?,
                 title: row.get(1)?,
                 artist_id: row.get(2)?,
                 artist_name: row.get(3)?,
@@ -646,7 +652,9 @@ pub fn get_release_by_id(release_id: &str) -> Result<Releases, String> {
                 created_at: row.get::<_, String>(9)?.to_string(),
                 updated_at: row.get::<_, String>(10)?.to_string(),
                 is_favorite: row.get(11)?,
-                rating: row.get(12)?,
+                is_hidden: row.get(12)?,
+                suggest_less: row.get(13)?,
+                rating: row.get(14)?,
             })
         },
     )
@@ -819,6 +827,20 @@ pub fn favorite_track(song_id: u64) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn favorite_release(release_id: u64) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    db.execute(
+        "UPDATE releases SET is_favorite = NOT is_favorite, updated_at = CURRENT_TIMESTAMP WHERE release_id = ?1 ",
+        params![release_id],
+    )
+    .map_err(|e| format!("Failed to update favorite status of release: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command]
 pub fn hide_track(song_id: u64) -> Result<(), String> {
     let db =
         Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
@@ -903,7 +925,7 @@ pub fn get_all_releases() -> Result<Vec<Releases>, String> {
     let releases_map = releases
         .query_map([], |row| {
             Ok(Releases {
-                id: row.get(0)?,
+                release_id: row.get(0)?,
                 title: row.get(1)?,
                 artist_id: row.get(2)?,
                 artist_name: row.get(3)?,
@@ -915,7 +937,9 @@ pub fn get_all_releases() -> Result<Vec<Releases>, String> {
                 created_at: row.get::<_, String>(9)?.to_string(),
                 updated_at: row.get::<_, String>(10)?.to_string(),
                 is_favorite: row.get(11)?,
-                rating: row.get(12)?,
+                is_hidden: row.get(12)?,
+                suggest_less: row.get(13)?,
+                rating: row.get(14)?,
             })
         })
         .map_err(|e| format!("Failed to query data: {}", e))?;

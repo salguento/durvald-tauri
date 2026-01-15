@@ -1,7 +1,7 @@
 // Dependencies
 import "./App.css";
 import { Router, Route } from "@solidjs/router";
-import { onMount, createEffect } from "solid-js";
+import { onMount,  } from "solid-js";
 import "overlayscrollbars/overlayscrollbars.css";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -27,7 +27,6 @@ function App() {
   initializePlayerStore();
   onMount(async () => {
     const [queueList, setQueueList] = playerStore.queueList;
-    const [, setCurrentTrack] = playerStore.currentTrack;
     const [, setShowSidebar] = uiStore.showSideBar;
     const [, setReleaseStore] = libraryStore.releaseStore;
     const [, setInitializeLibraryStore] = libraryStore.initializeLibraryStore;
@@ -38,10 +37,9 @@ function App() {
     await listen("song-changed", async () => {
       const trackId: number = await invoke("get_current_song_id");
       addToHistory();
-      createEffect(() => {
-        const trackObj = trackStore().filter((t) => t.song_id === trackId);
-        setCurrentTrack(trackObj[0]);
-      });
+
+      const trackObj = trackStore().filter((t) => t.song_id === trackId);
+      defineCurrentTrack(trackObj[0]);
 
       setQueueList((prev) => prev.slice(1));
     });

@@ -24,7 +24,7 @@ export interface TrackType {
 }
 
 export interface ReleaseType {
-  id: number;
+  release_id: number;
   title: string;
   artist_id: number;
   artist_name: string;
@@ -34,6 +34,8 @@ export interface ReleaseType {
   duration: number;
   artwork: string;
   is_favorite: boolean;
+  is_hidden: boolean;
+  suggest_less: boolean;
   rating: number | null;
   created_at: string;
   updated_at: string;

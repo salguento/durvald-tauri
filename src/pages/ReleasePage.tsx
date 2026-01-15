@@ -7,6 +7,7 @@ import { A } from "@solidjs/router";
 // Hooks
 import playBack from "../hooks/audio/play";
 import favoriteTrack from "../hooks/library/Tracks/favoriteTrack";
+import favoriteRelease from "../hooks/library/Releases/favoriteRelease";
 // Stores
 import { libraryStore } from "../stores/libraryStore";
 // Utils
@@ -33,7 +34,9 @@ export default function ReleasePage() {
       const params = useParams();
       const releaseId = params.id;
       setRelease(
-        releaseStore().filter((release) => release.id === Number(releaseId))[0],
+        releaseStore().filter(
+          (release) => release.release_id === Number(releaseId),
+        )[0],
       );
       setSongs(
         trackStore().filter((track) => track.release_id === Number(releaseId)),
@@ -66,8 +69,17 @@ export default function ReleasePage() {
                 <button class="w-6 h-6 cursor-pointer" title="Add to library">
                   <span class="icon-[solar--add-square-linear] w-6 h-6 text-white"></span>
                 </button>
-                <button class="w-6 h-6 cursor-pointer" title="Favorite">
-                  <span class="icon-[solar--heart-angle-linear] w-6 h-6 text-white"></span>
+                <button
+                  class="w-6 h-6 cursor-pointer"
+                  title="Favorite"
+                  onClick={() => {
+                    favoriteRelease(release()!.release_id);
+                    console.log(release()!.title);
+                  }}
+                >
+                  <span
+                    class={`${release()?.is_favorite ? "icon-[solar--heart-angle-bold]" : "icon-[solar--heart-angle-linear]"} w-6 h-6 text-white`}
+                  ></span>
                 </button>
                 <ReleaseDropdownMenu release={release()!}>
                   <button class="w-6 h-6 cursor-pointer" title="Options">
