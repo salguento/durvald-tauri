@@ -1,5 +1,7 @@
 // Dependencies
 import { DropdownMenu } from "@kobalte/core/dropdown-menu";
+// Hooks
+import favoriteRelease from "../../../../hooks/library/Releases/favoriteRelease";
 // Types
 import { JSX } from "solid-js";
 import { ReleaseType } from "../../../../types/ReleaseType";
@@ -60,10 +62,17 @@ export default function ReleaseDropdownMenu(props: Props) {
               </div>
             </DropdownMenu.Item>
             <DropdownMenu.Item class="bg-transparent hover:bg-zinc-600/50 relative px-2 py-2 flex justify-between rounded-xl  outline-0">
-              <div class=" flex gap-2 items-center">
-                <span class="icon-[solar--heart-angle-linear] w-4 h-4"></span>
-                <span class="">Favorite</span>
-              </div>
+              <button
+                class=" flex gap-2 items-center w-full"
+                onClick={() => favoriteRelease(props.release.release_id)}
+              >
+                <span
+                  class={`${props.release.release_id ? "icon-[solar--heart-angle-bold]" : "icon-[solar--heart-angle-linear]"} w-4 h-4`}
+                ></span>
+                <span>
+                  {props.release.release_id ? "Unfavorite" : "Favorite"}
+                </span>
+              </button>
             </DropdownMenu.Item>
             <DropdownMenu.Separator class="h-px my-1 border-t border-zinc-700/50" />
             <DropdownMenu.Item class="bg-transparent hover:bg-zinc-600/50 relative px-2 py-2 flex justify-between rounded-xl  outline-0">

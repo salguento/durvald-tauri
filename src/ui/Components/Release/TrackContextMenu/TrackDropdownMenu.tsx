@@ -65,7 +65,7 @@ export default function TrackDropdownMenu(props: Props) {
             </DropdownMenu.Item>
             <DropdownMenu.Item class="bg-transparent hover:bg-zinc-600/50 relative px-2 py-2 flex justify-between rounded-xl  outline-0">
               <button
-                class=" flex gap-2 items-center"
+                class=" flex gap-2 items-center w-full"
                 onClick={() => favoriteTrack(props.track.song_id)}
               >
                 <span
@@ -98,7 +98,7 @@ export default function TrackDropdownMenu(props: Props) {
             <DropdownMenu.Separator class="h-px my-1 border-t border-zinc-700/50" />
             <DropdownMenu.Item class="bg-transparent hover:bg-zinc-600/50 relative px-2 py-2 flex justify-between rounded-xl  outline-0">
               <button
-                class=" flex gap-2 items-center"
+                class=" flex gap-2 items-center w-full"
                 onClick={() => {
                   hideTrack(props.track.song_id);
                 }}
@@ -113,7 +113,7 @@ export default function TrackDropdownMenu(props: Props) {
             </DropdownMenu.Item>
             <DropdownMenu.Item class="bg-transparent hover:bg-zinc-600/50 relative px-2 py-2 flex justify-between rounded-xl  outline-0">
               <button
-                class=" flex gap-2 items-center"
+                class=" flex gap-2 items-center w-full"
                 onClick={() => suggestLessTrack(props.track.song_id)}
               >
                 <span
