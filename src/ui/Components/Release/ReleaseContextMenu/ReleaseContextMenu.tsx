@@ -60,10 +60,10 @@ export default function ReleaseContextMenu(props: Props) {
                 onClick={() => favoriteRelease(props.release.release_id)}
               >
                 <span
-                  class={`${props.release.release_id ? "icon-[solar--heart-angle-bold]" : "icon-[solar--heart-angle-linear]"} w-4 h-4`}
+                  class={`${props.release.is_favorite ? "icon-[solar--heart-angle-bold]" : "icon-[solar--heart-angle-linear]"} w-4 h-4`}
                 ></span>
                 <span>
-                  {props.release.release_id ? "Unfavorite" : "Favorite"}
+                  {props.release.is_favorite ? "Unfavorite" : "Favorite"}
                 </span>
               </button>
             </ContextMenu.Item>
