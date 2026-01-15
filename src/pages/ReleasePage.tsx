@@ -71,7 +71,7 @@ export default function ReleasePage() {
                 </button>
                 <button
                   class="w-6 h-6 cursor-pointer"
-                  title="Favorite"
+                  title={`${release()?.is_favorite ? "Unfavorite release" : "Favorite"}`}
                   onClick={() => {
                     favoriteRelease(release()!.release_id);
                     console.log(release()!.title);
