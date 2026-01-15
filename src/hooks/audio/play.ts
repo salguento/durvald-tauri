@@ -5,12 +5,11 @@ import { listen } from "@tauri-apps/api/event";
 import { TrackType } from "../../types/DatabaseType";
 import ProgressPayload from "../../types/ProgressPayload";
 // Store
-import { playerStore } from "../../stores/playerStore";
+import { defineCurrentTrack, playerStore } from "../../stores/playerStore";
 import { libraryStore } from "../../stores/libraryStore";
 // Function
 export default async function playBack(track: TrackType) {
   const [, setPlayBackState] = playerStore.playBackState;
-  const [, setCurrentTrack] = playerStore.currentTrack;
   const [, setPlaybackProgress] = playerStore.playbackProgress;
   const [, setQueueList] = playerStore.queueList;
   const [trackStore] = libraryStore.trackStore;
@@ -55,7 +54,7 @@ export default async function playBack(track: TrackType) {
   } catch (error) {
     console.error("Failed to play audio:", error);
   } finally {
-    setCurrentTrack(track);
+    defineCurrentTrack(track);
     setPlayBackState(await invoke("get_playback_state"));
   }
 }

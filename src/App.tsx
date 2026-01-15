@@ -10,7 +10,7 @@ import addToHistory from "./hooks/audio/addToHistory";
 import getHistory from "./hooks/audio/getPlayHistory";
 import mirrorDB from "./hooks/library/mirrorDB";
 // Store
-import { playerStore } from "./stores/playerStore";
+import { defineCurrentTrack, playerStore } from "./stores/playerStore";
 import { uiStore } from "./stores/uiStore";
 import { libraryStore } from "./stores/libraryStore";
 import { initializePlayerStore } from "./stores/playerStore";
@@ -52,22 +52,21 @@ function App() {
 
       setQueueList([]);
 
-      createEffect(async () => {
-        const trackPromises = queue.map(async (i: QueueItemType, index) => {
-          const trackItem: TrackType[] = trackStore().filter(
-            (t) => t.song_id === i[0],
-          );
-          return { track: trackItem[0], isFirst: index === 0 };
-        });
-
-        const results = await Promise.all(trackPromises);
-        const tracks = results.map((r) => r.track);
-        setQueueList(tracks);
-
-        if (results.length > 0 && results[0].isFirst) {
-          setCurrentTrack(results[0].track);
-        }
+      const trackPromises = queue.map(async (i: QueueItemType, index) => {
+        const trackItem: TrackType[] = trackStore().filter(
+          (t) => t.song_id === i[0],
+        );
+        return { track: trackItem[0], isFirst: index === 0 };
       });
+
+      const results = await Promise.all(trackPromises);
+      const tracks = results.map((r) => r.track);
+      setQueueList(tracks);
+
+      if (results.length > 0 && results[0].isFirst) {
+        defineCurrentTrack(results[0].track);
+      }
+
       getHistory();
     } catch (error) {
       console.log("Startup error:", error);
