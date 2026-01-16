@@ -18,7 +18,7 @@ export default function Playing() {
         defer
         class="h-full rounded-2xl relative overflow-y-auto pb-8"
       >
-        <div class="flex flex-col  gap-3 p-2.5">
+        <div class="flex flex-col  gap-3 p-1">
           <img src={currentTrack()?.artwork} class="rounded-2xl w-full" />
           <div class="flex flex-row justify-between w-full items-center">
             <span class="text-base lg:text-xl text-white font-semibold truncate hover:underline hover:cursor-pointer">
@@ -125,6 +125,7 @@ export default function Playing() {
           </OverlayScrollbarsComponent>
         </div>
       </OverlayScrollbarsComponent>
+      {/*<div class="h-8 w-full bg-linear-to-t from-transparent via-black to-black  absolute top-0"></div>*/}
       <div class="h-8 w-full bg-linear-to-b from-transparent via-black to-black  absolute bottom-0"></div>
     </div>
   );

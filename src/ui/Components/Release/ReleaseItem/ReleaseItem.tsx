@@ -70,7 +70,7 @@ export default function ReleaseItem({ release }: { release: ReleaseType }) {
               </span>
             </A>
             <Show when={release.is_favorite}>
-              <span class="icon-[solar--heart-angle-bold] h-4 w-4 text-zinc-300"></span>
+              <span class="icon-[solar--heart-angle-bold] h-3 w-3 text-zinc-300"></span>
             </Show>
           </div>
           <A
