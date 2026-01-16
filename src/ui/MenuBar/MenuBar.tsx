@@ -86,12 +86,6 @@ export default function MenuBar() {
           />
         </div>
         <div class={`flex flex-col ${menuCollapsed() ? "" : "w-full"}  gap-1 `}>
-          {/*<Show when={!menuCollapsed()}>
-            <div class="flex flex-row w-full rounded-lg gap-2.5  focus:bg-zinc-900  text-sm h-10 font-normal text-zinc-500 items-center">
-              <span class="icon-[solar--music-library-2-linear] h-5 w-5 "></span>
-              <span>Library</span>
-            </div>
-          </Show>*/}
           <div class="w-full flex justify-between">
             <Show when={!menuCollapsed()}>
               <div
@@ -105,7 +99,7 @@ export default function MenuBar() {
             <Show when={menuCollapsed()}>
               <LibraryMenubarDropdownMenu>
                 <div
-                  class="flex flex-row w-full rounded-lg gap-2.5 h-8 pl-1.5  focus:bg-zinc-900 text-sm  font-normal text-zinc-500 items-center cursor-default"
+                  class="flex flex-row w-full rounded-lg gap-2.5 h-8 pl-1.5  focus:bg-zinc-900 text-sm  font-normal text-zinc-500 items-center cursor-pointer"
                   onClick={() => setExpandLibrary(!expandLibrary())}
                 >
                   <span class="icon-[solar--music-library-2-linear] h-5 w-5 "></span>
