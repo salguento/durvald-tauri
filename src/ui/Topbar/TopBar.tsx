@@ -15,18 +15,19 @@ export default function TopBar() {
 
   return (
     <div
-      class="h-10 flex gap-2 sm:gap-5 px-3.5 justify-between items-center"
+      class="h-8 flex gap-2 justify-between items-center px-1"
       data-tauri-drag-region
     >
-      <MainMenu>
-        <button
-          class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
-          title="Menu"
-        >
-          <span class="icon-[solar--hamburger-menu-linear] h-6 w-6 "></span>
-        </button>
-      </MainMenu>
-      {/*<button
+      <div class="w-3xs max-w-3xs min-w-3xs">
+        <MainMenu>
+          <button
+            class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
+            title="Menu"
+          >
+            <span class="icon-[solar--hamburger-menu-linear] h-6 w-6 "></span>
+          </button>
+        </MainMenu>
+        {/*<button
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
           title="Miniplayer"
         >
@@ -38,9 +39,9 @@ export default function TopBar() {
         >
           <span class="icon-[solar--full-screen-square-linear] h-6 w-6 "></span>
         </button>*/}
-
+      </div>
       <div
-        class="flex flex-row items-center justify-center h-full gap-2 w-full "
+        class="flex flex-row items-center justify-start h-full gap-2 w-full px-1 "
         data-tauri-drag-region
       >
         <div class="flex gap-0.5">
@@ -49,7 +50,7 @@ export default function TopBar() {
         </div>
         <SearchBar />
       </div>
-      <div class="flex w-2xs md:min-w-[260px] justify-end  md:justify-between h-full items-center">
+      <div class="flex w-xs md:min-w-xs justify-end  md:justify-between h-full items-center pl-3 pr-2">
         <SidebarButtons />
         <div
           class="flex flex-row gap-2 h-full items-center justify-end"

@@ -14,4 +14,6 @@ export const uiStore = {
     depth: history.state?._depth ?? 0,
     length: history.length,
   }),
+  expandLibrary: createSignal<boolean>(true),
+  expandPlaylist: createSignal<boolean>(true),
 };

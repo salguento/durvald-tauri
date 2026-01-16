@@ -15,10 +15,12 @@ export default function MenubarButton({ href, title, icon }: Props) {
   return (
     <A href={href}>
       <button
-        class="flex flex-row w-full p-2.5 rounded-lg gap-2.5 hover:bg-zinc-800 focus:bg-zinc-900 text-sm font-normal text-zinc-300 hover:cursor-pointer items-center"
+        class={`flex flex-row ${menuCollapsed() ? "w-8 justify-center p-1" : "w-full"} items-center h-8 rounded-lg gap-1 hover:bg-zinc-800 focus:bg-zinc-900 text-sm font-normal text-zinc-300 hover:cursor-pointer `}
         title={title}
       >
-        <span class={`${icon} h-5 w-5`}></span>
+        <div class="flex items-center justify-center w-8 h-8 p-1">
+          <span class={`${icon} h-5 w-5`}></span>
+        </div>
         <Show when={!menuCollapsed()}>{title}</Show>
       </button>
     </A>

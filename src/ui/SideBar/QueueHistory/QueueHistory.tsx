@@ -25,10 +25,10 @@ export default function QueueHistory() {
   return (
     <Tabs
       aria-label="Queue navigation"
-      class="max-w-2xs overflow-hidden relative h-full"
+      class="w-full overflow-hidden relative h-full"
     >
       <Tabs.List class="w-full  text-center absolute top-0 z-1 border-b bg-zinc-900/50  border-zinc-700/50  ">
-        <div class=" h-full  flex justify-between px-2.5 py-2.5 gap-2 backdrop-blur-xl  w-full">
+        <div class=" h-full  flex justify-between p-2.5 gap-2 backdrop-blur-xl  w-full">
           <Tabs.Trigger
             class={`w-full ${queueTab() == "queue" ? "bg-white text-zinc-950" : "bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800"} rounded-xl h-8 cursor-pointer font-medium text-sm`}
             value="queue"
@@ -58,7 +58,7 @@ export default function QueueHistory() {
             },
           }}
           defer
-          class="overflow-y-hidden max-w-2xs flex flex-col gap-1 h-full pt-13 pb-5 px-1.5"
+          class="overflow-y-hidden w-full flex flex-col gap-1 h-full pt-13 pb-5 px-1.5"
         >
           <Show
             when={queueList().length > 0}
@@ -103,7 +103,7 @@ export default function QueueHistory() {
             },
           }}
           defer
-          class="overflow-y-hidden max-w-2xs flex flex-col gap-1 h-full pt-14.5 pb-4 px-1.5"
+          class="overflow-y-hidden  flex flex-col gap-1 h-full pt-14.5 pb-4 px-1.5 w-full"
         >
           <For each={formattedHistory()}>
             {(item: FormattedHistoryType) => (

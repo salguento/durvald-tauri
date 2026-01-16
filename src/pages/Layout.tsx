@@ -16,7 +16,7 @@ const Layout: ParentComponent = (props) => {
         data-tauri-drag-region
       >
         <TopBar />
-        <div class={`flex gap-2 flex-1 overflow-hidden relative`}>
+        <div class={`flex gap-4 flex-1 overflow-hidden relative`}>
           <MenuBar />
           <div class={`flex grow relative gap-2 w-full overflow-hidden`}>
             <div

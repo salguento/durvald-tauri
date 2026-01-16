@@ -12,7 +12,7 @@ export default function SearchBar() {
     console.log(searchInput());
   };
   return (
-    <div class="relative w-56 hidden sm:block">
+    <div class="relative w-64 hidden sm:block">
       <input
         type="text"
         value={searchInput()}
