@@ -41,7 +41,7 @@ export default function TopBar() {
         </button>*/}
       </div>
       <div
-        class="flex flex-row items-center justify-start h-full gap-2 w-full px-1 "
+        class="flex flex-row items-center justify-center h-full gap-2 w-full px-1 "
         data-tauri-drag-region
       >
         <div class="flex gap-0.5">
