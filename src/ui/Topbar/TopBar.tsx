@@ -18,7 +18,7 @@ export default function TopBar() {
       class="h-8 flex gap-2 justify-between items-center px-1"
       data-tauri-drag-region
     >
-      <div class="w-3xs max-w-3xs min-w-3xs">
+      <div class="w-3xs max-w-3xs min-w-3xs" data-tauri-drag-region>
         <MainMenu>
           <button
             class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl  hover:bg-zinc-500/50  rounded-xl hover:cursor-pointer h-8 w-8"
@@ -50,7 +50,10 @@ export default function TopBar() {
         </div>
         <SearchBar />
       </div>
-      <div class="flex w-xs md:min-w-xs justify-end  md:justify-between h-full items-center pl-3 pr-2">
+      <div
+        class="flex w-xs md:min-w-xs justify-end  md:justify-between h-full items-center pl-3 pr-2"
+        data-tauri-drag-region
+      >
         <SidebarButtons />
         <div
           class="flex flex-row gap-2 h-full items-center justify-end"
