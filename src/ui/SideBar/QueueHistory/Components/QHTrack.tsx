@@ -76,7 +76,7 @@ export default function QueueTrack({ item, historyId }: QueueTrackProps) {
               </span>
               <div class={`group-hover:block hidden`}>
                 <button
-                  class="h-6 w-6 hover:cursor-pointer flex items-center justify-center hover:bg-white rounded-full text-zinc-300 hover:text-black p-1"
+                  class="h-6 w-6 hover:cursor-pointer flex items-center justify-center hover:bg-white rounded-full text-zinc-300 hover:text-zinc-950 p-1"
                   title="Options"
                   onClick={() => setIsOpen(true)}
                 >

@@ -75,7 +75,7 @@ export default function PlayBar() {
           />
         </div>
       </Show>
-      <div class="absolute inset-0 z-5 bg-black/20">
+      <div class="absolute inset-0 z-5 bg-zinc-950/20">
         <div class="backdrop-blur-xl w-full flex items-center h-full">
           <div class="grid grid-cols-12 w-full items-center px-3 gap-4">
             <div class="col-span-4 xl:col-span-3 h-full relative">
@@ -305,7 +305,7 @@ export default function PlayBar() {
                     <Slider.Fill class="absolute bg-white rounded-full h-full" />
                     <Slider.Thumb class=" w-3 h-3  bg-white rounded-full -top-1 hover:cursor-pointer hover:w-4 hover:h-4 hover:-top-1.5 border border-zinc-900/50 focus:outline-0 relative flex justify-center">
                       <Slider.Input />
-                      <div class="text-black text-xs group-active:visible invisible absolute -top-7 flex justify-center bg-white  border border-zinc-500/50 h-fit px-2 py-0.5 rounded-lg w-8 text-center">
+                      <div class="text-zinc-950 text-xs group-active:visible invisible absolute -top-7 flex justify-center bg-white  border border-zinc-500/50 h-fit px-2 py-0.5 rounded-lg w-8 text-center">
                         <span class="">{volume()}</span>
                       </div>
                     </Slider.Thumb>

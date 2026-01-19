@@ -16,4 +16,5 @@ export const uiStore = {
   }),
   expandLibrary: createSignal<boolean>(true),
   expandPlaylist: createSignal<boolean>(true),
+  openDialog: createSignal<boolean>(false),
 };

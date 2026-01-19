@@ -57,7 +57,7 @@ export default function MobilePlaybar() {
                 class="w-full h-full object-cover opacity-50"
               />
             </div>
-            <div class="absolute inset-0 z-5 bg-black/20 rounded-2xl w-full">
+            <div class="absolute inset-0 z-5 bg-zinc-950/20 rounded-2xl w-full">
               <div class="backdrop-blur-3xl w-full flex items-center h-full">
                 <div class="flex justify-between w-full items-center px-1.5 gap-4">
                   <div class="flex min-w-0 h-full relative">

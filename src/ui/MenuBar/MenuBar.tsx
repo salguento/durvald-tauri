@@ -6,11 +6,13 @@ import { uiStore } from "../../stores/uiStore";
 import MenubarButton from "./MenubarButton";
 import PlaylistMenubarDropdownMenu from "./PlaylistMenubarDropdownMenu";
 import LibraryMenubarDropdownMenu from "./LibraryMenubarDropdownMenu";
+import NewPlaylistDialog from "../Playlist/NewPlaylistDialog";
 // Function
 export default function MenuBar() {
   const [menuCollapsed, setMenuCollaped] = uiStore.menuCollapsed;
   const [expandLibrary, setExpandLibrary] = uiStore.expandLibrary;
   const [expandPlaylist, setExpandPlaylist] = uiStore.expandPlaylist;
+  const [openDialog, setOpenDialog] = uiStore.openDialog;
   function collapseMenu() {
     setMenuCollaped(!menuCollapsed());
   }
@@ -173,12 +175,20 @@ export default function MenuBar() {
             </Show>
             <Show when={!menuCollapsed()}>
               <div class="flex gap-1">
-                <button
-                  class="flex items-center text-zinc-500 p-1 hover:text-white hover:cursor-pointer"
-                  title="New"
-                >
-                  <span class="icon-[solar--add-square-linear] h-5 w-5 "></span>
-                </button>
+                <NewPlaylistDialog>
+                  <button
+                    class="flex items-center text-zinc-500 p-1 hover:text-white hover:cursor-pointer"
+                    title="New"
+                    onPointerDown={(e) => {
+                      e.preventDefault(); // Prevent focus changes
+                      e.stopPropagation();
+                      e.stopImmediatePropagation();
+                      setOpenDialog(true);
+                    }}
+                  >
+                    <span class="icon-[solar--add-square-linear] h-5 w-5 "></span>
+                  </button>
+                </NewPlaylistDialog>
                 <button
                   class="flex items-center text-zinc-500 p-1 hover:text-white hover:cursor-pointer"
                   title="Expand"
