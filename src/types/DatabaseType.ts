@@ -52,3 +52,21 @@ export interface HistoryType {
   playedAt: string;
   playDuration: number;
 }
+
+export interface PlaylistType {
+  id: number;
+  name: string;
+  cover?: number[] | null;
+  description: string;
+  is_favorite: boolean;
+  suggest_less: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlaylistSongsType {
+  playlist_id: number;
+  song_id: number;
+  position: number;
+  added_at: string;
+}

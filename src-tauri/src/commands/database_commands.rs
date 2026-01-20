@@ -44,6 +44,26 @@ pub struct PlayHistory {
     duration: u64,
 }
 
+#[derive(Serialize, Clone, Debug)]
+pub struct Playlist {
+    id: u64,
+    name: String,
+    cover: Option<Vec<u8>>,
+    description: String,
+    is_favorite: bool,
+    suggest_less: bool,
+    created_at: String,
+    updated_at: String,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct PlaylistSong {
+    playlist_id: u64,
+    song_id: u64,
+    position: u64,
+    added_at: String,
+}
+
 #[derive(Serialize, Clone, Debug, Hash, Eq, PartialEq)]
 pub struct ReleaseGroup {
     title: String,
@@ -150,9 +170,14 @@ pub fn create_tables() -> Result<(), String> {
 
     db.execute(
         "CREATE TABLE IF NOT EXISTS playlists (
-            playlist_id   INTEGER PRIMARY KEY,
+            id   INTEGER PRIMARY KEY,
             name TEXT,
-            artwork TEXT
+            cover BLOB,
+            description TEXT,
+            is_favorite BOOL DEFAULT FALSE,
+            suggest_less BOOL DEFAULT FALSE,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )",
         (),
     )
@@ -300,7 +325,7 @@ pub fn create_tables() -> Result<(), String> {
             artist_id INTEGER NOT NULL,
             playlist_id INTEGER NOT NULL,
             FOREIGN KEY (artist_id) REFERENCES artists(artist_id) ON DELETE CASCADE,
-            FOREIGN KEY (playlist_id) REFERENCES playlists(playlist_id) ON DELETE CASCADE
+            FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE
         )",
         (),
     )
@@ -972,6 +997,141 @@ pub fn get_all_artists() -> Result<Vec<ArtistItem>, String> {
     let mut results = Vec::new();
     for item in artists_map {
         results.push(item.map_err(|e| format!("Failed to get row: {}", e))?);
+    }
+    Ok(results)
+}
+
+#[tauri::command]
+pub fn create_playlist(
+    name: String,
+    cover: String, // This is a full Data URL like "data:image/jpeg;base64,/9j/4AA..."
+    description: String,
+) -> Result<Playlist, String> {
+    // Import the standard engine
+    use base64::engine::general_purpose::STANDARD;
+    use base64::Engine as _;
+
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let cover_blob = if !cover.is_empty() {
+        // Extract base64 data from Data URL
+        let base64_data = if cover.starts_with("data:") {
+            // Split on "base64," first, then on "," as fallback
+            if let Some(pos) = cover.find("base64,") {
+                &cover[pos + 7..] // Skip "base64,"
+            } else if let Some(pos) = cover.find(',') {
+                &cover[pos + 1..] // Skip ","
+            } else {
+                return Err("Invalid Data URL: no base64 data found".to_string());
+            }
+        } else {
+            &cover
+        };
+
+        // Trim whitespace
+        let base64_data = base64_data.trim();
+
+        // Decode base64 to bytes
+        match STANDARD.decode(base64_data) {
+            Ok(data) => Some(data), // Store as Vec<u8>
+            Err(e) => {
+                return Err(format!(
+                    "Failed to decode base64 image: {} (data: '{}')",
+                    e,
+                    if base64_data.len() > 50 {
+                        format!("{}...", &base64_data[..50])
+                    } else {
+                        base64_data.to_string()
+                    }
+                ))
+            }
+        }
+    } else {
+        None
+    };
+
+    let mut stmt = db
+        .prepare(
+            "INSERT INTO playlists (name, cover, description)
+         VALUES (?1, ?2, ?3)
+         RETURNING id, name, cover, description, is_favorite, suggest_less, created_at, updated_at",
+        )
+        .map_err(|e| format!("Failed to prepare playlist: {}", e))?;
+
+    // Use cover_blob as Option<Vec<u8>> directly - rusqlite will handle None as NULL
+    let playlist: Playlist = stmt
+        .query_row(params![&name, &cover_blob, &description], |row| {
+            Ok(Playlist {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                cover: row.get(2)?,
+                description: row.get(3)?,
+                is_favorite: row.get(4)?,
+                suggest_less: row.get(5)?,
+                created_at: row.get(6)?,
+                updated_at: row.get(7)?,
+            })
+        })
+        .map_err(|e| format!("Failed to insert playlist: {}", e))?;
+
+    Ok(playlist)
+}
+
+#[tauri::command]
+pub fn get_all_playlists() -> Result<Vec<Playlist>, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let mut playlists = db
+        .prepare("SELECT * FROM playlists")
+        .map_err(|e| format!("Failed retrieve playlists: {}", e))?;
+
+    let playlist_map = playlists
+        .query_map([], |row| {
+            Ok(Playlist {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                cover: row.get(2)?,
+                description: row.get(3)?,
+                is_favorite: row.get(4)?,
+                suggest_less: row.get(5)?,
+                created_at: row.get(6)?,
+                updated_at: row.get(7)?,
+            })
+        })
+        .map_err(|e| format!("Failed to query data: {}", e))?;
+
+    let mut results = Vec::new();
+    for item in playlist_map {
+        results.push(item.map_err(|e| format!("Failed to get row from playlists: {}", e))?);
+    }
+    Ok(results)
+}
+
+#[tauri::command]
+pub fn get_all_playlist_songs() -> Result<Vec<PlaylistSong>, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let mut playlist_song = db
+        .prepare("SELECT * FROM playlist_songs")
+        .map_err(|e| format!("Failed retrieve playlists: {}", e))?;
+
+    let playlist_song_map = playlist_song
+        .query_map([], |row| {
+            Ok(PlaylistSong {
+                playlist_id: row.get(0)?,
+                song_id: row.get(1)?,
+                position: row.get(2)?,
+                added_at: row.get(3)?,
+            })
+        })
+        .map_err(|e| format!("Failed to query data: {}", e))?;
+
+    let mut results = Vec::new();
+    for item in playlist_song_map {
+        results.push(item.map_err(|e| format!("Failed to get row from playlist_songs: {}", e))?);
     }
     Ok(results)
 }

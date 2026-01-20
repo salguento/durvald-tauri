@@ -6,12 +6,16 @@ import {
   TrackType,
   ArtistType,
   HistoryType,
+  PlaylistType,
+  PlaylistSongsType,
 } from "../types/DatabaseType";
 // Function
 export const libraryStore = {
+  initializeLibraryStore: createSignal<boolean>(false),
   releaseStore: createSignal<ReleaseType[]>([]),
   trackStore: createSignal<TrackType[]>([]),
   artistStore: createSignal<ArtistType[]>([]),
   historyStore: createSignal<HistoryType[]>([]),
-  initializeLibraryStore: createSignal<boolean>(false),
+  playlistStore: createSignal<PlaylistType[]>([]),
+  playlistSongStore: createSignal<PlaylistSongsType[]>([]),
 };

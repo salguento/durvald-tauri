@@ -15,11 +15,11 @@ use r2d2_sqlite::SqliteConnectionManager;
 use std::sync::Arc;
 
 use commands::database_commands::{
-    add_path_to_library_paths, add_song_to_history, create_tables, favorite_release,
-    favorite_track, get_all_artists, get_all_releases, get_all_tracks,
-    get_paths_from_library_paths, get_play_history, get_release_by_id, get_releases,
-    get_song_by_id, get_songs_by_release_id, hide_track, remove_song_from_history,
-    suggest_less_track, update_database,
+    add_path_to_library_paths, add_song_to_history, create_playlist, create_tables,
+    favorite_release, favorite_track, get_all_artists, get_all_playlist_songs, get_all_playlists,
+    get_all_releases, get_all_tracks, get_paths_from_library_paths, get_play_history,
+    get_release_by_id, get_releases, get_song_by_id, get_songs_by_release_id, hide_track,
+    remove_song_from_history, suggest_less_track, update_database,
 };
 use commands::get_audio_metadata;
 
@@ -589,7 +589,10 @@ fn main() {
                 get_all_artists,
                 hide_track,
                 suggest_less_track,
-                favorite_release
+                favorite_release,
+                create_playlist,
+                get_all_playlists,
+                get_all_playlist_songs
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

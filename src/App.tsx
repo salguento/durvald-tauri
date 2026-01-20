@@ -1,7 +1,7 @@
 // Dependencies
 import "./App.css";
 import { Router, Route } from "@solidjs/router";
-import { onMount,  } from "solid-js";
+import { onMount } from "solid-js";
 import "overlayscrollbars/overlayscrollbars.css";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";

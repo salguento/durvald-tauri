@@ -17,7 +17,7 @@ export default function ImageField() {
       </FileField.Dropzone>
       <FileField.HiddenInput />
       <FileField.ItemList class="absolute h-52 w-52 -z-1 ">
-        {(file) => (
+        {(_file) => (
           <FileField.Item class="rounded-lg overflow-hidden">
             <FileField.ItemPreviewImage class="h-52 w-52 object-cover" />
           </FileField.Item>

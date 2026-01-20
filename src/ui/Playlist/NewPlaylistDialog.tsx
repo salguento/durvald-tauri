@@ -2,19 +2,51 @@
 import { Dialog } from "@kobalte/core/dialog";
 import { JSX } from "solid-js";
 import { createSignal } from "solid-js";
+import { FileField } from "@kobalte/core/file-field";
+import { useNavigate } from "@solidjs/router";
+// Hooks
+import createPlaylist from "../../hooks/library/Playlists/createPlaylist";
 // Stores
 import { uiStore } from "../../stores/uiStore";
-import ImageField from "./ImageField";
 // Types
 interface Props {
   children: JSX.Element;
 }
 // Function
 export default function NewPlaylistDialog(props: Props) {
+  const navigate = useNavigate();
+
   const [openDialog, setOpenDialog] = uiStore.openDialog;
   const [title, setTitle] = createSignal("");
   const [description, setDescription] = createSignal("");
-  const [image, setImage] = createSignal(null);
+  const [image, setImage] = createSignal<string | null>();
+
+  const handleFileChange = async (files: File[]) => {
+    if (files && files.length > 0) {
+      const file = files[0];
+
+      // Read the file as base64 Data URL
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          // e.target.result will be a Data URL like "data:image/jpeg;base64,/9j/4AA..."
+          const dataUrl = e.target.result as string;
+
+          // Store the Data URL for preview AND for sending to backend
+          setImage(dataUrl);
+        }
+      };
+
+      reader.onerror = (e) => {
+        console.error("Error reading file:", e);
+        alert("Error reading image file");
+      };
+
+      // Read the file as Data URL
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e: Event) => {
     e.preventDefault();
@@ -24,7 +56,12 @@ export default function NewPlaylistDialog(props: Props) {
       description: description(),
       image: image(),
     });
-    // You would typically send this data to an API
+    createPlaylist({
+      name: title(),
+      cover: image() ?? null,
+      description: description(),
+    });
+    navigate("/playlists");
   };
 
   return (
@@ -48,8 +85,32 @@ export default function NewPlaylistDialog(props: Props) {
               </Dialog.CloseButton>
             </div>
             <Dialog.Description class="text-base text-zinc-300">
-              <form class="flex flex-col gap-4">
-                <ImageField />
+              <form
+                class="flex flex-col gap-4"
+                onSubmit={(e) => {
+                  handleSubmit(e);
+                }}
+              >
+                <FileField
+                  class="flex flex-col items-center justify-center  w-full"
+                  multiple={false}
+                  maxFiles={1}
+                  onFileChange={(data) => handleFileChange(data.acceptedFiles)}
+                >
+                  <FileField.Dropzone class="flex flex-col items-center justify-center border-2  border-zinc-200 rounded-lg h-52 w-52">
+                    <FileField.Trigger class="flex items-center justify-center text-white hover:text-zinc-950 rounded-sm cursor-pointer bg-zinc-900 hover:bg-zinc-200 h-10 w-10">
+                      <span class="icon-[solar--gallery-add-linear] h-6 w-6 "></span>
+                    </FileField.Trigger>
+                  </FileField.Dropzone>
+                  <FileField.HiddenInput />
+                  <FileField.ItemList class="absolute h-52 w-52 -z-1 ">
+                    {(_file) => (
+                      <FileField.Item class="rounded-lg overflow-hidden">
+                        <FileField.ItemPreviewImage class="h-52 w-52 object-cover" />
+                      </FileField.Item>
+                    )}
+                  </FileField.ItemList>
+                </FileField>
                 <div>
                   <input
                     placeholder="Playlist title"
