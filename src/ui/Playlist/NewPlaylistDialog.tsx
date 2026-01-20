@@ -15,7 +15,6 @@ interface Props {
 // Function
 export default function NewPlaylistDialog(props: Props) {
   const navigate = useNavigate();
-
   const [openDialog, setOpenDialog] = uiStore.openDialog;
   const [title, setTitle] = createSignal("");
   const [description, setDescription] = createSignal("");
@@ -24,44 +23,31 @@ export default function NewPlaylistDialog(props: Props) {
   const handleFileChange = async (files: File[]) => {
     if (files && files.length > 0) {
       const file = files[0];
-
-      // Read the file as base64 Data URL
       const reader = new FileReader();
-
       reader.onload = (e) => {
         if (e.target?.result) {
-          // e.target.result will be a Data URL like "data:image/jpeg;base64,/9j/4AA..."
           const dataUrl = e.target.result as string;
-
-          // Store the Data URL for preview AND for sending to backend
           setImage(dataUrl);
         }
       };
-
       reader.onerror = (e) => {
         console.error("Error reading file:", e);
         alert("Error reading image file");
       };
-
-      // Read the file as Data URL
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e: Event) => {
+  const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log({
-      title: title(),
-      description: description(),
-      image: image(),
-    });
-    createPlaylist({
+    const playlistId = await createPlaylist({
       name: title(),
       cover: image() ?? null,
       description: description(),
     });
-    navigate("/playlists");
+    console.log(playlistId);
+    navigate(`/playlist/${playlistId}`);
+    setOpenDialog(false);
   };
 
   return (

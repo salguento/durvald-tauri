@@ -19,6 +19,7 @@ export default async function createPlaylist(playlist: Args) {
       description: playlist.description,
     });
     setPlaylistStore((prev: PlaylistType[]) => [...prev, newPlaylist]);
+    return newPlaylist.id;
   } catch (error) {
     console.error("Failed to create playlist:", error);
   }
