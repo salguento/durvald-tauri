@@ -48,7 +48,7 @@ export default function QueueTrack({ item, historyId }: QueueTrackProps) {
   return (
     <div class="w-full relative">
       <QueueContextMenu track={song}>
-        <div class="flex justify-between gap-2 group  px-1.5 py-1.5 overflow-hidden rounded-xl">
+        <div class="flex justify-between gap-2 group w-full  px-1.5 py-1.5 overflow-hidden rounded-xl">
           <div class="min-w-10 min-h-10 relative flex items-center justify-center rounded-sm overflow-hidden ">
             <div class="absolute w-full h-full  bg-zinc-500/75 hidden   group-hover:flex ">
               <button

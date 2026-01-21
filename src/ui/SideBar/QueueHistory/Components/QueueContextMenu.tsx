@@ -15,7 +15,7 @@ export default function QueueContextMenu(props: Props) {
         {props.children}
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
-        <ContextMenu.Content class="relative min-w-3xs p-1 border bg-zinc-900/50 backdrop-blur-xl border-zinc-700/50  text-zinc-200 rounded-2xl z-1  outline-none cursor-default text-sm  overflow-hidden ">
+        <ContextMenu.Content class="relative min-w-3xs p-1 border bg-zinc-900/50 backdrop-blur-xl border-zinc-700/50  text-zinc-200 rounded-2xl z-10  outline-none cursor-default text-sm  overflow-hidden ">
           <div class=" flex flex-col w-full h-full overflow-hidden">
             <ContextMenu.Sub overlap gutter={-1} shift={8}>
               <ContextMenu.SubTrigger class="flex justify-between items-center cursor-default  hover:bg-zinc-600/50  px-2 py-2 rounded-xl  outline-0 ">
