@@ -61,7 +61,7 @@ export default function QueueTrack({ item, historyId }: QueueTrackProps) {
             </div>
             <img src={item.artwork} class="w-10 h-10"></img>
           </div>
-          <div class="flex flex-col grow text-left overflow-hidden">
+          <div class="flex flex-col grow text-left overflow-hidden justify-center">
             <span class="text-sm truncate">{item.title}</span>
             <span class="text-xs text-zinc-400 truncate">
               {item.artist_name + "-" + item.release_title}
