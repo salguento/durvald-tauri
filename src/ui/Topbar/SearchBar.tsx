@@ -9,7 +9,6 @@ export default function SearchBar() {
   const handleInput = (e: Event & { currentTarget: HTMLInputElement }) => {
     setSearchInput(e.currentTarget.value);
     navigate("/search");
-    console.log(searchInput());
   };
   return (
     <div class="relative w-64 hidden sm:block">

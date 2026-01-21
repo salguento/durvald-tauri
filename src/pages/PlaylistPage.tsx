@@ -1,8 +1,8 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
-import { createEffect, For, Show } from "solid-js";
+import { For, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
-import { createSignal } from "solid-js";
+import { createSignal, createEffect } from "solid-js";
 // Hooks
 import playBack from "../hooks/audio/play";
 import favoriteTrack from "../hooks/library/Tracks/favoriteTrack";
@@ -27,6 +27,7 @@ import TrackContextMenu from "../ui/Components/Release/TrackContextMenu/TrackCon
 import TrackDropdownMenu from "../ui/Components/Release/TrackContextMenu/TrackDropdownMenu";
 import PlaylistContextMenu from "../ui/Components/Playlist/PlaylistContextMenu";
 import PlaylistDropdownMenu from "../ui/Components/Playlist/PlaylistDropdownMenu";
+import SearchSongPlaylist from "../ui/Components/Playlist/SearchSongPlaylist";
 // Function
 export default function PlaylistPage() {
   const [initializeLibraryStore] = libraryStore.initializeLibraryStore;
@@ -38,18 +39,19 @@ export default function PlaylistPage() {
   const [songs, setSongs] = createSignal<PlaylistSongsItemsType[]>([]);
   const [, setIsOpen] = createSignal<boolean>(false);
   const [isLoaded, setIsLoaded] = createSignal<boolean>(false);
-
+  const [currentLength, setCurrentLength] = createSignal<number>(0);
+  const params = useParams();
+  const playlistId = Number(params.id);
   createEffect(() => {
     try {
       if (initializeLibraryStore()) {
-        const params = useParams();
-        const playlistId = Number(params.id);
         setPlaylist(
           playlistStore().filter((playlist) => playlist.id === playlistId)[0],
         );
         setPlaylistSongs(
           playlistSongStore().filter((item) => item.playlist_id === playlistId),
         );
+        setSongs([]);
         setSongs((prev) => [
           ...prev,
           ...((playlistSongs() || [])?.map((item) => {
@@ -59,6 +61,7 @@ export default function PlaylistPage() {
             return { playlist: item, track: track } as PlaylistSongsItemsType;
           }) || []),
         ]);
+        setCurrentLength(songs().length);
       }
     } catch (err) {
       console.error("Error:", err);
@@ -67,7 +70,9 @@ export default function PlaylistPage() {
     }
   });
 
-  console.log(playlist()?.created_at!);
+  createEffect(() => {
+    setCurrentLength(songs().length);
+  });
 
   return (
     <Show when={isLoaded()}>
@@ -163,11 +168,16 @@ export default function PlaylistPage() {
                     </span>
                     <div class="flex flex-rol gap-2 justify-center sm:justify-start">
                       <span class="text-sm sm:text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
-                        {dateToDMY(playlist()?.created_at!)}
+                        {playlist()?.created_at
+                          ? dateToDMY(playlist()?.created_at!)
+                          : ""}
                       </span>
                       <Show when={playlistSongs()?.length}>
                         <span class="text-sm sm:text-md text-zinc-400 font-medium">
                           •
+                        </span>
+                        <span class="text-sm sm:text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
+                          {currentLength() + " tracks"}
                         </span>
                         <span class="text-sm sm:text-md text-zinc-400 font-medium hover:underline hover:cursor-pointer">
                           {/*{secToMin(release()!.duration)}*/}
@@ -208,7 +218,7 @@ export default function PlaylistPage() {
                       </div>
                       <div class="flex justify-center items-center h-12 min-w-10 ">
                         <div class="text-sm font-medium text-zinc-300 group-hover:hidden h-4 w-4 text-center">
-                          {song.track.track_number}
+                          {song.playlist.position}
                         </div>
                         <button
                           class="group-hover:block hidden h-4 w-4 hover:cursor-pointer"
@@ -246,6 +256,7 @@ export default function PlaylistPage() {
               </div>
             </div>
           </div>
+          <SearchSongPlaylist playlistId={playlistId} length={currentLength} />
         </OverlayScrollbarsComponent>
       </div>
     </Show>

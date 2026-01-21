@@ -218,8 +218,8 @@ pub fn create_tables() -> Result<(), String> {
             song_id INTEGER NOT NULL,
             position INTEGER NOT NULL,
             added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (playlist_id, song_id),
-            FOREIGN KEY (playlist_id) REFERENCES playlist(playlist_id) ON DELETE CASCADE,
+            PRIMARY KEY (playlist_id, song_id, position),
+            FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
             FOREIGN KEY (song_id) REFERENCES songs(song_id) ON DELETE CASCADE
         )",
         (),
@@ -1134,4 +1134,37 @@ pub fn get_all_playlist_songs() -> Result<Vec<PlaylistSong>, String> {
         results.push(item.map_err(|e| format!("Failed to get row from playlist_songs: {}", e))?);
     }
     Ok(results)
+}
+
+#[tauri::command]
+pub fn add_track_to_playlist_songs(
+    playlist_id: u64,
+    song_id: u64,
+    position: u64,
+) -> Result<PlaylistSong, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let added_at = Utc::now().to_rfc3339();
+
+    let mut stmt = db.prepare(
+        "INSERT INTO playlist_songs (playlist_id, song_id, position, added_at) VALUES (?1, ?2, ?3, ?4) RETURNING playlist_id, song_id, position, added_at"
+    )
+    .map_err(|e| format!("Failed to insert song to playlist_songs: {}", e))?;
+
+    let playlist_song: PlaylistSong = stmt
+        .query_row(
+            params![&playlist_id, &song_id, &position, &added_at],
+            |row| {
+                Ok(PlaylistSong {
+                    playlist_id: row.get(0)?,
+                    song_id: row.get(1)?,
+                    position: row.get(2)?,
+                    added_at: row.get(3)?,
+                })
+            },
+        )
+        .map_err(|e| format!("Failed to insert playlist: {}", e))?;
+
+    Ok(playlist_song)
 }
