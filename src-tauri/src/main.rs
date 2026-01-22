@@ -19,7 +19,8 @@ use commands::database_commands::{
     create_tables, favorite_release, favorite_track, get_all_artists, get_all_playlist_songs,
     get_all_playlists, get_all_releases, get_all_tracks, get_paths_from_library_paths,
     get_play_history, get_release_by_id, get_releases, get_song_by_id, get_songs_by_release_id,
-    hide_track, remove_song_from_history, suggest_less_track, update_database,
+    hide_track, remove_song_from_history, remove_track_from_playlist, suggest_less_track,
+    update_database,
 };
 use commands::get_audio_metadata;
 
@@ -593,7 +594,8 @@ fn main() {
                 create_playlist,
                 get_all_playlists,
                 get_all_playlist_songs,
-                add_track_to_playlist_songs
+                add_track_to_playlist_songs,
+                remove_track_from_playlist
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");

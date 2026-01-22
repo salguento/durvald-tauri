@@ -23,10 +23,10 @@ interface PlaylistSongsItemsType {
   track: TrackType;
 }
 // UI
-import TrackContextMenu from "../ui/Components/Release/TrackContextMenu/TrackContextMenu";
-import TrackDropdownMenu from "../ui/Components/Release/TrackContextMenu/TrackDropdownMenu";
 import PlaylistContextMenu from "../ui/Components/Playlist/PlaylistContextMenu";
 import PlaylistDropdownMenu from "../ui/Components/Playlist/PlaylistDropdownMenu";
+import PlaylistTrackContextMenu from "../ui/Components/Playlist/PlaylistTrackContextMenu";
+import PlaylistTrackDropdownMenu from "../ui/Components/Playlist/PlaylistTrackDropdownMenu";
 import SearchSongPlaylist from "../ui/Components/Playlist/SearchSongPlaylist";
 // Function
 export default function PlaylistPage() {
@@ -191,11 +191,11 @@ export default function PlaylistPage() {
           </PlaylistContextMenu>
           <div>
             <div class="overflow-hidden relative">
-              <div class="relative overflow-hidden">
+              <div class="relative overflow-hidden flex flex-col">
                 <For each={songs()}>
                   {(song: PlaylistSongsItemsType) => (
-                    <TrackContextMenu track={song.track}>
-                      <div class="flex justify-center items-center content-center h-12  min-w-8 pl-2">
+                    <PlaylistTrackContextMenu track={song}>
+                      <div class="flex justify-center items-center content-center  min-w-8 pl-2">
                         <button
                           class="text-zinc-300 hover:text-white hover:cursor-pointer w-4 h-4"
                           title={`${
@@ -217,18 +217,17 @@ export default function PlaylistPage() {
                         </button>
                       </div>
                       <div class="flex justify-center items-center h-12 min-w-10 ">
-                        <div class="text-sm font-medium text-zinc-300 group-hover:hidden h-4 w-4 text-center">
-                          {song.playlist.position}
+                        <div class="h-10 w-10 rounded-sm overflow-hidden relative flex items-center justify-center">
+                          <img src={song.track.artwork} />
+                          <button
+                            class="absolute flex items-center justify-center bg-zinc-700/25 w-full h-full invisible group-hover:visible cursor-pointer"
+                            title="Play"
+                          >
+                            <span class="icon-[solar--play-bold] w-5 h-5 text-zinc-50 absolute" />
+                          </button>
                         </div>
-                        <button
-                          class="group-hover:block hidden h-4 w-4 hover:cursor-pointer"
-                          title="Play"
-                          onClick={() => playBack(song.track)}
-                        >
-                          <span class="icon-[solar--play-bold] text-white h-4 w-4 text-center"></span>
-                        </button>
                       </div>
-                      <div class="flex-row items-center content-center min-w-0 w-full px-2">
+                      <div class="flex-row items-center content-center min-w-0 w-full">
                         <div class="text-sm font-medium text-zinc-300 truncate  max-w-full">
                           {song.track.title}
                         </div>
@@ -245,12 +244,12 @@ export default function PlaylistPage() {
                           title="Options"
                           onClick={() => setIsOpen(true)}
                         >
-                          <TrackDropdownMenu track={song.track}>
+                          <PlaylistTrackDropdownMenu track={song}>
                             <span class="icon-[solar--menu-dots-bold] h-4 w-4"></span>
-                          </TrackDropdownMenu>
+                          </PlaylistTrackDropdownMenu>
                         </button>
                       </div>
-                    </TrackContextMenu>
+                    </PlaylistTrackContextMenu>
                   )}
                 </For>
               </div>

@@ -11,7 +11,6 @@ export default async function addTrackToPlaylist(
 ) {
   const [, setPlaylistSongStore] = libraryStore.playlistSongStore;
 
-  console.log(playlistId, trackId, currentLength);
   const newTrack: PlaylistSongsType = await invoke(
     "add_track_to_playlist_songs",
     {
@@ -20,8 +19,6 @@ export default async function addTrackToPlaylist(
       position: currentLength++,
     },
   );
-
-  console.log(currentLength);
 
   setPlaylistSongStore((prev) => [...prev, newTrack]);
 }

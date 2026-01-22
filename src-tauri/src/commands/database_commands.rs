@@ -1168,3 +1168,21 @@ pub fn add_track_to_playlist_songs(
 
     Ok(playlist_song)
 }
+
+#[tauri::command]
+pub fn remove_track_from_playlist(
+    playlist_id: u64,
+    song_id: u64,
+    position: u64,
+) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    db.execute(
+        "DELETE FROM playlist_songs WHERE playlist_id = ?1 AND song_id = ?2 AND position = ?3",
+        params![playlist_id, song_id, position],
+    )
+    .map_err(|e| format!("Failed to remove song from playlist_songs: {}", e))?;
+
+    Ok(())
+}
