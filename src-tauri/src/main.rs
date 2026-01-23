@@ -1,6 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use tauri::{Listener, Manager, WebviewUrl, WebviewWindowBuilder};
+
 mod commands;
 
 use serde::Serialize;
@@ -540,8 +542,42 @@ fn main() {
 
         tauri::Builder::default()
             .manage(app_state)
-            .setup(|_app| {
+            .setup(|app| {
+                // Get references to windows that already exist from config
+                let loading_window = WebviewWindowBuilder::new(
+                    app,
+                    "loading",
+                    WebviewUrl::App("loading.html".into()),
+                )
+                .title("Loading...")
+                .inner_size(1080.0, 800.0)
+                .resizable(false)
+                .decorations(false)
+                .center()
+                .visible(true)
+                .theme(Some(tauri::Theme::Dark))
+                .build()?;
+
+                let main_window = app
+                    .get_webview_window("main")
+                    .expect("Main window should exist");
+
+                // Make sure loading is visible and main is hidden
+                let _ = loading_window.show();
+                let _ = main_window.hide();
+
+                // Listen for when main window is ready
+                let loading_window_clone = loading_window.clone();
+                let main_window_clone = main_window.clone();
+                main_window.once("main-window-ready", move |_event| {
+                    println!("Main window ready, closing loading screen");
+                    let _ = loading_window_clone.close();
+                    let _ = main_window_clone.show();
+                    let _ = main_window_clone.set_focus();
+                });
+
                 create_tables().expect("failed to create tables");
+
                 Ok(())
             })
             .plugin(tauri_plugin_dialog::init())

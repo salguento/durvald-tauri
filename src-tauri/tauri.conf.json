@@ -15,7 +15,10 @@
         "title": "durvald",
         "width": 1080,
         "height": 800,
-        "decorations": false
+        "decorations": false,
+        "visible": false,
+        "center": true,
+        "theme": "Dark"
       }
     ],
     "security": {
