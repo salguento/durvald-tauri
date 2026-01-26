@@ -11,9 +11,10 @@ import {
   HistoryType,
   PlaylistType,
   PlaylistSongsType,
+  SettingsType,
 } from "../../types/DatabaseType";
 // Function
-export default function mirrorDB() {
+export default async function mirrorDB() {
   createRoot((dispose) => {
     const [, setTrackStore] = libraryStore.trackStore;
     const [, setReleaseStore] = libraryStore.releaseStore;
@@ -21,9 +22,11 @@ export default function mirrorDB() {
     const [, setHistoryStore] = libraryStore.historyStore;
     const [, setPlaylistStore] = libraryStore.playlistStore;
     const [, setPlaylistSongStore] = libraryStore.playlistSongStore;
+    const [, setShowOnboarding] = libraryStore.showOnboarding;
 
     createEffect(async () => {
       try {
+        const settings = (await invoke("get_settings")) as SettingsType;
         const tracks = (await invoke("get_all_tracks")) as TrackType[];
         const releases = (await invoke("get_all_releases")) as ReleaseType[];
         const artists = (await invoke("get_all_artists")) as ArtistType[];
@@ -33,6 +36,7 @@ export default function mirrorDB() {
           "get_all_playlist_songs",
         )) as PlaylistSongsType[];
 
+        setShowOnboarding(settings.onboarding);
         setTrackStore(tracks);
         setReleaseStore(releases);
         setArtistStore(artists);

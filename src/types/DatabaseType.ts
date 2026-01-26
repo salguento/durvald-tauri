@@ -70,3 +70,18 @@ export interface PlaylistSongsType {
   position: number;
   added_at: string;
 }
+
+export interface SettingsType {
+  settings_id: number;
+  cross_fade: boolean;
+  cross_fade_duration: number;
+  normalize_volume: boolean;
+  explicit_content: boolean;
+  autoplay: boolean;
+  preferred_audio_quality: number;
+  preferrend_audio_source: String;
+  download_path: String;
+  open_on_startup: boolean;
+  minimize_on_close: boolean;
+  onboarding: boolean;
+}

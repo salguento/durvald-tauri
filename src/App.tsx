@@ -1,7 +1,8 @@
 // Dependencies
 import "./App.css";
 import { Router, Route } from "@solidjs/router";
-import { onMount } from "solid-js";
+import { onMount, createSignal, Show } from "solid-js";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import "overlayscrollbars/overlayscrollbars.css";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -25,14 +26,19 @@ import { ErrorBoundary } from "solid-js";
 
 function App() {
   initializePlayerStore();
+  const [isInitialized, setIsInitialized] = createSignal(false);
   onMount(async () => {
     const [queueList, setQueueList] = playerStore.queueList;
     const [, setShowSidebar] = uiStore.showSideBar;
     const [, setReleaseStore] = libraryStore.releaseStore;
     const [, setInitializeLibraryStore] = libraryStore.initializeLibraryStore;
     const [trackStore] = libraryStore.trackStore;
-    mirrorDB();
+    await mirrorDB();
     setInitializeLibraryStore(true);
+    window.addEventListener("DOMContentLoaded", async () => {
+      const mainWindow = getCurrentWebviewWindow();
+      await mainWindow.emit("main-window-ready");
+    });
     await invoke("start_auto_play");
     await listen("song-changed", async () => {
       const trackId: number = await invoke("get_current_song_id");
@@ -72,6 +78,7 @@ function App() {
       if (queueList().length == 0) {
         setShowSidebar(false);
       }
+      setIsInitialized(true);
     }
   });
   return (
@@ -81,11 +88,13 @@ function App() {
         return <div>Something went wrong: {err.toString()}</div>;
       }}
     >
-      <Router>
-        <Route path="/" component={Layout}>
-          <Routes />
-        </Route>
-      </Router>
+      <Show when={isInitialized()} fallback={<div>Loading...</div>}>
+        <Router>
+          <Route path="/" component={Layout}>
+            <Routes />
+          </Route>
+        </Router>
+      </Show>
     </ErrorBoundary>
   );
 }

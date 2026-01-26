@@ -3,6 +3,7 @@ import { Tabs } from "@kobalte/core";
 import { createSignal, For } from "solid-js";
 // Store
 import { libraryStore } from "../../stores/libraryStore";
+import finishOnboarding from "../../hooks/library/Settings/finishOnboarding";
 // Types
 interface OnboardingType {
   file_paths: string[];
@@ -59,6 +60,7 @@ export default function Onboarding() {
 
   const finishOnboard = () => {
     setShowOnboarding(false);
+    finishOnboarding();
   };
 
   const steps = [
@@ -77,7 +79,7 @@ export default function Onboarding() {
     >
       <div class="w-2xl h-full bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-700/50 flex flex-col p-4 items-center gap-2">
         <div class="pt-12 pb-8">
-          <img src="./public/assets/images/logotype.svg" class="h-8" />
+          <img src="./assets/images/logotype.svg" class="h-8" />
         </div>
         <div class="flex flex-col mb-4 gap-4 h-full w-full max-w-md">
           <Tabs.Root

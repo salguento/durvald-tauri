@@ -2,13 +2,30 @@ use crate::{commands::get_audio_metadata, scan_folder, FileInfo};
 use chrono::Utc;
 use rusqlite::OptionalExtension;
 use rusqlite::{params, Connection, Result};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use super::metadata_commands::AudioMetadata;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct LibraryPath {
     path: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct Settings {
+    settings_id: i8,
+    cross_fade: bool,
+    cross_fade_duration: i32,
+    normalize_volume: bool,
+    explicit_content: bool,
+    autoplay: bool,
+    preferred_audio_quality: i32,
+    preferrend_audio_source: String,
+    download_path: String,
+    open_on_startup: bool,
+    minimize_on_close: bool,
+    onboarding: bool,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -123,11 +140,12 @@ pub fn create_tables() -> Result<(), String> {
             normalize_volume BOOL DEFAULT TRUE,
             explicit_content BOOL DEFAULT TRUE,
             autoplay BOOL DEFAULT TRUE,
-            preferred_audio_quality INTEGER,
-            preferrend_audio_source INTEGER,
-            download_path TEXT,
+            preferred_audio_quality INTEGER DEFAULT 320,
+            preferrend_audio_source TEXT DEFAULT '',
+            download_path TEXT DEFAULT '',
             open_on_startup BOOL DEFAULT FALSE,
-            minimize_on_close BOOL DEFAULT FALSE
+            minimize_on_close BOOL DEFAULT FALSE,
+            onboarding BOOL DEFAULT TRUE
         )",
         (),
     )
@@ -1109,6 +1127,22 @@ pub fn get_all_playlists() -> Result<Vec<Playlist>, String> {
     Ok(results)
 }
 
+pub fn initiate_settings() -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let count: i64 = db
+        .query_row("SELECT COUNT(*) FROM settings", [], |row| row.get(0))
+        .map_err(|e| format!("Failed to check settings table: {}", e))?;
+
+    if count == 0 {
+        db.execute("INSERT INTO settings DEFAULT VALUES", [])
+            .map_err(|e| format!("Failed to create settings row: {}", e))?;
+    }
+
+    Ok(())
+}
+
 #[tauri::command]
 pub fn get_all_playlist_songs() -> Result<Vec<PlaylistSong>, String> {
     let db =
@@ -1185,4 +1219,59 @@ pub fn remove_track_from_playlist(
     .map_err(|e| format!("Failed to remove song from playlist_songs: {}", e))?;
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_settings() -> Result<Settings, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let mut stmt = db
+        .prepare("SELECT * FROM settings")
+        .map_err(|e| format!("Failed to prepare query: {}", e))?;
+
+    let mut rows = stmt
+        .query_map([], |row| {
+            Ok(Settings {
+                settings_id: row.get(0)?,
+                cross_fade: row.get(1)?,
+                cross_fade_duration: row.get(2)?,
+                normalize_volume: row.get(3)?,
+                explicit_content: row.get(4)?,
+                autoplay: row.get(5)?,
+                preferred_audio_quality: row.get(6)?,
+                preferrend_audio_source: row.get(7)?,
+                download_path: row.get(8)?,
+                open_on_startup: row.get(9)?,
+                minimize_on_close: row.get(10)?,
+                onboarding: row.get(11)?,
+            })
+        })
+        .map_err(|e| format!("Failed to query data: {}", e))?;
+
+    // Get the first (and likely only) settings row
+    match rows.next() {
+        Some(Ok(settings)) => Ok(settings),
+        Some(Err(e)) => Err(format!("Failed to parse settings: {}", e)),
+        None => Err("No settings found in database".to_string()),
+    }
+}
+
+#[tauri::command]
+pub async fn update_onboarding_settings(value: bool) -> Result<(), String> {
+    let result = std::thread::spawn(move || {
+        let db =
+            Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+        let sql = format!("UPDATE settings SET onboarding = ?1 WHERE settings_id = 1",);
+
+        db.execute(&sql, params![value])
+            .map_err(|e| format!("Failed to update setting: {}", e))?;
+
+        Ok::<(), String>(())
+    })
+    .join()
+    .map_err(|e| format!("Thread panicked: {:?}", e))?;
+
+    result
 }

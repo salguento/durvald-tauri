@@ -18,5 +18,5 @@ export const libraryStore = {
   historyStore: createSignal<HistoryType[]>([]),
   playlistStore: createSignal<PlaylistType[]>([]),
   playlistSongStore: createSignal<PlaylistSongsType[]>([]),
-  showOnboarding: createSignal<boolean>(true),
+  showOnboarding: createSignal<boolean>(),
 };

@@ -20,9 +20,9 @@ use commands::database_commands::{
     add_path_to_library_paths, add_song_to_history, add_track_to_playlist_songs, create_playlist,
     create_tables, favorite_release, favorite_track, get_all_artists, get_all_playlist_songs,
     get_all_playlists, get_all_releases, get_all_tracks, get_paths_from_library_paths,
-    get_play_history, get_release_by_id, get_releases, get_song_by_id, get_songs_by_release_id,
-    hide_track, remove_song_from_history, remove_track_from_playlist, suggest_less_track,
-    update_database,
+    get_play_history, get_release_by_id, get_releases, get_settings, get_song_by_id,
+    get_songs_by_release_id, hide_track, initiate_settings, remove_song_from_history,
+    remove_track_from_playlist, suggest_less_track, update_database, update_onboarding_settings,
 };
 use commands::get_audio_metadata;
 
@@ -570,14 +570,13 @@ fn main() {
                 let loading_window_clone = loading_window.clone();
                 let main_window_clone = main_window.clone();
                 main_window.once("main-window-ready", move |_event| {
-                    println!("Main window ready, closing loading screen");
                     let _ = loading_window_clone.close();
                     let _ = main_window_clone.show();
                     let _ = main_window_clone.set_focus();
                 });
 
                 create_tables().expect("failed to create tables");
-
+                initiate_settings().expect("failed to initiate settings");
                 Ok(())
             })
             .plugin(tauri_plugin_dialog::init())
@@ -585,7 +584,6 @@ fn main() {
                 select_folder,
                 scan_folder,
                 get_audio_metadata,
-                create_tables,
                 add_path_to_library_paths,
                 get_paths_from_library_paths,
                 update_database,
@@ -631,7 +629,9 @@ fn main() {
                 get_all_playlists,
                 get_all_playlist_songs,
                 add_track_to_playlist_songs,
-                remove_track_from_playlist
+                remove_track_from_playlist,
+                update_onboarding_settings,
+                get_settings
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
