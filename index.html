@@ -11,11 +11,11 @@
         <noscript>You need to enable JavaScript to run this app.</noscript>
         <div id="root"></div>
         <script type="module">
-            // import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-            // window.addEventListener("DOMContentLoaded", async () => {
-            //     const mainWindow = getCurrentWebviewWindow();
-            //     await mainWindow.emit("main-window-ready");
-            // });
+            import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+            window.addEventListener("DOMContentLoaded", async () => {
+                const mainWindow = getCurrentWebviewWindow();
+                await mainWindow.emit("main-window-ready");
+            });
         </script>
         <script src="/src/index.tsx" type="module"></script>
     </body>

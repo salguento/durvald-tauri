@@ -2,7 +2,6 @@
 import "./App.css";
 import { Router, Route } from "@solidjs/router";
 import { onMount, createSignal, Show } from "solid-js";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import "overlayscrollbars/overlayscrollbars.css";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -35,10 +34,6 @@ function App() {
     const [trackStore] = libraryStore.trackStore;
     await mirrorDB();
     setInitializeLibraryStore(true);
-    window.addEventListener("DOMContentLoaded", async () => {
-      const mainWindow = getCurrentWebviewWindow();
-      await mainWindow.emit("main-window-ready");
-    });
     await invoke("start_auto_play");
     await listen("song-changed", async () => {
       const trackId: number = await invoke("get_current_song_id");
