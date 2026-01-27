@@ -72,14 +72,42 @@ pub async fn initialize_lastfm<R: Runtime>(
     api_secret: String,
 ) -> Result<(), String> {
     let guard = SECURE_STORE.lock().unwrap();
-    let store_option = guard.as_ref();
-    let store = store_option.ok_or("Store not initialized")?;
+    let store = guard.as_ref().ok_or("Store not initialized")?;
 
+    // Save API key to filesystem
     store.set("api_key".into(), api_key.into());
     store.save_data().map_err(|e| e.to_string())?;
-    store.set_secret("api_secret", &api_secret)?;
 
-    Ok(())
+    // ✅ CRITICAL: Propagate EXACT keychain error to frontend
+    match store.set_secret("api_secret", &api_secret) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(format!(
+            "Windows Credential Vault error: {}. Did you approve the security prompt?",
+            e
+        )),
+    }
+}
+
+#[tauri::command]
+pub async fn verify_credentials<R: Runtime>(_app: AppHandle<R>) -> Result<String, String> {
+    let guard = SECURE_STORE.lock().unwrap();
+    let store = guard.as_ref().ok_or("Store not initialized")?;
+
+    // Check API key
+    let api_key = store
+        .get("api_key")
+        .and_then(|v| v.as_str().map(String::from))
+        .ok_or("API key not found in filesystem")?;
+
+    // ✅ CRITICAL: Show EXACT keychain error
+    match store.get_secret("api_secret") {
+        Ok(secret) => Ok(format!(
+            "✅ Verified! Key: {}... Secret length: {} chars",
+            &api_key[..8.min(api_key.len())],
+            secret.len()
+        )),
+        Err(e) => Err(format!("Windows Credential Vault error: {}", e)),
+    }
 }
 
 #[tauri::command]
@@ -349,4 +377,30 @@ pub async fn disconnect_lastfm<R: Runtime>(_app: AppHandle<R>) -> Result<(), Str
     let _ = store.delete_secret("session_key");
     store.delete("username");
     store.save_data().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn debug_store<R: Runtime>(_app: AppHandle<R>) -> Result<String, String> {
+    let guard = SECURE_STORE.lock().unwrap();
+
+    if guard.is_none() {
+        return Err("Store not initialized".to_string());
+    }
+
+    let store = guard.as_ref().unwrap();
+
+    // Only access public methods - NO private field access
+    match store.get("api_key") {
+        Some(val) => {
+            if let Some(key) = val.as_str() {
+                Ok(format!(
+                    "Store OK. Key prefix: {}",
+                    &key[..8.min(key.len())]
+                ))
+            } else {
+                Ok("API key exists but not string type".to_string())
+            }
+        }
+        None => Ok("API key not found".to_string()),
+    }
 }

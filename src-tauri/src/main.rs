@@ -29,8 +29,8 @@ use commands::database_commands::{
 use commands::get_audio_metadata;
 
 use commands::lastfm_commands::{
-    disconnect_lastfm, get_auth_token, initialize_lastfm, is_connected, poll_session,
-    scrobble_track, update_now_playing,
+    debug_store, disconnect_lastfm, get_auth_token, initialize_lastfm, is_connected, poll_session,
+    scrobble_track, update_now_playing, verify_credentials,
 };
 
 mod audio;
@@ -651,7 +651,9 @@ fn main() {
                 update_now_playing,
                 scrobble_track,
                 is_connected,
-                disconnect_lastfm
+                disconnect_lastfm,
+                verify_credentials,
+                debug_store,
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
