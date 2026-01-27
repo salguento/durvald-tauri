@@ -5,6 +5,8 @@ use tauri::{Listener, Manager, WebviewUrl, WebviewWindowBuilder};
 
 mod commands;
 
+pub mod secure_store;
+
 use serde::Serialize;
 use std::fs;
 use std::path::PathBuf;
@@ -25,6 +27,11 @@ use commands::database_commands::{
     remove_track_from_playlist, suggest_less_track, update_database, update_onboarding_settings,
 };
 use commands::get_audio_metadata;
+
+use commands::lastfm_commands::{
+    disconnect_lastfm, get_auth_token, initialize_lastfm, is_connected, poll_session,
+    scrobble_track, update_now_playing,
+};
 
 mod audio;
 use audio::AudioPlayer;
@@ -577,9 +584,15 @@ fn main() {
 
                 create_tables().expect("failed to create tables");
                 initiate_settings().expect("failed to initiate settings");
+
+                let app_handle = app.handle();
+                secure_store::init_secure_store(&app_handle);
+                commands::lastfm_commands::init_rate_limiter();
+
                 Ok(())
             })
             .plugin(tauri_plugin_dialog::init())
+            .plugin(tauri_plugin_shell::init())
             .invoke_handler(tauri::generate_handler![
                 select_folder,
                 scan_folder,
@@ -631,7 +644,14 @@ fn main() {
                 add_track_to_playlist_songs,
                 remove_track_from_playlist,
                 update_onboarding_settings,
-                get_settings
+                get_settings,
+                initialize_lastfm,
+                get_auth_token,
+                poll_session,
+                update_now_playing,
+                scrobble_track,
+                is_connected,
+                disconnect_lastfm
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
