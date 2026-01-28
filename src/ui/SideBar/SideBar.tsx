@@ -5,7 +5,7 @@ import { Show } from "solid-js";
 // Store
 import { uiStore } from "../../stores/uiStore";
 // Components
-import Queue from "./QueueHistory/QueueHistory";
+import QueueHistory from "./QueueHistory/QueueHistory";
 import Lyrics from "./Lyrics";
 import Playing from "./Playing/Playing";
 // Function
@@ -32,7 +32,7 @@ export default function SideBar() {
               <Lyrics></Lyrics>
             </Tabs.Content>
             <Tabs.Content class="h-full relative" value="queue">
-              <Queue />
+              <QueueHistory />
             </Tabs.Content>
           </Tabs>
         </div>

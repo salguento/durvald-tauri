@@ -1,4 +1,4 @@
-use keyring::{Entry, Error as KeyringError};
+use keyring::Entry;
 use once_cell::sync::Lazy;
 use serde_json::Value;
 use std::{collections::HashMap, fs, path::PathBuf, sync::Mutex};

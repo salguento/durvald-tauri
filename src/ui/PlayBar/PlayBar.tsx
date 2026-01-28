@@ -10,6 +10,8 @@ import { useVolume } from "../../hooks/audio/useVolume";
 import playNext from "../../hooks/audio/next";
 import playPrevious from "../../hooks/audio/previous";
 import favoriteTrack from "../../hooks/library/Tracks/favoriteTrack";
+// Service
+import { lastfm } from "../../services/lastfm";
 // Utils
 import { secToMin } from "../../utils/secToMin";
 // Store
@@ -28,6 +30,14 @@ export default function PlayBar() {
   );
   const [, setLastProgressUpdate] = createSignal(0);
   const [previousVolume, setPreviousVolume] = createSignal<number>(0);
+
+  // lastfm
+  const [lastScrobbledTrackId, setLastScrobbledTrackId] = createSignal<
+    string | null
+  >(null);
+  const [, setPlayStartTime] = createSignal<number | null>(null);
+  const [hasScrobbled, setHasScrobbled] = createSignal(false);
+
   // Imported Hooks
   const { volume, handleVolumeChange, setVolumeImmediate } = useVolume({
     initialVolume: 50,
@@ -43,6 +53,10 @@ export default function PlayBar() {
   onMount(async () => {
     setPlayBackState(await invoke("get_playback_state"));
 
+    if (currentTrack() && !playBackState()?.is_empty) {
+      handleTrackStart(currentTrack()!);
+    }
+
     // In your progress listener
     await listen<ProgressPayload>("progress-update", (event) => {
       setLastProgressUpdate(Date.now());
@@ -50,6 +64,14 @@ export default function PlayBar() {
       // Only update if not currently dragging
       if (!isDragging()) {
         setPlaybackProgress(event.payload);
+
+        if (currentTrack() && event.payload.duration) {
+          checkScrobbleCriteria(
+            currentTrack()!,
+            event.payload.position,
+            event.payload.duration,
+          );
+        }
       }
     });
   });
@@ -63,6 +85,63 @@ export default function PlayBar() {
         is_favorite: !track.is_favorite,
       };
     });
+  };
+
+  const handleTrackStart = (track: any) => {
+    if (!track) return;
+
+    // Reset scrobble state for new track
+    setLastScrobbledTrackId(null);
+    setHasScrobbled(false);
+    setPlayStartTime(Date.now());
+
+    // Send "now playing" to Last.fm
+    if (lastfm.status === "connected") {
+      lastfm.updateNowPlaying(track.artist_name, track.title, track.album_name);
+      console.log(
+        "[Last.fm] Now playing:",
+        track.artist_name,
+        "-",
+        track.title,
+      );
+    }
+  };
+
+  const checkScrobbleCriteria = (
+    track: any,
+    position: number,
+    duration: number,
+  ) => {
+    if (!track || hasScrobbled() || lastScrobbledTrackId() === track.song_id)
+      return;
+
+    const playedSeconds = position;
+    const minPlayTime = Math.min(duration * 0.5, 240); // 50% of track OR 4 minutes
+
+    if (playedSeconds >= minPlayTime) {
+      // Scrobble criteria met!
+      if (lastfm.status === "connected") {
+        lastfm.scrobble(track.artist_name, track.title, track.album_name);
+        console.log(
+          "[Last.fm] Scrobbled:",
+          track.artist_name,
+          "-",
+          track.title,
+        );
+      }
+
+      setHasScrobbled(true);
+      setLastScrobbledTrackId(track.song_id);
+    }
+  };
+
+  const handleTrackChange = (newTrack: any) => {
+    if (!newTrack) return;
+
+    // If switching to a different track, reset everything
+    if (currentTrack()?.song_id !== newTrack.song_id) {
+      handleTrackStart(newTrack);
+    }
   };
   return (
     <div class=" h-20 rounded-3xl border border-zinc-700/50 relative overflow-hidden hidden sm:block">
@@ -136,7 +215,13 @@ export default function PlayBar() {
                   <button
                     class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                     title="Backwards"
-                    onClick={async () => playPrevious()}
+                    onClick={async () => {
+                      await playPrevious();
+                      // ✅ LAST.FM: Handle track change
+                      setTimeout(() => {
+                        if (currentTrack()) handleTrackChange(currentTrack()!);
+                      }, 100);
+                    }}
                   >
                     <span class="icon-[solar--rewind-back-bold] h-6 w-6"></span>
                   </button>
@@ -146,6 +231,8 @@ export default function PlayBar() {
                       title="Play"
                       onclick={async () => {
                         await playBack(currentTrack()!);
+                        // ✅ LAST.FM: Track when playback starts
+                        handleTrackStart(currentTrack()!);
                       }}
                       disabled={!currentTrack()}
                     >
@@ -161,7 +248,13 @@ export default function PlayBar() {
                     <button
                       class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                       title="Resume"
-                      onclick={async () => resumePlayback()}
+                      onclick={async () => {
+                        await resumePlayback();
+                        // ✅ LAST.FM: Track when resuming from pause
+                        if (currentTrack()) {
+                          setPlayStartTime(Date.now());
+                        }
+                      }}
                     >
                       <span class="icon-[solar--play-bold] h-6 w-6 "></span>
                     </button>
@@ -183,7 +276,13 @@ export default function PlayBar() {
                   <button
                     class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                     title="Forward"
-                    onClick={async () => playNext()}
+                    onClick={async () => {
+                      await playNext();
+                      // ✅ LAST.FM: Handle track change
+                      setTimeout(() => {
+                        if (currentTrack()) handleTrackChange(currentTrack()!);
+                      }, 100);
+                    }}
                   >
                     <span class="icon-[solar--rewind-forward-bold] h-6 w-6 "></span>
                   </button>
@@ -271,6 +370,19 @@ export default function PlayBar() {
             </div>
             <div class="col-span-4 xl:col-span-3 flex  justify-center">
               <div class="flex flex-row items-center justify-center gap-3">
+                <Show when={lastfm.status === "connected"}>
+                  <div
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20"
+                    title={`Last.fm connected${lastfm.username ? `: ${lastfm.username}` : ""}`}
+                  >
+                    <span class="icon-[simple-icons--lastfm] h-4 w-4 text-blue-400"></span>
+                    <span class="text-xs font-medium text-blue-300 hidden md:block">
+                      {lastfm.username
+                        ? lastfm.username.slice(0, 8)
+                        : "Last.fm"}
+                    </span>
+                  </div>
+                </Show>
                 <button
                   class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer "
                   title={`${volume() !== 0 ? "Mute" : "Unmute"}`}

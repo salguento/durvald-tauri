@@ -1,5 +1,4 @@
 use crate::secure_store::SECURE_STORE;
-use md5::{Digest, Md5};
 use serde::Serialize;
 use serde_json::Value;
 use std::sync::OnceLock;
@@ -289,25 +288,25 @@ pub async fn update_now_playing<R: Runtime>(
     track: String,
     album: Option<String>,
 ) -> Result<(), String> {
-    let api_key = get_api_key()?;
     let session_key = get_session_key()?;
+    let api_key = get_api_key()?;
     let secret = get_api_secret()?;
 
     let mut params = vec![
+        ("api_key", api_key.as_str()),
+        ("artist", artist.as_str()),
         ("method", "track.updateNowPlaying"),
-        ("api_key", &api_key),
-        ("sk", &session_key),
-        ("artist", &artist),
-        ("track", &track),
-        ("format", "json"),
+        ("sk", session_key.as_str()),
+        ("track", track.as_str()),
     ];
 
-    let album_ref = album.as_deref();
-    if let Some(a) = album_ref {
-        params.push(("album", a));
+    if let Some(ref a) = album {
+        params.push(("album", a.as_str()));
     }
 
+    params.sort_by(|a, b| a.0.cmp(b.0));
     let sig = generate_signature(&params, &secret);
+
     let client = reqwest::Client::new();
 
     // Rate limiting
@@ -320,26 +319,65 @@ pub async fn update_now_playing<R: Runtime>(
         *guard = std::time::Instant::now();
     }
 
+    let mut form = vec![
+        ("method", "track.updateNowPlaying"),
+        ("api_key", &api_key),
+        ("api_sig", &sig),
+        ("sk", &session_key),
+        ("artist", &artist),
+        ("track", &track),
+    ];
+
+    if let Some(ref a) = album {
+        form.push(("album", a));
+    }
+
     let res = client
         .post("https://ws.audioscrobbler.com/2.0/")
-        .form(&[
-            ("method", "track.updateNowPlaying"),
-            ("api_key", &api_key),
-            ("sk", &session_key),
-            ("artist", &artist),
-            ("track", &track),
-            ("api_sig", &sig),
-            ("format", "json"),
-        ])
+        .form(&form)
         .send()
         .await
         .map_err(|e| format!("Network error: {}", e))?;
 
-    if !res.status().is_success() {
-        return Err(format!("Last.fm error: {}", res.status()));
+    let status = res.status();
+    let text = res.text().await.map_err(|e| format!("Read error: {}", e))?;
+
+    // ✅ CRITICAL FIX: Handle non-JSON responses gracefully
+    if status != reqwest::StatusCode::OK {
+        println!(
+            "[RUST] update_now_playing FAILED - Status: {}, Body: {}",
+            status, text
+        );
+        return Err(format!(
+            "HTTP {}: Last.fm rejected request. Check terminal for details.",
+            status.as_u16()
+        ));
     }
 
-    Ok(())
+    match serde_json::from_str::<Value>(&text) {
+        Ok(json) => {
+            if let Some(code) = json["error"].as_i64() {
+                let msg = json["message"].as_str().unwrap_or("Unknown error");
+                println!("[RUST] update_now_playing API ERROR {}: {}", code, msg);
+                Err(format!("Last.fm error {}: {}", code, msg))
+            } else {
+                println!("[RUST] update_now_playing SUCCESS: {} - {}", artist, track);
+                Ok(())
+            }
+        }
+        Err(e) => {
+            // ✅ Log raw response for debugging
+            println!(
+                "[RUST] update_now_playing NON-JSON RESPONSE (status {}): {}",
+                status,
+                &text[..text.len().min(200)]
+            );
+            Err(format!(
+                "Invalid response from Last.fm (not JSON). See terminal logs. Error: {}",
+                e
+            ))
+        }
+    }
 }
 
 #[tauri::command]
@@ -348,29 +386,30 @@ pub async fn scrobble_track<R: Runtime>(
     artist: String,
     track: String,
     album: Option<String>,
-    timestamp: i64,
+    timestamp: u64,
 ) -> Result<(), String> {
-    let api_key = get_api_key()?;
     let session_key = get_session_key()?;
+    let api_key = get_api_key()?;
     let secret = get_api_secret()?;
+
     let timestamp_str = timestamp.to_string();
-    let album_ref = album.as_deref();
 
     let mut params = vec![
+        ("api_key", api_key.as_str()),
+        ("artist", artist.as_str()),
         ("method", "track.scrobble"),
-        ("api_key", &api_key),
-        ("sk", &session_key),
-        ("artist", &artist),
-        ("track", &track),
-        ("timestamp", &timestamp_str),
-        ("format", "json"),
+        ("sk", session_key.as_str()),
+        ("timestamp", timestamp_str.as_str()),
+        ("track", track.as_str()),
     ];
 
-    if let Some(a) = album_ref {
-        params.push(("album", a));
+    if let Some(ref a) = album {
+        params.push(("album", a.as_str()));
     }
 
+    params.sort_by(|a, b| a.0.cmp(b.0));
     let sig = generate_signature(&params, &secret);
+
     let client = reqwest::Client::new();
 
     // Rate limiting
@@ -383,27 +422,70 @@ pub async fn scrobble_track<R: Runtime>(
         *guard = std::time::Instant::now();
     }
 
+    let mut form = vec![
+        ("method", "track.scrobble"),
+        ("api_key", &api_key),
+        ("api_sig", &sig),
+        ("sk", &session_key),
+        ("artist", &artist),
+        ("track", &track),
+        ("timestamp", &timestamp_str),
+    ];
+
+    if let Some(ref a) = album {
+        form.push(("album", a));
+    }
+
     let res = client
         .post("https://ws.audioscrobbler.com/2.0/")
-        .form(&[
-            ("method", "track.scrobble"),
-            ("api_key", &api_key),
-            ("sk", &session_key),
-            ("artist", &artist),
-            ("track", &track),
-            ("timestamp", &timestamp_str),
-            ("api_sig", &sig),
-            ("format", "json"),
-        ])
+        .form(&form)
         .send()
         .await
         .map_err(|e| format!("Network error: {}", e))?;
 
-    if !res.status().is_success() {
-        return Err(format!("Scrobble failed: {}", res.status()));
+    let status = res.status();
+    let text = res.text().await.map_err(|e| format!("Read error: {}", e))?;
+
+    // ✅ CRITICAL FIX: Handle non-JSON responses gracefully
+    if status != reqwest::StatusCode::OK {
+        println!(
+            "[RUST] scrobble_track FAILED - Status: {}, Body: {}",
+            status, text
+        );
+        return Err(format!(
+            "HTTP {}: Scrobble rejected. Check terminal logs.",
+            status.as_u16()
+        ));
     }
 
-    Ok(())
+    match serde_json::from_str::<Value>(&text) {
+        Ok(json) => {
+            if let Some(code) = json["error"].as_i64() {
+                let msg = json["message"].as_str().unwrap_or("Unknown error");
+                println!("[RUST] scrobble_track API ERROR {}: {}", code, msg);
+                Err(format!("Last.fm error {}: {}", code, msg))
+            } else {
+                println!(
+                    "[RUST] scrobble_track SUCCESS: {} - {} @ {}",
+                    artist, track, timestamp
+                );
+                Ok(())
+            }
+        }
+        Err(e) => {
+            // ✅ Log raw response (truncated) for debugging
+            let preview = &text[..text.len().min(200)];
+            println!(
+                "[RUST] scrobble_track NON-JSON RESPONSE (status {}): {}",
+                status, preview
+            );
+            Err(format!(
+                "Invalid response from Last.fm (not JSON). Preview: {}... Error: {}",
+                &preview[..preview.len().min(50)],
+                e
+            ))
+        }
+    }
 }
 
 #[tauri::command]

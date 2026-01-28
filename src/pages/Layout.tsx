@@ -13,9 +13,9 @@ import Onboarding from "../ui/Onboarding/Onboarding";
 // Function
 const Layout: ParentComponent = (props) => {
   const [showOnboarding] = libraryStore.showOnboarding;
-  const [initialezeLibrary] = libraryStore.initializeLibraryStore;
+  const [initializeLibrary] = libraryStore.initializeLibraryStore;
   return (
-    <Show when={initialezeLibrary()}>
+    <Show when={initializeLibrary()}>
       <main class="overflow-hidden">
         <div
           class="flex flex-col w-screen p-2 gap-2 h-screen relative"

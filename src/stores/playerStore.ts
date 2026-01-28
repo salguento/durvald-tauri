@@ -1,7 +1,7 @@
 // Tauri
 import { listen } from "@tauri-apps/api/event";
 // Solidjs
-import { createSignal, createEffect } from "solid-js";
+import { createSignal } from "solid-js";
 import { createRoot } from "solid-js";
 // Types
 import PlayBackStateType from "../types/Playback";
@@ -36,8 +36,6 @@ export const initializePlayerStore = () => {
 };
 
 export const defineCurrentTrack = (track: TrackType) => {
-  createEffect(() => {
-    const [, setCurrentTrack] = playerStore.currentTrack;
-    setCurrentTrack(track);
-  });
+  const [, setCurrentTrack] = playerStore.currentTrack;
+  setCurrentTrack(track);
 };

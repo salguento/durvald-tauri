@@ -17,8 +17,6 @@ import { uiStore } from "./stores/uiStore";
 import { libraryStore } from "./stores/libraryStore";
 import { initializePlayerStore } from "./stores/playerStore";
 // Types
-import { QueueItemType } from "./types/QueueItemType";
-import { TrackType } from "./types/DatabaseType";
 // Pages
 import Routes from "./Routes";
 import Layout from "./pages/Layout";
@@ -31,44 +29,22 @@ function App() {
   onMount(async () => {
     const [queueList, setQueueList] = playerStore.queueList;
     const [, setShowSidebar] = uiStore.showSideBar;
-    const [, setReleaseStore] = libraryStore.releaseStore;
     const [, setInitializeLibraryStore] = libraryStore.initializeLibraryStore;
     const [trackStore] = libraryStore.trackStore;
-    await mirrorDB();
-    lastfm.init();
-    console.log("[App] Last.fm service initialized");
-    setInitializeLibraryStore(true);
-    await invoke("start_auto_play");
-    await listen("song-changed", async () => {
-      const trackId: number = await invoke("get_current_song_id");
-      addToHistory();
-
-      const trackObj = trackStore().filter((t) => t.song_id === trackId);
-      defineCurrentTrack(trackObj[0]);
-
-      setQueueList((prev) => prev.slice(1));
-    });
     try {
-      setReleaseStore(await invoke("get_releases"));
-      await invoke("load_queue_from_db");
-      const queue: QueueItemType[] = await invoke("get_queue");
+      await mirrorDB();
+      lastfm.init();
+      await invoke("start_auto_play");
 
-      setQueueList([]);
+      await listen("song-changed", async () => {
+        const trackId: number = await invoke("get_current_song_id");
+        addToHistory();
 
-      const trackPromises = queue.map(async (i: QueueItemType, index) => {
-        const trackItem: TrackType[] = trackStore().filter(
-          (t) => t.song_id === i[0],
-        );
-        return { track: trackItem[0], isFirst: index === 0 };
+        const trackObj = trackStore().filter((t) => t.song_id === trackId);
+        defineCurrentTrack(trackObj[0]);
+
+        setQueueList((prev) => prev.slice(1));
       });
-
-      const results = await Promise.all(trackPromises);
-      const tracks = results.map((r) => r.track);
-      setQueueList(tracks);
-
-      if (results.length > 0 && results[0].isFirst) {
-        defineCurrentTrack(results[0].track);
-      }
 
       getHistory();
     } catch (error) {
@@ -77,6 +53,7 @@ function App() {
       if (queueList().length == 0) {
         setShowSidebar(false);
       }
+      setInitializeLibraryStore(true);
       setIsInitialized(true);
     }
   });

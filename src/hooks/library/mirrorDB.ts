@@ -1,6 +1,8 @@
 // Dependencies
 import { invoke } from "@tauri-apps/api/core";
 import { createEffect, createRoot } from "solid-js";
+// Hooks
+import { getQueue } from "../audio/getQueue";
 // Stores
 import { libraryStore } from "../../stores/libraryStore";
 // Types
@@ -46,7 +48,7 @@ export default async function mirrorDB() {
       } catch (err) {
         console.error("Error mirroring database:", err);
       } finally {
-        console.info("Database mirrored.");
+        await getQueue();
       }
     });
 
