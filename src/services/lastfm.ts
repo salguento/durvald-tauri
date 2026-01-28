@@ -17,6 +17,7 @@ export const lastfm = {
 
   // Initialize connection status on app start
   init: () => {
+    lastfm.refreshStatus();
     createEffect(() => {
       const check = async () => {
         try {
@@ -53,37 +54,59 @@ export const lastfm = {
     }
   },
 
-  // Open browser to Last.fm authorization page
-  openAuthUrl: async (authUrl: string): Promise<boolean> => {
-    try {
-      await invoke("plugin:shell|open", {
-        path: authUrl,
-      });
-      return true;
-    } catch (err) {
-      console.error("[Last.fm] Browser open failed:", err);
-      return false;
-    }
-  },
-
-  getAuthToken: async (): Promise<string> => {
+  // Step 1: Get auth token + open browser
+  startAuth: async (): Promise<string | null> => {
     try {
       const { token, authUrl } = await invoke<{
         token: string;
         authUrl: string;
       }>("get_auth_token");
-      return `Token: ${token}\nURL: ${authUrl}`;
+      console.log("[Last.fm] Auth URL:", authUrl);
+
+      // Open browser
+      try {
+        await invoke("plugin:shell|open", { path: authUrl });
+        console.log("[Last.fm] Browser opened");
+      } catch (err) {
+        console.error("[Last.fm] Browser open failed:", err);
+        return null;
+      }
+
+      return token; // Return token for manual polling
     } catch (err) {
-      return (
-        "Token failed: " +
-        (err instanceof Error ? err.message : "Unknown error")
-      );
+      console.error("[Last.fm] startAuth failed:", err);
+      return null;
     }
   },
 
-  debugStore: async (): Promise<string> => {
+  // Step 2: Manual polling AFTER user clicks "Allow" on Last.fm
+  completeAuth: async (token: string): Promise<string> => {
     try {
-      return await invoke<string>("debug_store");
+      const session = await invoke<{ username: string }>("poll_session", {
+        token,
+      });
+      console.log("[Last.fm] Connected as:", session.username);
+      return `✅ Connected as ${session.username}!`;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[Last.fm] completeAuth failed:", err);
+      return `❌ Authorization failed: ${msg}`;
+    }
+  },
+
+  // Check connection status
+  isConnected: async (): Promise<boolean> => {
+    try {
+      return await invoke<boolean>("is_connected");
+    } catch {
+      return false;
+    }
+  },
+
+  // Debug methods
+  debugSession: async (): Promise<string> => {
+    try {
+      return await invoke<string>("debug_session");
     } catch (err) {
       return (
         "Debug failed: " + (err instanceof Error ? err.message : String(err))
@@ -91,5 +114,28 @@ export const lastfm = {
     }
   },
 
-  getServiceName: async () => await invoke<string>("get_service_name"),
+  debugCredentials: async (): Promise<string> => {
+    try {
+      return await invoke<string>("debug_credentials");
+    } catch (err) {
+      return (
+        "Debug failed: " + (err instanceof Error ? err.message : String(err))
+      );
+    }
+  },
+
+  // Refresh connection status from backend
+  refreshStatus: async () => {
+    try {
+      const connected: boolean = await invoke("is_connected");
+      setState({ status: connected ? "connected" : "disconnected" });
+      console.log(
+        "[Last.fm] Status refreshed:",
+        connected ? "connected" : "disconnected",
+      );
+    } catch (err) {
+      console.error("[Last.fm] Status refresh failed:", err);
+      setState({ status: "disconnected" });
+    }
+  },
 };

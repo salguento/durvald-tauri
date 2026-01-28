@@ -52,17 +52,24 @@ fn get_session_key() -> Result<String, String> {
 }
 
 fn generate_signature(params: &[(&str, &str)], secret: &str) -> String {
-    let mut sorted: Vec<_> = params.iter().collect();
-    sorted.sort_by_key(|(k, _)| *k);
+    // ✅ CRITICAL: Sort parameters alphabetically by KEY (Last.fm requirement)
+    let mut sorted_params: Vec<(&str, &str)> = params.to_vec();
+    sorted_params.sort_by(|a, b| a.0.cmp(b.0));
 
-    let mut sig = String::new();
-    for (k, v) in sorted {
-        sig.push_str(k);
-        sig.push_str(v);
+    // ✅ CRITICAL: Concatenate key+value pairs WITHOUT separators
+    let mut sig_string = String::new();
+    for (key, value) in sorted_params {
+        sig_string.push_str(key);
+        sig_string.push_str(value);
     }
-    sig.push_str(secret);
 
-    format!("{:x}", Md5::digest(sig.as_bytes()))
+    // ✅ CRITICAL: Append API secret at the END
+    sig_string.push_str(secret);
+
+    // MD5 hash
+    use md5::{Digest, Md5};
+    let digest = Md5::new().chain_update(sig_string.as_bytes()).finalize();
+    format!("{:x}", digest)
 }
 
 #[tauri::command]
@@ -115,13 +122,10 @@ pub async fn get_auth_token<R: Runtime>(_app: AppHandle<R>) -> Result<AuthTokenR
     let api_key = get_api_key()?;
     let secret = get_api_secret()?;
 
-    let params = vec![
-        ("method", "auth.getToken"),
-        ("api_key", &api_key),
-        ("format", "json"),
-    ];
+    // ✅ Same parameter format as poll_session
+    let params = vec![("method", "auth.getToken"), ("api_key", &api_key)];
 
-    let sig = generate_signature(&params, &secret);
+    let sig = generate_signature(&params, &secret); // ✅ Uses fixed function
     let client = reqwest::Client::new();
 
     // Rate limiting
@@ -173,17 +177,47 @@ pub async fn poll_session<R: Runtime>(
     _app: AppHandle<R>,
     token: String,
 ) -> Result<SessionResponse, String> {
+    println!("\n=== POLL_SESSION DEBUG START ===");
+
+    // Get credentials
     let api_key = get_api_key()?;
     let secret = get_api_secret()?;
 
-    let params = vec![
+    println!(
+        "[DEBUG] API Key prefix: {}",
+        &api_key[..8.min(api_key.len())]
+    );
+    println!("[DEBUG] API Secret length: {}", secret.len());
+    println!("[DEBUG] Token prefix: {}", &token[..8.min(token.len())]);
+
+    // Build params - MUST BE SORTED ALPHABETICALLY
+    let mut params = vec![
+        ("api_key", api_key.as_str()),
         ("method", "auth.getSession"),
-        ("api_key", &api_key),
-        ("token", &token),
-        ("format", "json"),
+        ("token", token.as_str()),
     ];
 
+    // Sort parameters alphabetically by key (REQUIRED for Last.fm signature)
+    params.sort_by(|a, b| a.0.cmp(b.0));
+
+    println!("[DEBUG] Sorted params:");
+    for (key, val) in &params {
+        println!("  {} = {}", key, val);
+    }
+
+    // Generate signature
     let sig = generate_signature(&params, &secret);
+    println!("[DEBUG] Generated signature: {}", sig);
+
+    // Build signature string for verification
+    let mut sig_string = String::new();
+    for (key, val) in &params {
+        sig_string.push_str(key);
+        sig_string.push_str(val);
+    }
+    sig_string.push_str(&secret);
+    println!("[DEBUG] Signature string (before MD5): {}", sig_string);
+
     let client = reqwest::Client::new();
 
     // Rate limiting
@@ -196,6 +230,7 @@ pub async fn poll_session<R: Runtime>(
         *guard = std::time::Instant::now();
     }
 
+    println!("[DEBUG] Sending request to Last.fm...");
     let res = client
         .post("https://ws.audioscrobbler.com/2.0/")
         .form(&[
@@ -209,30 +244,42 @@ pub async fn poll_session<R: Runtime>(
         .await
         .map_err(|e| format!("Network error: {}", e))?;
 
-    let json: Value = res.json().await.map_err(|e| e.to_string())?;
+    let status = res.status();
+    println!("[DEBUG] Response status: {}", status);
 
-    if let Some(session) = json["session"].as_object() {
-        let username = session["name"].as_str().unwrap_or("User").to_string();
-        let session_key = session["key"].as_str().ok_or("No session key")?.to_string();
+    let text = res.text().await.map_err(|e| format!("Read error: {}", e))?;
+    println!("[DEBUG] Raw response: {}", text);
 
-        let guard = SECURE_STORE.lock().unwrap();
-        let store_option = guard.as_ref();
-        let store = store_option.ok_or("Store not initialized")?;
-        store.set_secret("session_key", &session_key)?;
+    println!("=== POLL_SESSION DEBUG END ===\n");
 
-        Ok(SessionResponse { username })
-    } else {
-        let code = json["error"].as_i64().unwrap_or(0);
-        if code == 14 {
-            Err("Token not authorized yet. Please authorize in browser.".to_string())
-        } else {
-            Err(format!(
-                "Session failed (error {}): {}",
-                code,
-                json["message"].as_str().unwrap_or("Unknown error")
-            ))
-        }
+    let json: Value =
+        serde_json::from_str(&text).map_err(|e| format!("JSON parse error: {}", e))?;
+
+    // Check for API errors
+    if let Some(error_code) = json["error"].as_i64() {
+        let error_msg = json["message"].as_str().unwrap_or("Unknown error");
+        return Err(format!("Last.fm API error {}: {}", error_code, error_msg));
     }
+
+    // Extract session
+    let session = json["session"].as_object().ok_or("No session object")?;
+    let username = session["name"].as_str().ok_or("No username")?.to_string();
+    let session_key = session["key"].as_str().ok_or("No session key")?.to_string();
+
+    println!(
+        "[DEBUG] Got session - username: {}, key length: {}",
+        username,
+        session_key.len()
+    );
+
+    // Store session key
+    let guard = SECURE_STORE.lock().unwrap();
+    let store = guard.as_ref().ok_or("Store not initialized")?;
+
+    store.set_secret("session_key", &session_key)?;
+    println!("[DEBUG] Session key stored successfully");
+
+    Ok(SessionResponse { username })
 }
 
 #[tauri::command]
@@ -362,10 +409,24 @@ pub async fn scrobble_track<R: Runtime>(
 #[tauri::command]
 pub async fn is_connected<R: Runtime>(_app: AppHandle<R>) -> bool {
     let guard = SECURE_STORE.lock().unwrap();
-    let store_option = guard.as_ref();
-    store_option
-        .and_then(|s| s.get_secret("session_key").ok())
-        .is_some()
+    let store = match guard.as_ref() {
+        Some(s) => s,
+        None => {
+            println!("[RUST] is_connected: Store not initialized");
+            return false;
+        }
+    };
+
+    match store.get_secret("session_key") {
+        Ok(_) => {
+            println!("[RUST] is_connected: Session key found ✓");
+            true
+        }
+        Err(e) => {
+            println!("[RUST] is_connected: Session key NOT found: {}", e);
+            false
+        }
+    }
 }
 
 #[tauri::command]
@@ -403,4 +464,35 @@ pub async fn debug_store<R: Runtime>(_app: AppHandle<R>) -> Result<String, Strin
         }
         None => Ok("API key not found".to_string()),
     }
+}
+
+#[tauri::command]
+pub async fn debug_session<R: Runtime>(_app: AppHandle<R>) -> Result<String, String> {
+    let guard = SECURE_STORE.lock().unwrap();
+    let store = guard.as_ref().ok_or("Store not initialized")?;
+
+    // Check if session key exists
+    match store.get_secret("session_key") {
+        Ok(key) => Ok(format!("Session key found (length: {})", key.len())),
+        Err(e) => Ok(format!("Session key NOT found: {}", e)),
+    }
+}
+
+#[tauri::command]
+pub async fn debug_credentials<R: Runtime>(_app: AppHandle<R>) -> Result<String, String> {
+    let api_key = get_api_key()?;
+    let secret = get_api_secret()?;
+
+    // Check for whitespace
+    let key_has_whitespace = api_key.trim() != api_key;
+    let secret_has_whitespace = secret.trim() != secret;
+
+    Ok(format!(
+        "API Key prefix: {}\nKey length: {}\nKey has whitespace: {}\n\nAPI Secret length: {}\nSecret has whitespace: {}",
+        &api_key[..8.min(api_key.len())],
+        api_key.len(),
+        key_has_whitespace,
+        secret.len(),
+        secret_has_whitespace
+    ))
 }

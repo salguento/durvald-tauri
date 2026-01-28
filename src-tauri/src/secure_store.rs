@@ -107,14 +107,46 @@ impl SecureStore {
             let mut final_buf = nonce.to_vec();
             final_buf.extend_from_slice(&in_out);
 
-            // Save to file
-            let path = self
+            // Save to file - WITH MAXIMUM DEBUGGING
+            let secret_dir = self
                 .data_path
                 .parent()
-                .ok_or("No parent directory")?
-                .join(format!("secret_{}.enc", name));
+                .ok_or("No parent directory for data_path")?;
 
-            std::fs::write(&path, BASE64.encode(&final_buf)).map_err(|e| e.to_string())?;
+            let secret_path = secret_dir.join(format!("secret_{}.enc", name));
+
+            println!("[WINDOWS DEBUG] set_secret - name: {}", name);
+            println!("[WINDOWS DEBUG] data_path: {:?}", self.data_path);
+            println!("[WINDOWS DEBUG] secret_dir: {:?}", secret_dir);
+            println!("[WINDOWS DEBUG] secret_path: {:?}", secret_path);
+            println!("[WINDOWS DEBUG] secret_dir exists: {}", secret_dir.exists());
+            println!(
+                "[WINDOWS DEBUG] secret_path exists BEFORE write: {}",
+                secret_path.exists()
+            );
+
+            // ✅ CREATE PARENT DIRECTORY IF MISSING
+            std::fs::create_dir_all(secret_dir)
+                .map_err(|e| format!("create_dir_all failed for {:?}: {}", secret_dir, e))?;
+
+            println!(
+                "[WINDOWS DEBUG] After create_dir_all - secret_dir exists: {}",
+                secret_dir.exists()
+            );
+
+            std::fs::write(&secret_path, BASE64.encode(&final_buf))
+                .map_err(|e| format!("write failed for {:?}: {}", secret_path, e))?;
+
+            println!(
+                "[WINDOWS DEBUG] write SUCCESS - secret_path exists AFTER write: {}",
+                secret_path.exists()
+            );
+            println!(
+                "[WINDOWS DEBUG] File size: {} bytes",
+                std::fs::metadata(&secret_path)
+                    .map(|m| m.len())
+                    .unwrap_or(0)
+            );
 
             Ok(())
         }
@@ -153,15 +185,42 @@ impl SecureStore {
                 .try_into()
                 .map_err(|_| "Key derivation failed".to_string())?;
 
-            // Read and decode ciphertext
-            let path = self
+            // Read and decode ciphertext - WITH MAXIMUM DEBUGGING
+            let secret_dir = self
                 .data_path
                 .parent()
-                .ok_or("No parent directory")?
-                .join(format!("secret_{}.enc", name));
+                .ok_or("No parent directory for data_path")?;
 
-            let ciphertext = std::fs::read(&path).map_err(|e| e.to_string())?;
-            let decoded = BASE64.decode(&ciphertext).map_err(|e| e.to_string())?;
+            let secret_path = secret_dir.join(format!("secret_{}.enc", name));
+
+            println!("[WINDOWS DEBUG] get_secret - name: {}", name);
+            println!("[WINDOWS DEBUG] data_path: {:?}", self.data_path);
+            println!("[WINDOWS DEBUG] secret_dir: {:?}", secret_dir);
+            println!("[WINDOWS DEBUG] secret_path: {:?}", secret_path);
+            println!("[WINDOWS DEBUG] secret_dir exists: {}", secret_dir.exists());
+            println!(
+                "[WINDOWS DEBUG] secret_path exists: {}",
+                secret_path.exists()
+            );
+
+            if !secret_path.exists() {
+                return Err(format!("File not found: {:?}", secret_path));
+            }
+
+            let ciphertext =
+                std::fs::read(&secret_path).map_err(|e| format!("read failed: {}", e))?;
+            println!(
+                "[WINDOWS DEBUG] File read successfully - size: {} bytes",
+                ciphertext.len()
+            );
+
+            let decoded = BASE64
+                .decode(&ciphertext)
+                .map_err(|e| format!("base64 decode failed: {}", e))?;
+            println!(
+                "[WINDOWS DEBUG] Base64 decode successful - decoded size: {} bytes",
+                decoded.len()
+            );
 
             if decoded.len() < 12 {
                 return Err("Invalid ciphertext length".to_string());
@@ -190,7 +249,13 @@ impl SecureStore {
                 )
                 .map_err(|_| "Decryption failed (wrong machine or corrupted data)".to_string())?;
 
-            String::from_utf8(plaintext.to_vec()).map_err(|e| e.to_string())
+            let result = String::from_utf8(plaintext.to_vec()).map_err(|e| e.to_string())?;
+            println!(
+                "[WINDOWS DEBUG] Decryption SUCCESS - plaintext length: {}",
+                result.len()
+            );
+
+            Ok(result)
         }
 
         #[cfg(not(windows))]

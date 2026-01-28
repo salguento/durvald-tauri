@@ -9,6 +9,8 @@ import { listen } from "@tauri-apps/api/event";
 import addToHistory from "./hooks/audio/addToHistory";
 import getHistory from "./hooks/audio/getPlayHistory";
 import mirrorDB from "./hooks/library/mirrorDB";
+// Services
+import { lastfm } from "./services/lastfm";
 // Store
 import { defineCurrentTrack, playerStore } from "./stores/playerStore";
 import { uiStore } from "./stores/uiStore";
@@ -33,6 +35,8 @@ function App() {
     const [, setInitializeLibraryStore] = libraryStore.initializeLibraryStore;
     const [trackStore] = libraryStore.trackStore;
     await mirrorDB();
+    lastfm.init();
+    console.log("[App] Last.fm service initialized");
     setInitializeLibraryStore(true);
     await invoke("start_auto_play");
     await listen("song-changed", async () => {
