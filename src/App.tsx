@@ -1,7 +1,7 @@
 // Dependencies
 import "./App.css";
 import { Router, Route } from "@solidjs/router";
-import { onMount, createSignal, Show } from "solid-js";
+import { onMount, createSignal, Show, createEffect } from "solid-js";
 import "overlayscrollbars/overlayscrollbars.css";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -35,6 +35,32 @@ function App() {
       await mirrorDB();
       lastfm.init();
       await invoke("start_auto_play");
+      // ✅ CENTRALIZED LAST.FM "NOW PLAYING" TRACKER
+      createEffect(() => {
+        const [currentTrack] = playerStore.currentTrack;
+        const track = currentTrack();
+        
+
+        // Only update when track changes AND we're connected
+        if (track && lastfm.status === "connected") {
+          // Prevent duplicate updates for same track (using song_id)
+          const staticTrackId = `${track.song_id}`;
+          if ((window as any)._lastFmTrackId === staticTrackId) return;
+          (window as any)._lastFmTrackId = staticTrackId;
+
+          // Trim metadata to prevent signature errors
+          const artist = (track.artist_name || "").trim();
+          const title = (track.title || "").trim();
+          const album = (track.release_title || "").trim() || undefined;
+
+          // Fire-and-forget update (non-blocking)
+          lastfm.updateNowPlaying(artist, title, album).catch((err) => {
+            console.warn("[Last.fm] Now playing update failed:", err);
+          });
+
+          console.log("[Last.fm] Now playing updated:", artist, "-", title);
+        }
+      });
 
       await listen("song-changed", async () => {
         const trackId: number = await invoke("get_current_song_id");

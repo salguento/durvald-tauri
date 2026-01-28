@@ -588,7 +588,6 @@ fn main() {
 
                 let app_handle = app.handle();
                 secure_store::init_secure_store(&app_handle);
-                commands::lastfm_commands::init_rate_limiter();
 
                 Ok(())
             })

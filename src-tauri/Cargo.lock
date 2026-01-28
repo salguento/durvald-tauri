@@ -1003,6 +1003,7 @@ dependencies = [
  "chrono",
  "keyring",
  "kira",
+ "lazy_static",
  "lofty",
  "md-5",
  "once_cell",
