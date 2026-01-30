@@ -1,14 +1,18 @@
 // Tauri
 import { invoke } from "@tauri-apps/api/core";
-// Store
-import { playerStore } from "../../stores/playerStore";
-import addToHistory from "./addToHistory";
+
+/**
+ * ✅ SIMPLIFIED playNext function
+ * 
+ * This function ONLY tells the backend to skip to next track.
+ * The backend will:
+ * 1. Play the next song
+ * 2. Emit "song-changed" event
+ * 3. Frontend's "song-changed" listener handles all state updates
+ * 
+ * DO NOT manipulate currentTrack or queueList here - that causes double updates
+ */
 export default async function playNext() {
-  const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
-  const [queueList, setQueueList] = playerStore.queueList;
   await invoke("play_next");
-  await addToHistory();
-  console.log(currentTrack());
-  setCurrentTrack(queueList()[0]);
-  setQueueList((queueList) => queueList.slice(1));
+  console.log("[playNext] Requested next track from backend");
 }

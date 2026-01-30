@@ -1,7 +1,6 @@
 // Dependecies
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
-import { onMount, Show, createSignal } from "solid-js";
+import { onMount, Show, createSignal, createEffect } from "solid-js";
 // Hooks
 import playBack from "../../hooks/audio/play";
 import pausePlayback from "../../hooks/audio/pause";
@@ -19,19 +18,16 @@ import { playerStore } from "../../stores/playerStore";
 // UI
 import { Slider } from "@kobalte/core/slider";
 import TrackDropdownMenu from "../Components/Release/TrackContextMenu/TrackDropdownMenu";
-// Types
-import ProgressPayload from "../../types/ProgressPayload";
-// Function
+
 export default function PlayBar() {
   const [isDragging, setIsDragging] = createSignal(false);
   const [, setLastSeekTime] = createSignal(0);
   const [previewPosition, setPreviewPosition] = createSignal<number | null>(
     null,
   );
-  const [, setLastProgressUpdate] = createSignal(0);
   const [previousVolume, setPreviousVolume] = createSignal<number>(0);
 
-  // lastfm
+  // ✅ LAST.FM SCROBBLING STATE
   const [lastScrobbledTrackId, setLastScrobbledTrackId] = createSignal<
     string | null
   >(null);
@@ -50,30 +46,63 @@ export default function PlayBar() {
   const [currentTrack, setCurrentTrack] = playerStore.currentTrack;
   const [playbackProgress, setPlaybackProgress] = playerStore.playbackProgress;
 
+  // ✅ CENTRALIZED: Watch for track changes and reset scrobble state
+  createEffect(() => {
+    const track = currentTrack();
+    if (!track) {
+      console.log("[PlayBar createEffect] No track");
+      return;
+    }
+
+    const trackId = `${track.song_id}`;
+    const lastId = lastScrobbledTrackId();
+
+    console.log(
+      `[PlayBar createEffect] Track: "${track.title}" (ID: ${trackId}), LastScrobbledID: ${lastId}, hasScrobbled: ${hasScrobbled()}`,
+    );
+
+    // Reset scrobble state when track changes
+    if (lastId !== trackId) {
+      console.log(
+        `[PlayBar] Track changed from ID ${lastId} to ${trackId}, resetting scrobble state:`,
+        track.title,
+      );
+      setLastScrobbledTrackId(null);
+      setHasScrobbled(false);
+      setPlayStartTime(Date.now());
+    } else {
+      console.log(`[PlayBar createEffect] Same track, no reset needed`);
+    }
+  });
+
   onMount(async () => {
     setPlayBackState(await invoke("get_playback_state"));
 
-    if (currentTrack() && !playBackState()?.is_empty) {
-      handleTrackStart(currentTrack()!);
-    }
+    // ✅ Subscribe to progress updates to check scrobble criteria
+    // Note: playerStore already updates playbackProgress via its own listener
+    // We just need to react to those updates for scrobbling
+    let checkCount = 0;
+    const checkScrobbleInterval = setInterval(() => {
+      checkCount++;
+      const track = currentTrack();
+      const progress = playbackProgress();
 
-    // In your progress listener
-    await listen<ProgressPayload>("progress-update", (event) => {
-      setLastProgressUpdate(Date.now());
-
-      // Only update if not currently dragging
-      if (!isDragging()) {
-        setPlaybackProgress(event.payload);
-
-        if (currentTrack() && event.payload.duration) {
-          checkScrobbleCriteria(
-            currentTrack()!,
-            event.payload.position,
-            event.payload.duration,
-          );
-        }
+      if (checkCount % 10 === 0) {
+        console.log(
+          `[Scrobble Interval] Check #${checkCount} - Track: ${track?.title || "none"}, Progress: ${progress.position}s / ${progress.duration}s`,
+        );
       }
-    });
+
+      if (track && progress.duration && !isDragging()) {
+        checkScrobbleCriteria(track, progress.position, progress.duration);
+      }
+    }, 1000); // Check every second
+
+    // Cleanup interval on unmount
+    return () => {
+      console.log("[Scrobble Interval] Cleaning up interval");
+      clearInterval(checkScrobbleInterval);
+    };
   });
 
   const handleFavorite = () => {
@@ -87,62 +116,59 @@ export default function PlayBar() {
     });
   };
 
-  const handleTrackStart = (track: any) => {
-    if (!track) return;
-
-    // Reset scrobble state for new track
-    setLastScrobbledTrackId(null);
-    setHasScrobbled(false);
-    setPlayStartTime(Date.now());
-
-    // Send "now playing" to Last.fm
-    if (lastfm.status === "connected") {
-      lastfm.updateNowPlaying(track.artist_name, track.title, track.album_name);
-      console.log(
-        "[Last.fm] Now playing:",
-        track.artist_name,
-        "-",
-        track.title,
-      );
-    }
-  };
-
+  /**
+   * ✅ Check if scrobble criteria is met
+   * Scrobbles when: 50% of track played OR 240 seconds (4 minutes), whichever comes first
+   */
   const checkScrobbleCriteria = (
     track: any,
     position: number,
     duration: number,
   ) => {
-    if (!track || hasScrobbled() || lastScrobbledTrackId() === track.song_id)
+    if (!track) {
+      console.log("[Scrobble Check] No track");
       return;
+    }
+
+    if (hasScrobbled()) {
+      console.log("[Scrobble Check] Already scrobbled (hasScrobbled=true)");
+      return;
+    }
+
+    const trackId = `${track.song_id}`;
+
+    // Prevent duplicate scrobbles for the same track
+    if (lastScrobbledTrackId() === trackId) {
+      console.log("[Scrobble Check] Already scrobbled this track ID:", trackId);
+      return;
+    }
 
     const playedSeconds = position;
     const minPlayTime = Math.min(duration * 0.5, 240); // 50% of track OR 4 minutes
 
+    console.log(
+      `[Scrobble Check] ${track.title}: ${playedSeconds.toFixed(0)}s / ${minPlayTime.toFixed(0)}s (${((playedSeconds / duration) * 100).toFixed(1)}%)`,
+    );
+
     if (playedSeconds >= minPlayTime) {
       // Scrobble criteria met!
       if (lastfm.status === "connected") {
-        lastfm.scrobble(track.artist_name, track.title, track.album_name);
-        console.log(
-          "[Last.fm] Scrobbled:",
-          track.artist_name,
-          "-",
-          track.title,
-        );
+        const artist = (track.artist_name || "").trim();
+        const title = (track.title || "").trim();
+        const album = (track.release_title || "").trim() || undefined;
+
+        lastfm.scrobble(artist, title, album).catch((err) => {
+          console.warn("[Last.fm] Scrobble failed:", err);
+        });
+
+        console.log("[Last.fm] Scrobbled:", artist, "-", title);
       }
 
       setHasScrobbled(true);
-      setLastScrobbledTrackId(track.song_id);
+      setLastScrobbledTrackId(trackId);
     }
   };
 
-  const handleTrackChange = (newTrack: any) => {
-    if (!newTrack) return;
-
-    // If switching to a different track, reset everything
-    if (currentTrack()?.song_id !== newTrack.song_id) {
-      handleTrackStart(newTrack);
-    }
-  };
   return (
     <div class=" h-20 rounded-3xl border border-zinc-700/50 relative overflow-hidden hidden sm:block">
       <Show when={currentTrack()}>
@@ -186,44 +212,34 @@ export default function PlayBar() {
                       ></span>
                     </button>
                     <button
-                      class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
-                      title="Add song"
+                      class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                      title="Options"
                     >
-                      <span class="icon-[solar--add-circle-linear] h-5 w-5 "></span>
+                      <TrackDropdownMenu track={currentTrack()!}>
+                        <span class="icon-[solar--menu-dots-bold] h-5 w-5"></span>
+                      </TrackDropdownMenu>
                     </button>
-                    <TrackDropdownMenu track={currentTrack()!}>
-                      <button
-                        class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
-                        title="More options"
-                      >
-                        <span class="icon-[solar--menu-dots-bold] h-5 w-5 "></span>
-                      </button>
-                    </TrackDropdownMenu>
                   </div>
                 </div>
               </Show>
             </div>
-            <div class="col-span-4 xl:col-span-6 h-16 items-center justify-center">
-              <div class="flex flex-col items-center justify-around h-full gap-0">
-                <div class="flex flex-row items-center gap-4">
+            <div class="col-span-4 xl:col-span-6 flex flex-col justify-center items-center">
+              <div class="flex flex-col w-full h-full  justify-center items-center gap-1.5">
+                <div class="flex flex-row items-center justify-center gap-3">
                   <button
-                    class="flex flex-row rounded-lg text-base  font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
+                    class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                     title="Shuffle"
                   >
                     <span class="icon-[solar--shuffle-linear] h-5 w-5 "></span>
                   </button>
                   <button
                     class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
-                    title="Backwards"
+                    title="Rewind"
                     onClick={async () => {
                       await playPrevious();
-                      // ✅ LAST.FM: Handle track change
-                      setTimeout(() => {
-                        if (currentTrack()) handleTrackChange(currentTrack()!);
-                      }, 100);
                     }}
                   >
-                    <span class="icon-[solar--rewind-back-bold] h-6 w-6"></span>
+                    <span class="icon-[solar--rewind-back-bold] h-6 w-6 "></span>
                   </button>
                   <Show when={playBackState()?.is_empty == true}>
                     <button
@@ -231,8 +247,6 @@ export default function PlayBar() {
                       title="Play"
                       onclick={async () => {
                         await playBack(currentTrack()!);
-                        // ✅ LAST.FM: Track when playback starts
-                        handleTrackStart(currentTrack()!);
                       }}
                       disabled={!currentTrack()}
                     >
@@ -241,8 +255,8 @@ export default function PlayBar() {
                   </Show>
                   <Show
                     when={
-                      playBackState()?.is_empty == false &&
-                      playBackState()?.is_paused == true
+                      playBackState()?.is_paused == true &&
+                      playBackState()?.is_empty == false
                     }
                   >
                     <button
@@ -250,10 +264,8 @@ export default function PlayBar() {
                       title="Resume"
                       onclick={async () => {
                         await resumePlayback();
-                        // ✅ LAST.FM: Track when resuming from pause
-                        if (currentTrack()) {
-                          setPlayStartTime(Date.now());
-                        }
+                        // ✅ Reset play start time when resuming
+                        setPlayStartTime(Date.now());
                       }}
                     >
                       <span class="icon-[solar--play-bold] h-6 w-6 "></span>
@@ -277,11 +289,9 @@ export default function PlayBar() {
                     class="flex flex-row rounded-lg text-base font-medium text-zinc-400 hover:text-white hover:cursor-pointer"
                     title="Forward"
                     onClick={async () => {
+                      // ✅ Just call playNext - the backend will handle everything
+                      // and emit "song-changed" which will trigger scrobble reset
                       await playNext();
-                      // ✅ LAST.FM: Handle track change
-                      setTimeout(() => {
-                        if (currentTrack()) handleTrackChange(currentTrack()!);
-                      }, 100);
                     }}
                   >
                     <span class="icon-[solar--rewind-forward-bold] h-6 w-6 "></span>

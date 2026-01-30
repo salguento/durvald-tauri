@@ -1,7 +1,7 @@
 // Dependencies
 import "./App.css";
 import { Router, Route } from "@solidjs/router";
-import { onMount, createSignal, Show, createEffect } from "solid-js";
+import { onMount, createSignal, Show } from "solid-js";
 import "overlayscrollbars/overlayscrollbars.css";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
@@ -26,50 +26,55 @@ import { ErrorBoundary } from "solid-js";
 function App() {
   initializePlayerStore();
   const [isInitialized, setIsInitialized] = createSignal(false);
+  
   onMount(async () => {
     const [queueList, setQueueList] = playerStore.queueList;
     const [, setShowSidebar] = uiStore.showSideBar;
     const [, setInitializeLibraryStore] = libraryStore.initializeLibraryStore;
     const [trackStore] = libraryStore.trackStore;
+    
     try {
       await mirrorDB();
       lastfm.init();
       await invoke("start_auto_play");
-      // ✅ CENTRALIZED LAST.FM "NOW PLAYING" TRACKER
-      createEffect(() => {
-        const [currentTrack] = playerStore.currentTrack;
-        const track = currentTrack();
-        
 
-        // Only update when track changes AND we're connected
-        if (track && lastfm.status === "connected") {
-          // Prevent duplicate updates for same track (using song_id)
-          const staticTrackId = `${track.song_id}`;
-          if ((window as any)._lastFmTrackId === staticTrackId) return;
-          (window as any)._lastFmTrackId = staticTrackId;
-
-          // Trim metadata to prevent signature errors
-          const artist = (track.artist_name || "").trim();
-          const title = (track.title || "").trim();
-          const album = (track.release_title || "").trim() || undefined;
-
-          // Fire-and-forget update (non-blocking)
-          lastfm.updateNowPlaying(artist, title, album).catch((err) => {
-            console.warn("[Last.fm] Now playing update failed:", err);
-          });
-
-          console.log("[Last.fm] Now playing updated:", artist, "-", title);
-        }
-      });
-
+      // ✅ SINGLE "song-changed" EVENT HANDLER
+      // This is the ONLY place where queue updates happen in response to backend events
       await listen("song-changed", async () => {
         const trackId: number = await invoke("get_current_song_id");
-        addToHistory();
-
         const trackObj = trackStore().filter((t) => t.song_id === trackId);
-        defineCurrentTrack(trackObj[0]);
+        
+        if (trackObj.length > 0) {
+          const newTrack = trackObj[0];
+          
+          // ✅ Add PREVIOUS track to history BEFORE updating to new track
+          // currentTrack() still has the track that just finished
+          addToHistory();
+          
+          // Update current track to the NEW track
+          defineCurrentTrack(newTrack);
+          
+          // Remove first item from queue (song that just finished)
+          setQueueList((prev) => prev.slice(1));
+          
+          // ✅ RESTART PROGRESS TRACKING for the new song
+          // The backend's progress tracking loop stops when a song ends,
+          // so we need to restart it for each new song
+          await invoke("start_progress_tracking");
+          
+          // ✅ Update Last.fm "Now Playing" when song changes
+          if (lastfm.status === "connected") {
+            const artist = (newTrack.artist_name || "").trim();
+            const title = (newTrack.title || "").trim();
+            const album = (newTrack.release_title || "").trim() || undefined;
 
-        setQueueList((prev) => prev.slice(1));
+            lastfm.updateNowPlaying(artist, title, album).catch((err) => {
+              console.warn("[Last.fm] Now playing update failed:", err);
+            });
+
+            console.log("[Last.fm] Now playing updated:", artist, "-", title);
+          }
+        }
       });
 
       getHistory();
@@ -83,6 +88,7 @@ function App() {
       setIsInitialized(true);
     }
   });
+  
   return (
     <ErrorBoundary
       fallback={(err) => {
