@@ -22,18 +22,20 @@ import Routes from "./Routes";
 import Layout from "./pages/Layout";
 // Components
 import { ErrorBoundary } from "solid-js";
+import updateLibrary from "./hooks/library/updateLibrary";
 
 function App() {
   initializePlayerStore();
   const [isInitialized, setIsInitialized] = createSignal(false);
-  
+
   onMount(async () => {
     const [queueList, setQueueList] = playerStore.queueList;
     const [, setShowSidebar] = uiStore.showSideBar;
     const [, setInitializeLibraryStore] = libraryStore.initializeLibraryStore;
     const [trackStore] = libraryStore.trackStore;
-    
+
     try {
+      await updateLibrary();
       await mirrorDB();
       lastfm.init();
       await invoke("start_auto_play");
@@ -43,25 +45,25 @@ function App() {
       await listen("song-changed", async () => {
         const trackId: number = await invoke("get_current_song_id");
         const trackObj = trackStore().filter((t) => t.song_id === trackId);
-        
+
         if (trackObj.length > 0) {
           const newTrack = trackObj[0];
-          
+
           // ✅ Add PREVIOUS track to history BEFORE updating to new track
           // currentTrack() still has the track that just finished
           addToHistory();
-          
+
           // Update current track to the NEW track
           defineCurrentTrack(newTrack);
-          
+
           // Remove first item from queue (song that just finished)
           setQueueList((prev) => prev.slice(1));
-          
+
           // ✅ RESTART PROGRESS TRACKING for the new song
           // The backend's progress tracking loop stops when a song ends,
           // so we need to restart it for each new song
           await invoke("start_progress_tracking");
-          
+
           // ✅ Update Last.fm "Now Playing" when song changes
           if (lastfm.status === "connected") {
             const artist = (newTrack.artist_name || "").trim();
@@ -88,7 +90,7 @@ function App() {
       setIsInitialized(true);
     }
   });
-  
+
   return (
     <ErrorBoundary
       fallback={(err) => {

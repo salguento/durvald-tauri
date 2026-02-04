@@ -1,4 +1,5 @@
 // Dependencies
+import { invoke } from "@tauri-apps/api/core";
 import { Tabs } from "@kobalte/core";
 import { createSignal } from "solid-js";
 // Store
@@ -62,8 +63,12 @@ export default function Onboarding() {
     });
   };
 
-  const finishOnboard = () => {
+  const finishOnboard = async () => {
     setShowOnboarding(false);
+    onboarding()?.file_paths.forEach(async (i) => {
+      await invoke("add_path_to_library_paths", { folderPath: i });
+      console.log(i);
+    });
     finishOnboarding();
   };
 
