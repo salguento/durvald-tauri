@@ -9,10 +9,6 @@ export function LastFmTest() {
 
   return (
     <div class="p-5 border border-gray-300 rounded-lg bg-white dark:bg-gray-800 shadow max-w-md mx-auto mt-6">
-      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
-        Last.fm Setup
-      </h3>
-
       {/* Step 1: Enter credentials */}
       <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -121,16 +117,6 @@ export function LastFmTest() {
         class="mt-3 w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-md transition-colors"
       >
         Debug Session
-      </button>
-      <button
-        onClick={async () => {
-          setResult("Debugging credentials...");
-          const debug = await lastfm.debugCredentials();
-          setResult(debug);
-        }}
-        class="mt-3 w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition-colors"
-      >
-        Debug Credentials
       </button>
 
       {/* Result display */}

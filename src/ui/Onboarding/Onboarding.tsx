@@ -1,9 +1,13 @@
 // Dependencies
 import { Tabs } from "@kobalte/core";
-import { createSignal, For } from "solid-js";
+import { createSignal } from "solid-js";
 // Store
 import { libraryStore } from "../../stores/libraryStore";
 import finishOnboarding from "../../hooks/library/Settings/finishOnboarding";
+import Welcome from "./Screens/01Welcome";
+import LocalFiles from "./Screens/02LocalFiles";
+import LastFm from "./Screens/03LastFm";
+import Finish from "./Screens/04Finish";
 // Types
 interface OnboardingType {
   file_paths: string[];
@@ -74,81 +78,33 @@ export default function Onboarding() {
   ];
   return (
     <div
-      class="w-full h-full flex items-center justify-center py-24"
+      class="w-full h-full flex items-center justify-center py-12"
       data-tauri-drag-region
     >
       <div class="w-2xl h-full bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-700/50 flex flex-col p-4 items-center gap-2">
-        <div class="pt-12 pb-8">
+        <div class="py-4">
           <img src="./assets/images/logotype.svg" class="h-8" />
         </div>
-        <div class="flex flex-col mb-4 gap-4 h-full w-full max-w-md">
+        <div class="flex flex-col p-4 gap-4 h-full w-full ">
           <Tabs.Root
             value={currentStep().toString()}
             class="h-full w-full flex justify-center"
           >
-            <Tabs.Content
-              value={"0"}
-              class="text-center text-zinc-50  py-4 h-full flex flex-col justify-center items-center"
-            >
-              <h3 class="text-xl font-bold">Welcome</h3>
-              <p class="mt-2">
-                Welcome to a musicophile road to a dream music library.
-              </p>
-              <p class="mt-2">Let's setup the basics.</p>
-              <p>:)</p>
+            <Tabs.Content value={"0"}>
+              <Welcome />
             </Tabs.Content>
-            <Tabs.Content
-              value={"1"}
-              class="text-center text-zinc-50  py-4 h-full flex flex-col justify-center items-center gap-2"
-            >
-              <div class="flex flex-col">
-                <h3 class="text-xl font-bold">Local Files</h3>
-                <p class="mt-2">Set the path to your local files:</p>
-              </div>
-              <div class="flex flex-col gap-1">
-                <For each={onboarding()?.file_paths}>
-                  {(path) => (
-                    <div class="flex gap-2 bg-zinc-950 border border-zinc-700/50 pl-4 pr-2 py-1 rounded-full items-center">
-                      <span class="text-xs   text-zinc-300">{path}</span>
-                      <button
-                        class="flex items-center cursor-pointer text-zinc-300 hover:text-zinc-50"
-                        title="Remove path"
-                        onClick={() => {
-                          handleRemovePath(path);
-                        }}
-                      >
-                        <span class="icon-[solar--close-circle-outline] h-3 "></span>
-                      </button>
-                    </div>
-                  )}
-                </For>
-              </div>
-              <div class="py-4">
-                <button
-                  class="bg-zinc-50 px-4 py-0.5 text-zinc-950 rounded-full font-medium cursor-pointer"
-                  onClick={() => {
-                    handleAddPath();
-                  }}
-                >
-                  Add path
-                </button>
-              </div>
+            <Tabs.Content value={"1"}>
+              <LocalFiles
+                addPath={handleAddPath}
+                removePath={handleRemovePath}
+                filePaths={onboarding()?.file_paths}
+              />
             </Tabs.Content>
-            <Tabs.Content
-              value={"2"}
-              class="text-center text-zinc-50  py-4 h-full flex flex-col justify-center items-center"
-            >
-              <h3 class="text-xl font-bold">LastFm</h3>
-              <p class="mt-2">
-                Connect to your account to scrobble your listining history.
-              </p>
+            <Tabs.Content value={"2"}>
+              <LastFm />
             </Tabs.Content>
-            <Tabs.Content
-              value={"3"}
-              class="text-center text-zinc-50  py-4 h-full flex flex-col justify-center items-center"
-            >
-              <h3 class="text-xl font-bold">{steps[currentStep()].title}</h3>
-              <p class="mt-2">{steps[currentStep()].content}</p>
+            <Tabs.Content value={"3"}>
+              <Finish />
             </Tabs.Content>
           </Tabs.Root>
           <div class="relative ">
@@ -163,7 +119,7 @@ export default function Onboarding() {
               ) : (
                 <div class="min-w-24"></div>
               )}
-              <div class="flex gap-2 justify-center  bottom-0 items-center w-full ">
+              {/*<div class="flex gap-2 justify-center  bottom-0 items-center w-full ">
                 <For each={steps}>
                   {(_step, index) => (
                     <div
@@ -173,7 +129,7 @@ export default function Onboarding() {
                     </div>
                   )}
                 </For>
-              </div>
+              </div>*/}
 
               <button
                 onClick={() => {
@@ -181,7 +137,10 @@ export default function Onboarding() {
                     setCurrentStep((p) => p + 1);
                   else finishOnboard();
                 }}
-                class="bg-zinc-50 px-4 py-0.5 text-zinc-950 rounded-full hover:bg-zinc-50 cursor-pointer font-medium min-w-24"
+                class="bg-zinc-50 px-4 py-0.5 text-zinc-950 rounded-full hover:bg-zinc-50 cursor-pointer font-medium min-w-24 disabled:bg-zinc-400 disabled:cursor-not-allowed"
+                disabled={
+                  !onboarding()?.file_paths.length && currentStep() == 1
+                }
               >
                 {currentStep() === steps.length - 1 ? "Finish" : "Next"}
               </button>
