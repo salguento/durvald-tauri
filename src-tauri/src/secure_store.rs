@@ -1,19 +1,20 @@
-use keyring::Entry;
 use once_cell::sync::Lazy;
 use serde_json::Value;
 use std::{collections::HashMap, fs, path::PathBuf, sync::Mutex};
-use tauri::{AppHandle, Manager}; // ✅ Required for .path() and .config()
+use tauri::{AppHandle, Manager};
 
-/// Production-grade secure storage using OS keychain for secrets
+/// Production-grade secure storage using OS keychain for secrets (macOS only),
+/// and AES-256-GCM encrypted filesystem storage for Windows and Linux.
 pub struct SecureStore {
     /// Path for non-sensitive data (API key, username)
     data_path: PathBuf,
 
-    /// Keychain service name (scoped to app bundle identifier)
+    /// Keychain service name — only used on macOS
+    #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
     keychain_service: String,
 
     /// In-memory cache of non-sensitive data
-    data: Mutex<HashMap<String, Value>>, // ✅ Fixed: snake_case + proper type syntax
+    data: Mutex<HashMap<String, Value>>,
 }
 
 impl SecureStore {
@@ -24,8 +25,7 @@ impl SecureStore {
             .expect("Failed to get app data directory")
             .join("lastfm_data.json");
 
-        // ✅ FIXED: Shortened service name (14 chars) avoids Windows 32-char limit
-        let keychain_service = "durvald.lastfm".to_string();
+        let keychain_service = "durvald_lastfm".to_string();
 
         let data = if data_path.exists() {
             Self::load_data(&data_path).unwrap_or_default()
@@ -52,231 +52,191 @@ impl SecureStore {
         fs::write(&self.data_path, contents).map_err(|e| e.to_string())
     }
 
-    // ===== KEYCHAIN (SECRETS ONLY) =====
-
-    // ===== KEYCHAIN (SECRETS) - WINDOWS FALLBACK =====
+    // ===== SECRETS =====
+    // macOS  → OS Keychain via keyring crate (always reliable)
+    // Windows → AES-256-GCM encrypted file, key derived from USERNAME|COMPUTERNAME
+    // Linux   → AES-256-GCM encrypted file, key derived from /etc/machine-id|USER
 
     pub fn set_secret(&self, name: &str, value: &str) -> Result<(), String> {
-        #[cfg(windows)]
+        #[cfg(target_os = "macos")]
         {
-            // Windows fallback: AES-256-GCM encrypted filesystem storage
-            use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
-            use ring::{
-                aead::{self, Aad, LessSafeKey, Nonce, UnboundKey},
-                digest, rand,
-            };
-
-            // Derive machine-specific key
-            let machine_id = format!(
-                "{}|{}",
-                std::env::var("USERNAME").unwrap_or_default(),
-                std::env::var("COMPUTERNAME").unwrap_or_default()
-            );
-            let mut ctx = digest::Context::new(&digest::SHA256);
-            ctx.update(machine_id.as_bytes());
-            let digest = ctx.finish();
-            let key_bytes: [u8; 32] = digest
-                .as_ref()
-                .try_into()
-                .map_err(|_| "Key derivation failed".to_string())?;
-
-            // Generate 12-byte nonce
-            let rng = rand::SystemRandom::new();
-            let nonce: [u8; 12] = rand::generate(&rng)
-                .map_err(|_| "RNG failed".to_string())?
-                .expose();
-
-            // Create sealing key
-            let sealing_key = LessSafeKey::new(
-                UnboundKey::new(&aead::AES_256_GCM, &key_bytes)
-                    .map_err(|_| "Key setup failed".to_string())?,
-            );
-
-            // CORRECT ring pattern: seal plaintext first, then prepend nonce
-            let mut in_out = value.as_bytes().to_vec();
-            sealing_key
-                .seal_in_place_append_tag(
-                    Nonce::try_assume_unique_for_key(&nonce)
-                        .map_err(|_| "Nonce creation failed".to_string())?,
-                    Aad::empty(),
-                    &mut in_out,
-                )
-                .map_err(|_| "Encryption failed".to_string())?;
-
-            // Build final buffer: [nonce (12 bytes)][ciphertext + tag]
-            let mut final_buf = nonce.to_vec();
-            final_buf.extend_from_slice(&in_out);
-
-            // Save to file - WITH MAXIMUM DEBUGGING
-            let secret_dir = self
-                .data_path
-                .parent()
-                .ok_or("No parent directory for data_path")?;
-
-            let secret_path = secret_dir.join(format!("secret_{}.enc", name));
-
-            println!("[WINDOWS DEBUG] set_secret - name: {}", name);
-            println!("[WINDOWS DEBUG] data_path: {:?}", self.data_path);
-            println!("[WINDOWS DEBUG] secret_dir: {:?}", secret_dir);
-            println!("[WINDOWS DEBUG] secret_path: {:?}", secret_path);
-            println!("[WINDOWS DEBUG] secret_dir exists: {}", secret_dir.exists());
-            println!(
-                "[WINDOWS DEBUG] secret_path exists BEFORE write: {}",
-                secret_path.exists()
-            );
-
-            // ✅ CREATE PARENT DIRECTORY IF MISSING
-            std::fs::create_dir_all(secret_dir)
-                .map_err(|e| format!("create_dir_all failed for {:?}: {}", secret_dir, e))?;
-
-            println!(
-                "[WINDOWS DEBUG] After create_dir_all - secret_dir exists: {}",
-                secret_dir.exists()
-            );
-
-            std::fs::write(&secret_path, BASE64.encode(&final_buf))
-                .map_err(|e| format!("write failed for {:?}: {}", secret_path, e))?;
-
-            println!(
-                "[WINDOWS DEBUG] write SUCCESS - secret_path exists AFTER write: {}",
-                secret_path.exists()
-            );
-            println!(
-                "[WINDOWS DEBUG] File size: {} bytes",
-                std::fs::metadata(&secret_path)
-                    .map(|m| m.len())
-                    .unwrap_or(0)
-            );
-
-            Ok(())
-        }
-
-        #[cfg(not(windows))]
-        {
-            // macOS/Linux: native keychain
-            let entry = keyring::Entry::new(&self.keychain_service, name)
+            let entry = Entry::new(&self.keychain_service, name)
                 .map_err(|e| format!("Keychain init failed: {:?}", e))?;
             entry
                 .set_password(value)
                 .map_err(|e| format!("Keychain save failed: {:?}", e))
         }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            self.write_encrypted_secret(name, value)
+        }
     }
 
     pub fn get_secret(&self, name: &str) -> Result<String, String> {
-        #[cfg(windows)]
+        #[cfg(target_os = "macos")]
         {
-            use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
-            use ring::{
-                aead::{self, Aad, LessSafeKey, Nonce, UnboundKey},
-                digest,
-            };
-
-            // Derive same machine-specific key
-            let machine_id = format!(
-                "{}|{}",
-                std::env::var("USERNAME").unwrap_or_default(),
-                std::env::var("COMPUTERNAME").unwrap_or_default()
-            );
-            let mut ctx = digest::Context::new(&digest::SHA256);
-            ctx.update(machine_id.as_bytes());
-            let digest = ctx.finish();
-            let key_bytes: [u8; 32] = digest
-                .as_ref()
-                .try_into()
-                .map_err(|_| "Key derivation failed".to_string())?;
-
-            // Read and decode ciphertext - WITH MAXIMUM DEBUGGING
-            let secret_dir = self
-                .data_path
-                .parent()
-                .ok_or("No parent directory for data_path")?;
-
-            let secret_path = secret_dir.join(format!("secret_{}.enc", name));
-
-            println!("[WINDOWS DEBUG] get_secret - name: {}", name);
-            println!("[WINDOWS DEBUG] data_path: {:?}", self.data_path);
-            println!("[WINDOWS DEBUG] secret_dir: {:?}", secret_dir);
-            println!("[WINDOWS DEBUG] secret_path: {:?}", secret_path);
-            println!("[WINDOWS DEBUG] secret_dir exists: {}", secret_dir.exists());
-            println!(
-                "[WINDOWS DEBUG] secret_path exists: {}",
-                secret_path.exists()
-            );
-
-            if !secret_path.exists() {
-                return Err(format!("File not found: {:?}", secret_path));
-            }
-
-            let ciphertext =
-                std::fs::read(&secret_path).map_err(|e| format!("read failed: {}", e))?;
-            println!(
-                "[WINDOWS DEBUG] File read successfully - size: {} bytes",
-                ciphertext.len()
-            );
-
-            let decoded = BASE64
-                .decode(&ciphertext)
-                .map_err(|e| format!("base64 decode failed: {}", e))?;
-            println!(
-                "[WINDOWS DEBUG] Base64 decode successful - decoded size: {} bytes",
-                decoded.len()
-            );
-
-            if decoded.len() < 12 {
-                return Err("Invalid ciphertext length".to_string());
-            }
-
-            // Split nonce and ciphertext+tag
-            let nonce: [u8; 12] = decoded[..12]
-                .try_into()
-                .map_err(|_| "Invalid nonce length".to_string())?;
-            let ciphertext_and_tag = &decoded[12..];
-
-            // Create opening key
-            let opening_key = LessSafeKey::new(
-                UnboundKey::new(&aead::AES_256_GCM, &key_bytes)
-                    .map_err(|_| "Key setup failed".to_string())?,
-            );
-
-            // Decrypt (in-place operation modifies the buffer)
-            let mut buf = ciphertext_and_tag.to_vec();
-            let plaintext = opening_key
-                .open_in_place(
-                    Nonce::try_assume_unique_for_key(&nonce)
-                        .map_err(|_| "Invalid nonce".to_string())?,
-                    Aad::empty(),
-                    &mut buf,
-                )
-                .map_err(|_| "Decryption failed (wrong machine or corrupted data)".to_string())?;
-
-            let result = String::from_utf8(plaintext.to_vec()).map_err(|e| e.to_string())?;
-            println!(
-                "[WINDOWS DEBUG] Decryption SUCCESS - plaintext length: {}",
-                result.len()
-            );
-
-            Ok(result)
-        }
-
-        #[cfg(not(windows))]
-        {
-            // macOS/Linux: native keychain
-            let entry = keyring::Entry::new(&self.keychain_service, name)
+            let entry = Entry::new(&self.keychain_service, name)
                 .map_err(|e| format!("Keychain init failed: {:?}", e))?;
             entry.get_password().map_err(|e| match e {
                 keyring::Error::NoEntry => "Not found".to_string(),
                 _ => format!("Keychain error: {:?}", e),
             })
         }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            self.read_encrypted_secret(name)
+        }
     }
 
     pub fn delete_secret(&self, name: &str) -> Result<(), String> {
-        let entry = Entry::new(&self.keychain_service, name)
-            .map_err(|e| format!("Keychain init failed: {:?}", e))?;
-        // ✅ keyring v3.6.3: delete_credential() (renamed from delete_password)
-        entry
-            .delete_credential()
-            .map_err(|e| format!("Keychain delete failed: {:?}", e))
+        #[cfg(target_os = "macos")]
+        {
+            let entry = keyring::Entry::new(&self.keychain_service, name)
+                .map_err(|e| format!("Keychain init failed: {:?}", e))?;
+            entry
+                .delete_credential()
+                .map_err(|e| format!("Keychain delete failed: {:?}", e))
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            let path = self.secret_path(name)?;
+            if path.exists() {
+                fs::remove_file(&path).map_err(|e| format!("delete failed: {}", e))
+            } else {
+                Ok(()) // Already gone — not an error
+            }
+        }
+    }
+
+    // ===== ENCRYPTED FILE HELPERS (Windows + Linux) =====
+
+    #[cfg(not(target_os = "macos"))]
+    fn machine_key(&self) -> Result<[u8; 32], String> {
+        use ring::digest;
+
+        #[cfg(windows)]
+        let machine_id = format!(
+            "{}|{}",
+            std::env::var("USERNAME").unwrap_or_default(),
+            std::env::var("COMPUTERNAME").unwrap_or_default()
+        );
+
+        #[cfg(target_os = "linux")]
+        let machine_id = {
+            // /etc/machine-id is a stable UUID present on all systemd-based distros.
+            // Fall back to /var/lib/dbus/machine-id on older systems.
+            let mid = fs::read_to_string("/etc/machine-id")
+                .or_else(|_| fs::read_to_string("/var/lib/dbus/machine-id"))
+                .unwrap_or_default()
+                .trim()
+                .to_string();
+            let user = std::env::var("USER").unwrap_or_default();
+            format!("{}|{}", mid, user)
+        };
+
+        let mut ctx = digest::Context::new(&digest::SHA256);
+        ctx.update(machine_id.as_bytes());
+        let digest = ctx.finish();
+        digest
+            .as_ref()
+            .try_into()
+            .map_err(|_| "Key derivation failed".to_string())
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    fn secret_path(&self, name: &str) -> Result<PathBuf, String> {
+        let dir = self
+            .data_path
+            .parent()
+            .ok_or("No parent directory for data_path")?;
+        fs::create_dir_all(dir)
+            .map_err(|e| format!("create_dir_all failed for {:?}: {}", dir, e))?;
+        Ok(dir.join(format!("secret_{}.enc", name)))
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    fn write_encrypted_secret(&self, name: &str, value: &str) -> Result<(), String> {
+        use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
+        use ring::{
+            aead::{self, Aad, LessSafeKey, Nonce, UnboundKey},
+            rand,
+        };
+
+        let key_bytes = self.machine_key()?;
+
+        let rng = rand::SystemRandom::new();
+        let nonce: [u8; 12] = rand::generate(&rng)
+            .map_err(|_| "RNG failed".to_string())?
+            .expose();
+
+        let sealing_key = LessSafeKey::new(
+            UnboundKey::new(&aead::AES_256_GCM, &key_bytes)
+                .map_err(|_| "Key setup failed".to_string())?,
+        );
+
+        let mut in_out = value.as_bytes().to_vec();
+        sealing_key
+            .seal_in_place_append_tag(
+                Nonce::try_assume_unique_for_key(&nonce)
+                    .map_err(|_| "Nonce creation failed".to_string())?,
+                Aad::empty(),
+                &mut in_out,
+            )
+            .map_err(|_| "Encryption failed".to_string())?;
+
+        // Layout: [nonce (12 bytes)][ciphertext + GCM tag]
+        let mut final_buf = nonce.to_vec();
+        final_buf.extend_from_slice(&in_out);
+
+        let path = self.secret_path(name)?;
+        fs::write(&path, BASE64.encode(&final_buf))
+            .map_err(|e| format!("write failed for {:?}: {}", path, e))
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    fn read_encrypted_secret(&self, name: &str) -> Result<String, String> {
+        use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
+        use ring::aead::{self, Aad, LessSafeKey, Nonce, UnboundKey};
+
+        let key_bytes = self.machine_key()?;
+        let path = self.secret_path(name)?;
+
+        if !path.exists() {
+            return Err("Not found".to_string());
+        }
+
+        let raw = fs::read(&path).map_err(|e| format!("read failed: {}", e))?;
+        let decoded = BASE64
+            .decode(&raw)
+            .map_err(|e| format!("base64 decode failed: {}", e))?;
+
+        if decoded.len() < 12 {
+            return Err("Invalid ciphertext length".to_string());
+        }
+
+        let nonce: [u8; 12] = decoded[..12]
+            .try_into()
+            .map_err(|_| "Invalid nonce length".to_string())?;
+
+        let opening_key = LessSafeKey::new(
+            UnboundKey::new(&aead::AES_256_GCM, &key_bytes)
+                .map_err(|_| "Key setup failed".to_string())?,
+        );
+
+        let mut buf = decoded[12..].to_vec();
+        let plaintext = opening_key
+            .open_in_place(
+                Nonce::try_assume_unique_for_key(&nonce)
+                    .map_err(|_| "Invalid nonce".to_string())?,
+                Aad::empty(),
+                &mut buf,
+            )
+            .map_err(|_| "Decryption failed (wrong machine or corrupted data)".to_string())?;
+
+        String::from_utf8(plaintext.to_vec()).map_err(|e| e.to_string())
     }
 
     // ===== NON-SECRET DATA (FILESYSTEM) =====
