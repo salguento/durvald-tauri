@@ -157,15 +157,30 @@ export default function PlayBar() {
         const title = (track.title || "").trim();
         const album = (track.release_title || "").trim() || undefined;
 
-        lastfm.scrobble(artist, title, album).catch((err) => {
-          console.warn("[Last.fm] Scrobble failed:", err);
+        lastfm.scrobble(artist, title, album).then((success) => {
+          if (success) {
+            // Scrobble confirmed — mark as done so we don't retry
+            setHasScrobbled(true);
+            setLastScrobbledTrackId(trackId);
+          } else {
+            // Network failure — scrobble was queued for retry.
+            // Leave hasScrobbled=false so if connection comes back mid-song
+            // and the queue flush doesn't cover it, we can still try again.
+            console.log("[Scrobble Check] Scrobble queued offline, will retry when back online.");
+          }
+        }).catch((err) => {
+          console.warn("[Last.fm] Scrobble call threw unexpectedly:", err);
         });
 
-        console.log("[Last.fm] Scrobbled:", artist, "-", title);
+        console.log("[Last.fm] Scrobble initiated for:", artist, "-", title);
+      } else {
+        // Not connected at all — queue it and leave hasScrobbled=false
+        const artist = (track.artist_name || "").trim();
+        const title = (track.title || "").trim();
+        const album = (track.release_title || "").trim() || undefined;
+        lastfm.scrobble(artist, title, album); // will enqueue since not connected
+        console.log("[Scrobble Check] Not connected, scrobble queued for later.");
       }
-
-      setHasScrobbled(true);
-      setLastScrobbledTrackId(trackId);
     }
   };
 

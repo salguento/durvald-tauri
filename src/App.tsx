@@ -38,7 +38,41 @@ function App() {
       await updateLibrary();
       await mirrorDB();
       lastfm.init();
+
+      // ✅ Re-send "now playing" whenever Last.fm connection is restored
+      // (handles network dropouts, player restarts, etc.)
+      lastfm.onConnectionRestored(() => {
+        const track = playerStore.currentTrack[0]();
+        if (!track) return;
+        const artist = (track.artist_name || "").trim();
+        const title = (track.title || "").trim();
+        const album = (track.release_title || "").trim() || undefined;
+        if (artist && title) {
+          console.log("[Last.fm] Restoring now playing after reconnect:", artist, "-", title);
+          lastfm.updateNowPlaying(artist, title, album).catch((err) => {
+            console.warn("[Last.fm] Now playing restore failed:", err);
+          });
+        }
+      });
+
       await invoke("start_auto_play");
+
+      // ✅ Handle player restart: if a track was already loaded before the
+      // frontend started (e.g. app restart mid-session), send now playing immediately
+      if (lastfm.status === "connected") {
+        const track = playerStore.currentTrack[0]();
+        if (track) {
+          const artist = (track.artist_name || "").trim();
+          const title = (track.title || "").trim();
+          const album = (track.release_title || "").trim() || undefined;
+          if (artist && title) {
+            console.log("[Last.fm] Sending now playing on startup:", artist, "-", title);
+            lastfm.updateNowPlaying(artist, title, album).catch((err) => {
+              console.warn("[Last.fm] Startup now playing failed:", err);
+            });
+          }
+        }
+      }
 
       // ✅ SINGLE "song-changed" EVENT HANDLER
       // This is the ONLY place where queue updates happen in response to backend events
