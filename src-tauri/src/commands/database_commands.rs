@@ -81,6 +81,33 @@ pub struct PlaylistSong {
     added_at: String,
 }
 
+// ===== LAST SESSION =====
+// Stores exactly one row (session_id = 1) that is upserted on every meaningful
+// player state change so the app can resume from where it left off.
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub struct LastSession {
+    // Playback position
+    pub current_song_id: Option<i64>, // song_id of the track that was playing
+    pub progress_seconds: f64,        // playback position in seconds (fractional)
+
+    // Player state
+    pub volume: f64,          // 0.0 – 100.0
+    pub shuffle_enabled: bool,
+    pub repeat_mode: String,  // "none" | "one" | "all"
+
+    // Queue snapshot: JSON array of song_ids in order, e.g. "[12, 7, 33, 5]"
+    // Stored as TEXT so we don't need a separate junction table.
+    pub queue_snapshot: String,
+    pub queue_position: i64, // index of current_song_id inside queue_snapshot
+
+    // Source context — lets the UI restore the "view" the user was in
+    // e.g. "release:42", "playlist:7", "library", "search", ""
+    pub source_context: String,
+
+    pub updated_at: String,
+}
+
 #[derive(Serialize, Clone, Debug, Hash, Eq, PartialEq)]
 pub struct ReleaseGroup {
     title: String,
@@ -372,6 +399,25 @@ pub fn create_tables() -> Result<(), String> {
         (),
     )
     .map_err(|e| format!("Failed to create table: {}", e))?;
+
+    // Single-row table (session_id = 1 always) that persists the player state
+    // across restarts so the user can resume exactly where they left off.
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS last_session (
+            session_id      INTEGER PRIMARY KEY DEFAULT 1 CHECK (session_id = 1),
+            current_song_id INTEGER REFERENCES songs(song_id) ON DELETE SET NULL,
+            progress_seconds REAL NOT NULL DEFAULT 0.0,
+            volume          REAL NOT NULL DEFAULT 50.0,
+            shuffle_enabled INTEGER NOT NULL DEFAULT 0,
+            repeat_mode     TEXT NOT NULL DEFAULT 'none',
+            queue_snapshot  TEXT NOT NULL DEFAULT '[]',
+            queue_position  INTEGER NOT NULL DEFAULT 0,
+            source_context  TEXT NOT NULL DEFAULT '',
+            updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+        )",
+        (),
+    )
+    .map_err(|e| format!("Failed to create last_session table: {}", e))?;
 
     Ok(())
 }
@@ -1274,4 +1320,225 @@ pub async fn update_onboarding_settings(value: bool) -> Result<(), String> {
     .map_err(|e| format!("Thread panicked: {:?}", e))?;
 
     result
+}
+
+// ===== LAST SESSION COMMANDS =====
+
+/// Ensures a default session row exists (session_id = 1).
+/// Called once on startup alongside `initiate_settings`.
+pub fn initiate_last_session() -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    db.execute(
+        "INSERT OR IGNORE INTO last_session (session_id) VALUES (1)",
+        [],
+    )
+    .map_err(|e| format!("Failed to initialise last_session row: {}", e))?;
+
+    Ok(())
+}
+
+/// Returns the persisted session, or a sensible default if none exists yet.
+#[tauri::command]
+pub fn get_last_session() -> Result<LastSession, String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let session = db
+        .query_row(
+            "SELECT
+                current_song_id,
+                progress_seconds,
+                volume,
+                shuffle_enabled,
+                repeat_mode,
+                queue_snapshot,
+                queue_position,
+                source_context,
+                updated_at
+             FROM last_session
+             WHERE session_id = 1",
+            [],
+            |row| {
+                Ok(LastSession {
+                    current_song_id: row.get(0)?,
+                    progress_seconds: row.get(1)?,
+                    volume: row.get(2)?,
+                    shuffle_enabled: row.get::<_, i64>(3)? != 0,
+                    repeat_mode: row.get(4)?,
+                    queue_snapshot: row.get(5)?,
+                    queue_position: row.get(6)?,
+                    source_context: row.get(7)?,
+                    updated_at: row.get(8)?,
+                })
+            },
+        )
+        .optional()
+        .map_err(|e| format!("Failed to query last_session: {}", e))?;
+
+    // If the row doesn't exist yet (e.g. first ever launch before initiate_last_session
+    // ran), return a zero-state default rather than an error.
+    Ok(session.unwrap_or(LastSession {
+        current_song_id: None,
+        progress_seconds: 0.0,
+        volume: 50.0,
+        shuffle_enabled: false,
+        repeat_mode: "none".to_string(),
+        queue_snapshot: "[]".to_string(),
+        queue_position: 0,
+        source_context: "".to_string(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+    }))
+}
+
+/// Upserts the complete session state in one call.
+/// Call this whenever any of the tracked fields change (song change, seek,
+/// volume, shuffle toggle, etc.) — it's a single cheap SQLite write.
+#[tauri::command]
+pub fn save_last_session(
+    current_song_id: Option<i64>,
+    progress_seconds: f64,
+    volume: f64,
+    shuffle_enabled: bool,
+    repeat_mode: String,
+    queue_snapshot: String, // JSON array of song_ids, e.g. "[12, 7, 33]"
+    queue_position: i64,
+    source_context: String,
+) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let updated_at = chrono::Utc::now().to_rfc3339();
+
+    db.execute(
+        "INSERT INTO last_session (
+            session_id, current_song_id, progress_seconds, volume,
+            shuffle_enabled, repeat_mode, queue_snapshot, queue_position,
+            source_context, updated_at
+         ) VALUES (1, ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+         ON CONFLICT(session_id) DO UPDATE SET
+            current_song_id  = excluded.current_song_id,
+            progress_seconds = excluded.progress_seconds,
+            volume           = excluded.volume,
+            shuffle_enabled  = excluded.shuffle_enabled,
+            repeat_mode      = excluded.repeat_mode,
+            queue_snapshot   = excluded.queue_snapshot,
+            queue_position   = excluded.queue_position,
+            source_context   = excluded.source_context,
+            updated_at       = excluded.updated_at",
+        params![
+            current_song_id,
+            progress_seconds,
+            volume,
+            shuffle_enabled as i64,
+            repeat_mode,
+            queue_snapshot,
+            queue_position,
+            source_context,
+            updated_at,
+        ],
+    )
+    .map_err(|e| format!("Failed to save last_session: {}", e))?;
+
+    Ok(())
+}
+
+/// Convenience command: update only the playback position (called on seek / every N seconds).
+/// Avoids having to pass the full session state on every progress tick.
+#[tauri::command]
+pub fn update_session_progress(progress_seconds: f64) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let updated_at = chrono::Utc::now().to_rfc3339();
+
+    db.execute(
+        "UPDATE last_session
+         SET progress_seconds = ?1, updated_at = ?2
+         WHERE session_id = 1",
+        params![progress_seconds, updated_at],
+    )
+    .map_err(|e| format!("Failed to update session progress: {}", e))?;
+
+    Ok(())
+}
+
+/// Convenience command: update only the volume level.
+#[tauri::command]
+pub fn update_session_volume(volume: f64) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let updated_at = chrono::Utc::now().to_rfc3339();
+
+    db.execute(
+        "UPDATE last_session
+         SET volume = ?1, updated_at = ?2
+         WHERE session_id = 1",
+        params![volume, updated_at],
+    )
+    .map_err(|e| format!("Failed to update session volume: {}", e))?;
+
+    Ok(())
+}
+
+/// Convenience command: update the current song and reset progress to 0.
+/// Call this when a track change happens so you never read stale progress for a new song.
+#[tauri::command]
+pub fn update_session_current_song(
+    current_song_id: Option<i64>,
+    queue_snapshot: String,
+    queue_position: i64,
+    source_context: String,
+) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let updated_at = chrono::Utc::now().to_rfc3339();
+
+    db.execute(
+        "UPDATE last_session
+         SET current_song_id  = ?1,
+             progress_seconds = 0.0,
+             queue_snapshot   = ?2,
+             queue_position   = ?3,
+             source_context   = ?4,
+             updated_at       = ?5
+         WHERE session_id = 1",
+        params![
+            current_song_id,
+            queue_snapshot,
+            queue_position,
+            source_context,
+            updated_at,
+        ],
+    )
+    .map_err(|e| format!("Failed to update session current song: {}", e))?;
+
+    Ok(())
+}
+
+/// Clears the session back to defaults (e.g. user explicitly stops playback).
+#[tauri::command]
+pub fn clear_last_session() -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    let updated_at = chrono::Utc::now().to_rfc3339();
+
+    db.execute(
+        "UPDATE last_session
+         SET current_song_id  = NULL,
+             progress_seconds = 0.0,
+             queue_snapshot   = '[]',
+             queue_position   = 0,
+             source_context   = '',
+             updated_at       = ?1
+         WHERE session_id = 1",
+        params![updated_at],
+    )
+    .map_err(|e| format!("Failed to clear last_session: {}", e))?;
+
+    Ok(())
 }

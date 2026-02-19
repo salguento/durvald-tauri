@@ -19,12 +19,14 @@ use r2d2_sqlite::SqliteConnectionManager;
 use std::sync::Arc;
 
 use commands::database_commands::{
-    add_path_to_library_paths, add_song_to_history, add_track_to_playlist_songs, create_playlist,
-    create_tables, favorite_release, favorite_track, get_all_artists, get_all_playlist_songs,
-    get_all_playlists, get_all_releases, get_all_tracks, get_paths_from_library_paths,
-    get_play_history, get_release_by_id, get_releases, get_settings, get_song_by_id,
-    get_songs_by_release_id, hide_track, initiate_settings, remove_song_from_history,
-    remove_track_from_playlist, suggest_less_track, update_database, update_onboarding_settings,
+    add_path_to_library_paths, add_song_to_history, add_track_to_playlist_songs,
+    clear_last_session, create_playlist, create_tables, favorite_release, favorite_track,
+    get_all_artists, get_all_playlist_songs, get_all_playlists, get_all_releases, get_all_tracks,
+    get_last_session, get_paths_from_library_paths, get_play_history, get_release_by_id,
+    get_releases, get_settings, get_song_by_id, get_songs_by_release_id, hide_track,
+    initiate_last_session, initiate_settings, remove_song_from_history, remove_track_from_playlist,
+    save_last_session, suggest_less_track, update_database, update_onboarding_settings,
+    update_session_current_song, update_session_progress, update_session_volume,
 };
 use commands::get_audio_metadata;
 
@@ -585,6 +587,7 @@ fn main() {
 
                 create_tables().expect("failed to create tables");
                 initiate_settings().expect("failed to initiate settings");
+                initiate_last_session().expect("failed to initiate last session");
 
                 let app_handle = app.handle();
                 secure_store::init_secure_store(&app_handle);
@@ -655,7 +658,13 @@ fn main() {
                 verify_credentials,
                 debug_store,
                 debug_session,
-                debug_credentials
+                debug_credentials,
+                get_last_session,
+                save_last_session,
+                update_session_progress,
+                update_session_volume,
+                update_session_current_song,
+                clear_last_session
             ])
             .run(tauri::generate_context!())
             .expect("error while running tauri application");
