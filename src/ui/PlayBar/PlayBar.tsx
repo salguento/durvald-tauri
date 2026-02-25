@@ -455,7 +455,6 @@ export default function PlayBar() {
                       </Slider.Thumb>
                     </Slider.Track>
                   </Slider>
-                  <span class="text-white">{volume()}</span>
                 </Show>
               </div>
             </div>
