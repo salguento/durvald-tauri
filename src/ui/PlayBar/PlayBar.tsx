@@ -35,11 +35,10 @@ export default function PlayBar() {
   const [hasScrobbled, setHasScrobbled] = createSignal(false);
 
   // Imported Hooks
-  const { volume, handleVolumeChange, setVolumeImmediate } = useVolume({
-    initialVolume: 50,
-    debounceDelay: 100,
-  });
-  setVolumeImmediate(50);
+  const { volume, handleVolumeChange, setVolumeImmediate, volumeInitialized } =
+    useVolume({
+      debounceDelay: 100,
+    });
 
   // Imported Stores
   const [playBackState, setPlayBackState] = playerStore.playBackState;
@@ -157,20 +156,25 @@ export default function PlayBar() {
         const title = (track.title || "").trim();
         const album = (track.release_title || "").trim() || undefined;
 
-        lastfm.scrobble(artist, title, album).then((success) => {
-          if (success) {
-            // Scrobble confirmed — mark as done so we don't retry
-            setHasScrobbled(true);
-            setLastScrobbledTrackId(trackId);
-          } else {
-            // Network failure — scrobble was queued for retry.
-            // Leave hasScrobbled=false so if connection comes back mid-song
-            // and the queue flush doesn't cover it, we can still try again.
-            console.log("[Scrobble Check] Scrobble queued offline, will retry when back online.");
-          }
-        }).catch((err) => {
-          console.warn("[Last.fm] Scrobble call threw unexpectedly:", err);
-        });
+        lastfm
+          .scrobble(artist, title, album)
+          .then((success) => {
+            if (success) {
+              // Scrobble confirmed — mark as done so we don't retry
+              setHasScrobbled(true);
+              setLastScrobbledTrackId(trackId);
+            } else {
+              // Network failure — scrobble was queued for retry.
+              // Leave hasScrobbled=false so if connection comes back mid-song
+              // and the queue flush doesn't cover it, we can still try again.
+              console.log(
+                "[Scrobble Check] Scrobble queued offline, will retry when back online.",
+              );
+            }
+          })
+          .catch((err) => {
+            console.warn("[Last.fm] Scrobble call threw unexpectedly:", err);
+          });
 
         console.log("[Last.fm] Scrobble initiated for:", artist, "-", title);
       } else {
@@ -179,7 +183,9 @@ export default function PlayBar() {
         const title = (track.title || "").trim();
         const album = (track.release_title || "").trim() || undefined;
         lastfm.scrobble(artist, title, album); // will enqueue since not connected
-        console.log("[Scrobble Check] Not connected, scrobble queued for later.");
+        console.log(
+          "[Scrobble Check] Not connected, scrobble queued for later.",
+        );
       }
     }
   };
@@ -430,24 +436,27 @@ export default function PlayBar() {
                     <span class="icon-[solar--volume-loud-linear] h-6 w-6 "></span>
                   </Show>
                 </button>
-                <Slider
-                  class="relative flex flex-col items-center w-24 hover:cursor-pointer group"
-                  value={[volume()]}
-                  onChange={handleVolumeChange}
-                  minValue={0}
-                  maxValue={100}
-                  step={1}
-                >
-                  <Slider.Track class="bg-zinc-500 relative rounded-full h-1 w-full">
-                    <Slider.Fill class="absolute bg-white rounded-full h-full" />
-                    <Slider.Thumb class=" w-3 h-3  bg-white rounded-full -top-1 hover:cursor-pointer hover:w-4 hover:h-4 hover:-top-1.5 border border-zinc-900/50 focus:outline-0 relative flex justify-center">
-                      <Slider.Input />
-                      <div class="text-zinc-950 text-xs group-active:visible invisible absolute -top-7 flex justify-center bg-white  border border-zinc-500/50 h-fit px-2 py-0.5 rounded-lg w-8 text-center">
-                        <span class="">{volume()}</span>
-                      </div>
-                    </Slider.Thumb>
-                  </Slider.Track>
-                </Slider>
+                <Show when={volumeInitialized()}>
+                  <Slider
+                    class="relative flex flex-col items-center w-24 hover:cursor-pointer group"
+                    value={[volume()]}
+                    onChange={handleVolumeChange}
+                    minValue={0}
+                    maxValue={100}
+                    step={1}
+                  >
+                    <Slider.Track class="bg-zinc-500 relative rounded-full h-1 w-full">
+                      <Slider.Fill class="absolute bg-white rounded-full h-full" />
+                      <Slider.Thumb class=" w-3 h-3  bg-white rounded-full -top-1 hover:cursor-pointer hover:w-4 hover:h-4 hover:-top-1.5 border border-zinc-900/50 focus:outline-0 relative flex justify-center">
+                        <Slider.Input />
+                        <div class="text-zinc-950 text-xs group-active:visible invisible absolute -top-7 flex justify-center bg-white  border border-zinc-500/50 h-fit px-2 py-0.5 rounded-lg w-8 text-center">
+                          <span class="">{volume()}</span>
+                        </div>
+                      </Slider.Thumb>
+                    </Slider.Track>
+                  </Slider>
+                  <span class="text-white">{volume()}</span>
+                </Show>
               </div>
             </div>
           </div>

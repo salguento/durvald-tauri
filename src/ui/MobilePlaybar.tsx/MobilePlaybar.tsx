@@ -20,10 +20,9 @@ export default function MobilePlaybar() {
   const [, setLastProgressUpdate] = createSignal(0);
   // Imported Hooks
   const { setVolumeImmediate } = useVolume({
-    initialVolume: 50,
     debounceDelay: 100,
   });
-  setVolumeImmediate(50);
+  // setVolumeImmediate(50);
 
   // Imported Stores
   const [playBackState, setPlayBackState] = playerStore.playBackState;

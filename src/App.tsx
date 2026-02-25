@@ -4,11 +4,13 @@ import { Router, Route } from "@solidjs/router";
 import { onMount, createSignal, Show } from "solid-js";
 import "overlayscrollbars/overlayscrollbars.css";
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 // Hooks
 import addToHistory from "./hooks/audio/addToHistory";
 import getHistory from "./hooks/audio/getPlayHistory";
 import mirrorDB from "./hooks/library/mirrorDB";
+import { initVolume, useVolume } from "./hooks/audio/useVolume";
 // Services
 import { lastfm } from "./services/lastfm";
 // Store
@@ -33,10 +35,14 @@ function App() {
     const [, setShowSidebar] = uiStore.showSideBar;
     const [, setInitializeLibraryStore] = libraryStore.initializeLibraryStore;
     const [trackStore] = libraryStore.trackStore;
+    const [currentTrack] = playerStore.currentTrack;
+    const [playbackProgress] = playerStore.playbackProgress;
+    const { volume } = useVolume();
 
     try {
       await updateLibrary();
       await mirrorDB();
+      await initVolume();
       lastfm.init();
 
       // ✅ Re-send "now playing" whenever Last.fm connection is restored
@@ -48,7 +54,12 @@ function App() {
         const title = (track.title || "").trim();
         const album = (track.release_title || "").trim() || undefined;
         if (artist && title) {
-          console.log("[Last.fm] Restoring now playing after reconnect:", artist, "-", title);
+          console.log(
+            "[Last.fm] Restoring now playing after reconnect:",
+            artist,
+            "-",
+            title,
+          );
           lastfm.updateNowPlaying(artist, title, album).catch((err) => {
             console.warn("[Last.fm] Now playing restore failed:", err);
           });
@@ -66,7 +77,12 @@ function App() {
           const title = (track.title || "").trim();
           const album = (track.release_title || "").trim() || undefined;
           if (artist && title) {
-            console.log("[Last.fm] Sending now playing on startup:", artist, "-", title);
+            console.log(
+              "[Last.fm] Sending now playing on startup:",
+              artist,
+              "-",
+              title,
+            );
             lastfm.updateNowPlaying(artist, title, album).catch((err) => {
               console.warn("[Last.fm] Startup now playing failed:", err);
             });
@@ -123,6 +139,25 @@ function App() {
       setInitializeLibraryStore(true);
       setIsInitialized(true);
     }
+
+    const appWindow = getCurrentWindow();
+
+    appWindow.onCloseRequested(async (event) => {
+      event.preventDefault();
+
+      await invoke("save_last_session", {
+        currentSongId: currentTrack()?.song_id,
+        progressSeconds: 214,
+        volume: volume(),
+        shuffleEnabled: false,
+        repeatMode: "single",
+        queueSnapshot: JSON.stringify(queueList()),
+        queuePosition: 1,
+        sourceContext: "not sure",
+      });
+
+      await appWindow.destroy();
+    });
   });
 
   return (
