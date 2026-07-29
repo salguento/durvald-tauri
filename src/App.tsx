@@ -1,5 +1,4 @@
 // Dependencies
-import "./App.css";
 import { Router, Route } from "@solidjs/router";
 import { onMount, createSignal, Show } from "solid-js";
 import "overlayscrollbars/overlayscrollbars.css";
@@ -36,7 +35,6 @@ function App() {
     const [, setInitializeLibraryStore] = libraryStore.initializeLibraryStore;
     const [trackStore] = libraryStore.trackStore;
     const [currentTrack] = playerStore.currentTrack;
-    const [playbackProgress] = playerStore.playbackProgress;
     const { volume } = useVolume();
 
     try {

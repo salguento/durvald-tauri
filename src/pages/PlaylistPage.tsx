@@ -4,7 +4,6 @@ import { For, Show } from "solid-js";
 import { useParams } from "@solidjs/router";
 import { createSignal, createEffect } from "solid-js";
 // Hooks
-import playBack from "../hooks/audio/play";
 import favoriteTrack from "../hooks/library/Tracks/favoriteTrack";
 import favoriteRelease from "../hooks/library/Releases/favoriteRelease";
 // Stores

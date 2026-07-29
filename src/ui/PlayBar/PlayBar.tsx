@@ -406,7 +406,7 @@ export default function PlayBar() {
                     class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20"
                     title={`Last.fm connected${lastfm.username ? `: ${lastfm.username}` : ""}`}
                   >
-                    <span class="icon-[simple-icons--lastfm] h-4 w-4 text-blue-400"></span>
+                    <span class="icon-[solar--radio-minimalistic-bold] h-4 w-4 text-blue-400"></span>
                     <span class="text-xs font-medium text-blue-300 hidden md:block">
                       {lastfm.username
                         ? lastfm.username.slice(0, 8)

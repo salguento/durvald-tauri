@@ -12,7 +12,7 @@ export default function MenuBar() {
   const [menuCollapsed, setMenuCollaped] = uiStore.menuCollapsed;
   const [expandLibrary, setExpandLibrary] = uiStore.expandLibrary;
   const [expandPlaylist, setExpandPlaylist] = uiStore.expandPlaylist;
-  const [openDialog, setOpenDialog] = uiStore.openDialog;
+  const [, setOpenDialog] = uiStore.openDialog;
   function collapseMenu() {
     setMenuCollaped(!menuCollapsed());
   }

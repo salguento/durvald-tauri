@@ -1,12 +1,13 @@
 {
   "name": "durvald",
   "version": "0.1.0",
-  "description": "",
+  "description": "A local-first desktop music player built with SolidJS, Rust and Tauri.",
   "type": "module",
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "vite build",
+    "check": "tsc --noEmit",
+    "build": "bun run check && vite build",
     "serve": "vite preview",
     "tauri": "tauri"
   },

@@ -3,20 +3,21 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#000000" />
+        <meta name="theme-color" content="#070908" />
+        <meta name="color-scheme" content="dark" />
+        <meta name="description" content="durvald is a local-first desktop music player built with SolidJS, Rust and Tauri." />
+        <meta name="robots" content="index, follow" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="durvald — Your library, in tune with you" />
+        <meta property="og:description" content="A local-first desktop music player designed around ownership, discovery and the pleasure of browsing your collection." />
+        <meta property="og:site_name" content="salguento.xyz" />
+        <meta name="twitter:card" content="summary" />
         <link rel="icon" type="image/svg+xml" href="/src/assets/favicon.svg" />
-        <title>durvald - web</title>
+        <title>durvald — Local-first music player</title>
     </head>
     <body>
-        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <noscript>durvald requires JavaScript to display this interactive project showcase.</noscript>
         <div id="root"></div>
-        <script type="module">
-            import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-            window.addEventListener("DOMContentLoaded", async () => {
-                const mainWindow = getCurrentWebviewWindow();
-                await mainWindow.emit("main-window-ready");
-            });
-        </script>
         <script src="/src/index.tsx" type="module"></script>
     </body>
 </html>

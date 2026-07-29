@@ -1,6 +1,5 @@
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 // Components
-import FolderSelector from "../ui/FolderSelector/FolderSelector";
 import { LastFmTest } from "../ui/LastFm/LastFmConnect";
 
 export default function Settings() {

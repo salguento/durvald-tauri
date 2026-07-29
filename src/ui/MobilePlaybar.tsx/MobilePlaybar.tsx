@@ -6,7 +6,6 @@ import { onMount, Show, createSignal } from "solid-js";
 import playBack from "../../hooks/audio/play";
 import pausePlayback from "../../hooks/audio/pause";
 import resumePlayback from "../../hooks/audio/resume";
-import { useVolume } from "../../hooks/audio/useVolume";
 import playNext from "../../hooks/audio/next";
 // Store
 import { playerStore } from "../../stores/playerStore";
@@ -18,12 +17,6 @@ export default function MobilePlaybar() {
   const [isDragging] = createSignal(false);
 
   const [, setLastProgressUpdate] = createSignal(0);
-  // Imported Hooks
-  const { setVolumeImmediate } = useVolume({
-    debounceDelay: 100,
-  });
-  // setVolumeImmediate(50);
-
   // Imported Stores
   const [playBackState, setPlayBackState] = playerStore.playBackState;
   const [currentTrack] = playerStore.currentTrack;
