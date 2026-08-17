@@ -725,7 +725,7 @@ pub fn get_release_by_id(release_id: &str) -> Result<Releases, String> {
         Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
 
     db.query_row(
-        "SELECT * FROM releases WHERE id = ?1",
+        "SELECT * FROM releases WHERE release_id = ?1",
         [release_id],
         |row| {
             Ok(Releases {
