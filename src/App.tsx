@@ -35,6 +35,7 @@ function App() {
     const [, setInitializeLibraryStore] = libraryStore.initializeLibraryStore;
     const [trackStore] = libraryStore.trackStore;
     const [currentTrack] = playerStore.currentTrack;
+    const [playbackProgress] = playerStore.playbackProgress;
     const { volume } = useVolume();
 
     try {
@@ -143,15 +144,27 @@ function App() {
     appWindow.onCloseRequested(async (event) => {
       event.preventDefault();
 
+      const currentId = currentTrack()?.song_id ?? null;
+      const position = playbackProgress().position;
+      const volumeLevel = volume();
+
+      // Queue snapshot: ordered song_ids, with the current track first so the
+      // session can be resumed exactly where the user left off.
+      const restIds = queueList().map((t) => t.song_id);
+      const snapshot = JSON.stringify(
+        currentId != null ? [currentId, ...restIds] : restIds,
+      );
+      const queuePosition = currentId != null ? 0 : -1;
+
       await invoke("save_last_session", {
-        currentSongId: currentTrack()?.song_id,
-        progressSeconds: 214,
-        volume: volume(),
-        shuffleEnabled: false,
-        repeatMode: "single",
-        queueSnapshot: JSON.stringify(queueList()),
-        queuePosition: 1,
-        sourceContext: "not sure",
+        currentSongId: currentId,
+        progressSeconds: position,
+        volume: volumeLevel,
+        shuffleEnabled: false, // sem estado de shuffle implementado no app
+        repeatMode: "none", // sem estado de repeat implementado no app
+        queueSnapshot: snapshot,
+        queuePosition,
+        sourceContext: "", // sem rastreio de contexto de view implementado no app
       });
 
       await appWindow.destroy();
