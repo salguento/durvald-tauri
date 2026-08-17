@@ -3,6 +3,7 @@ import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
 // Hooks
 // Store
 import { playerStore } from "../../../stores/playerStore";
+import { coverUrl } from "../../../utils/coverUrl";
 export default function Playing() {
   const [currentTrack] = playerStore.currentTrack;
   return (
@@ -19,7 +20,7 @@ export default function Playing() {
         class="h-full rounded-2xl relative overflow-y-auto pb-8"
       >
         <div class="flex flex-col  gap-3 p-1">
-          <img src={currentTrack()?.artwork} class="rounded-2xl w-full" />
+          <img src={coverUrl(currentTrack()?.artwork)} class="rounded-2xl w-full" />
           <div class="flex flex-row justify-between w-full items-center">
             <span class="text-base lg:text-xl text-white font-semibold truncate hover:underline hover:cursor-pointer">
               {currentTrack()?.release_title}

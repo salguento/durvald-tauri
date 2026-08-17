@@ -13,6 +13,7 @@ import favoriteTrack from "../../hooks/library/Tracks/favoriteTrack";
 import { lastfm } from "../../services/lastfm";
 // Utils
 import { secToMin } from "../../utils/secToMin";
+import { coverUrl } from "../../utils/coverUrl";
 // Store
 import { playerStore } from "../../stores/playerStore";
 // UI
@@ -195,7 +196,7 @@ export default function PlayBar() {
       <Show when={currentTrack()}>
         <div class="absolute inset-0 z-1 rounded-3xl">
           <img
-            src={currentTrack()?.artwork}
+            src={coverUrl(currentTrack()?.artwork)}
             alt=""
             class="w-full h-full object-cover opacity-50"
           />
@@ -209,7 +210,7 @@ export default function PlayBar() {
                 <div class="flex flex-row items-center justify-start h-full w-full gap-3">
                   <div class="flex flex-row h-full items-center gap-3 overflow-hidden">
                     <img
-                      src={currentTrack()?.artwork}
+                      src={coverUrl(currentTrack()?.artwork)}
                       alt=""
                       class="h-14 rounded-2xl bg-white"
                     />

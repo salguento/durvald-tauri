@@ -7,6 +7,7 @@ import QueueContextMenu from "./QueueContextMenu";
 import QueueDropdownMenu from "./QueueDropdownMenu";
 import TrackType from "../../../../types/Track";
 import { secToMin } from "../../../../utils/secToMin";
+import { coverUrl } from "../../../../utils/coverUrl";
 import removeFromHistory from "../../../../hooks/audio/removeFromHistory";
 
 interface QueueTrackProps {
@@ -59,7 +60,7 @@ export default function QueueTrack({ item, historyId }: QueueTrackProps) {
                 <span class="icon-[solar--minus-circle-linear] h-6 w-6 text-white"></span>
               </button>
             </div>
-            <img src={item.artwork} class="w-10 h-10"></img>
+            <img src={coverUrl(item.artwork)} class="w-10 h-10"></img>
           </div>
           <div class="flex flex-col grow text-left overflow-hidden justify-center">
             <span class="text-sm truncate">{item.title}</span>
