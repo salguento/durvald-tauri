@@ -3,6 +3,7 @@ use chrono::Utc;
 use rusqlite::OptionalExtension;
 use rusqlite::{params, Connection, Result};
 use serde::{Deserialize, Serialize};
+use tauri::AppHandle;
 
 use super::metadata_commands::AudioMetadata;
 
@@ -554,12 +555,16 @@ pub fn add_song(song: AudioMetadata) -> Result<(), String> {
         )
         .map_err(|e| format!("Failed to check song existence: {}", e))?;
 
+    // Prefer the extracted cover file; fall back to the embedded base64 for
+    // compatibility with rows metadata read before this change.
+    let artwork = song.cover_path.as_deref().or(song.cover_image_base64.as_deref());
+
     if !exists {
         db.execute(
             "INSERT INTO songs (title, artwork, artist_id, artist_name, release_id, release_title, duration, track_number, disc_number, file_path) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
             params![
                 &song.title,
-                &song.cover_image_base64,
+                artwork,
                 artist_id,
                 &song.artist,
                 release_id,
@@ -591,10 +596,11 @@ pub fn group_releases(array: &Vec<AudioMetadata>) -> Vec<ReleaseGroup> {
     let mut release_map: HashMap<String, ReleaseGroup> = HashMap::new();
 
     for item in array {
+        let artwork = item.cover_path.as_ref().or(item.cover_image_base64.as_ref());
         if let (Some(title), Some(artist), Some(artwork), Some(year)) = (
             &item.release,
             &item.artist,
-            &item.cover_image_base64,
+            artwork,
             &item.year,
         ) {
             // Create a key based on release title, artist, and year to group by
@@ -624,7 +630,7 @@ pub fn group_releases(array: &Vec<AudioMetadata>) -> Vec<ReleaseGroup> {
 }
 
 #[tauri::command]
-pub async fn update_database(folder_path: String) -> Result<(), String> {
+pub async fn update_database(app: AppHandle, folder_path: String) -> Result<(), String> {
     let all_files: Vec<FileInfo> = scan_folder(folder_path)
         .await
         .map_err(|e| format!("Failed to scan folder: {}", e))?;
@@ -632,7 +638,7 @@ pub async fn update_database(folder_path: String) -> Result<(), String> {
     let metadata: Vec<AudioMetadata> = {
         let mut vec = Vec::new();
         for item in all_files {
-            let file_metadata: AudioMetadata = get_audio_metadata(item.path)
+            let file_metadata: AudioMetadata = get_audio_metadata(app.clone(), item.path)
                 .await
                 .map_err(|e| format!("Failed to get audio metadata: {}", e))?;
             vec.push(file_metadata)

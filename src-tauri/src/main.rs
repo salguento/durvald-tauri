@@ -629,6 +629,13 @@ fn main() {
                 let app_handle = app.handle();
                 secure_store::init_secure_store(&app_handle);
 
+                // Allow the asset protocol to serve cover files from the app
+                // data dir so the webview can load them via convertFileSrc.
+                if let Ok(covers) = app.path().app_data_dir().map(|d| d.join("covers")) {
+                    let _ = std::fs::create_dir_all(&covers);
+                    let _ = app.asset_protocol_scope().allow_directory(covers, true);
+                }
+
                 Ok(())
             })
             .plugin(tauri_plugin_dialog::init())
