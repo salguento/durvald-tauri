@@ -6,7 +6,7 @@ import ReleaseDropdownMenu from "../ReleaseContextMenu/ReleaseDropdownMenu";
 import { ReleaseType } from "../../../../types/ReleaseType";
 import playBack from "../../../../hooks/audio/play";
 import { TrackType } from "../../../../types/DatabaseType";
-import { coverUrl } from "../../../../utils/coverUrl";
+import { coverUrl, coverThumbUrl } from "../../../../utils/coverUrl";
 
 export default function ReleaseItem({ release }: { release: ReleaseType }) {
   const handlePlay = async () => {
@@ -32,7 +32,13 @@ export default function ReleaseItem({ release }: { release: ReleaseType }) {
               class="hover:cursor-pointer relative"
             >
               <img
-                src={coverUrl(release.artwork)}
+                src={coverThumbUrl(release.artwork)}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src =
+                    coverUrl(release.artwork) ?? "";
+                }}
+                loading="lazy"
+                decoding="async"
                 alt=""
                 class="min-h-40 min-w-40 max-h-64 max-w-64 w-full h-full rounded-lg group-hover:border-white border border-transparent"
               />

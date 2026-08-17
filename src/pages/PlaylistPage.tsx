@@ -11,7 +11,7 @@ import { libraryStore } from "../stores/libraryStore";
 // Utils
 import { secToMin } from "../utils/secToMin";
 import { dateToDMY } from "../utils/dateToDMY";
-import { coverUrl } from "../utils/coverUrl";
+import { coverUrl, coverThumbUrl } from "../utils/coverUrl";
 // Types
 import {
   PlaylistSongsType,
@@ -218,7 +218,15 @@ export default function PlaylistPage() {
                       </div>
                       <div class="flex justify-center items-center h-12 min-w-10 ">
                         <div class="h-10 w-10 rounded-sm overflow-hidden relative flex items-center justify-center">
-                          <img src={coverUrl(song.track.artwork)} />
+                          <img
+                            src={coverThumbUrl(song.track.artwork)}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src =
+                                coverUrl(song.track.artwork) ?? "";
+                            }}
+                            loading="lazy"
+                            decoding="async"
+                          />
                           <button
                             class="absolute flex items-center justify-center bg-zinc-700/25 w-full h-full invisible group-hover:visible cursor-pointer"
                             title="Play"

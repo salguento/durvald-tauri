@@ -196,7 +196,7 @@ export default function PlayBar() {
       <Show when={currentTrack()}>
         <div class="absolute inset-0 z-1 rounded-3xl">
           <img
-            src={coverUrl(currentTrack()?.artwork)}
+            src={coverUrl(currentTrack()?.artwork)} decoding="async"
             alt=""
             class="w-full h-full object-cover opacity-50"
           />
@@ -210,7 +210,7 @@ export default function PlayBar() {
                 <div class="flex flex-row items-center justify-start h-full w-full gap-3">
                   <div class="flex flex-row h-full items-center gap-3 overflow-hidden">
                     <img
-                      src={coverUrl(currentTrack()?.artwork)}
+                      src={coverUrl(currentTrack()?.artwork)} decoding="async"
                       alt=""
                       class="h-14 rounded-2xl bg-white"
                     />

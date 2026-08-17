@@ -45,7 +45,7 @@ export default function MobilePlaybar() {
           <div class="flex flex-row items-center justify-between p-2 h-full w-full">
             <div class="absolute inset-0 z-1 rounded-3xl">
               <img
-                src={coverUrl(currentTrack()?.artwork)}
+                src={coverUrl(currentTrack()?.artwork)} decoding="async"
                 alt=""
                 class="w-full h-full object-cover opacity-50"
               />
@@ -57,7 +57,7 @@ export default function MobilePlaybar() {
                     <div class="flex flex-row items-center justify-start h-full w-full gap-3">
                       <div class="flex flex-row h-full items-center gap-3 overflow-hidden w-full">
                         <img
-                          src={coverUrl(currentTrack()?.artwork)}
+                          src={coverUrl(currentTrack()?.artwork)} decoding="async"
                           alt=""
                           class="h-12 rounded-lg bg-white"
                         />

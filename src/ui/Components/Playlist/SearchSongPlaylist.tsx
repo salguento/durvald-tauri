@@ -5,7 +5,7 @@ import addTrackToPlaylist from "../../../hooks/library/Playlists/addTrackToPlayl
 // Stores
 import { libraryStore } from "../../../stores/libraryStore";
 import { TrackType } from "../../../types/DatabaseType";
-import { coverUrl } from "../../../utils/coverUrl";
+import { coverUrl, coverThumbUrl } from "../../../utils/coverUrl";
 // Functions
 export default function SearchSongPlaylist({
   playlistId,
@@ -65,7 +65,16 @@ export default function SearchSongPlaylist({
                 {(track) => (
                   <div class="flex gap-2 p-2 items-center hover:bg-zinc-900/50 rounded-xl">
                     <div class="aspect-square h-10 w-10 min-w-10 rounded-lg overflow-hidden">
-                      <img src={coverUrl(track.artwork)} class="w-full h-full" />
+                      <img
+                        src={coverThumbUrl(track.artwork)}
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src =
+                            coverUrl(track.artwork) ?? "";
+                        }}
+                        loading="lazy"
+                        decoding="async"
+                        class="w-full h-full"
+                      />
                     </div>
                     <div class="flex w-full justify-between">
                       <div class="flex flex-col">

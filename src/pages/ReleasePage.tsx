@@ -107,13 +107,13 @@ export default function ReleasePage() {
           <div class="sm:h-96 relative flex items-center w-full">
             <div class="absolute w-full h-full  overflow-hidden flex items-center">
               <div class="bg-zinc-900/50 backdrop-blur-xl absolute w-full h-full"></div>
-              <img src={coverUrl(release()?.artwork)} class="w-full h-full"></img>
+              <img src={coverUrl(release()?.artwork)} decoding="async" class="w-full h-full"></img>
             </div>
             <div class="flex flex-col gap-8 w-full relative pt-14">
               <div class="flex flex-col sm:flex-row gap-2 sm:gap-8 items-center px-10 py-8 sm:py-0">
                 <div>
                   <img
-                    src={coverUrl(release()?.artwork)}
+                    src={coverUrl(release()?.artwork)} decoding="async"
                     class="sm:w-64 min-w-48 w-64 rounded-xl"
                     alt=""
                   />

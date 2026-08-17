@@ -8,6 +8,8 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::fs;
+use std::path::{Path, PathBuf};
+use std::io::Cursor;
 use tauri::{AppHandle, Manager};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -81,7 +83,41 @@ pub(crate) fn write_cover_file(
         fs::write(&path, bytes).map_err(|e| format!("Failed to write cover: {}", e))?;
     }
 
+    // Best-effort thumbnail; a missing thumb (unsupported format) falls back
+    // to the full image in the UI.
+    write_thumbnail(&path, bytes);
+
     Ok(Some(path.to_string_lossy().to_string()))
+}
+
+/// Returns the expected thumbnail path for a full cover file, derived by
+/// naming convention: `covers/{hash}.{ext}` → `covers/thumb_{hash}.jpg`.
+pub(crate) fn thumb_path_for(full_path: &Path) -> PathBuf {
+    let dir = full_path.parent().unwrap_or(Path::new(""));
+    let stem = full_path.file_stem().unwrap_or_default().to_string_lossy();
+    dir.join(format!("thumb_{}.jpg", stem))
+}
+
+/// Downsizes an embedded cover to a ~256px JPEG thumbnail next to the full
+/// file. Best-effort: any failure (e.g. a format we didn't compile in) is
+/// silently ignored so the UI falls back to the full image.
+pub(crate) fn write_thumbnail(full_path: &Path, bytes: &[u8]) {
+    let Ok(img) = image::load_from_memory(bytes) else {
+        return;
+    };
+    let thumb = img.thumbnail(256, 256);
+    let mut out = Vec::new();
+    if thumb
+        .write_to(&mut Cursor::new(&mut out), image::ImageFormat::Jpeg)
+        .is_err()
+    {
+        return;
+    }
+
+    let thumb_path = thumb_path_for(full_path);
+    if !thumb_path.exists() {
+        let _ = fs::write(&thumb_path, &out);
+    }
 }
 
 /// Parses a legacy `data:<mime>;base64,<payload>` artwork value, writes the

@@ -3,9 +3,11 @@ use chrono::Utc;
 use rusqlite::OptionalExtension;
 use rusqlite::{params, Connection, Result};
 use serde::{Deserialize, Serialize};
-use tauri::AppHandle;
+use std::fs;
+use std::path::PathBuf;
+use tauri::{AppHandle, Manager};
 
-use super::metadata_commands::{cover_path_from_data_url, AudioMetadata};
+use super::metadata_commands::{cover_path_from_data_url, thumb_path_for, write_thumbnail, AudioMetadata};
 
 #[derive(Serialize, Clone, Debug)]
 pub struct LibraryPath {
@@ -683,6 +685,57 @@ fn migrate_covers_blocking(app: &AppHandle) -> Result<(), String> {
 
     migrate_table_artwork(&db, app, "songs", "song_id")?;
     migrate_table_artwork(&db, app, "releases", "release_id")?;
+
+    backfill_thumbnails(&db, app)?;
+
+    Ok(())
+}
+
+/// Generates thumbnails for artwork rows that are already file paths (e.g.
+/// written by step 1/A before thumbnails existed). Runs once: a sentinel file
+/// in the covers dir marks completion so startup stays cheap afterwards.
+fn backfill_thumbnails(db: &Connection, app: &AppHandle) -> Result<(), String> {
+    let dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Failed to resolve app data dir: {}", e))?
+        .join("covers");
+
+    let sentinel = dir.join(".thumbs_done");
+    if sentinel.exists() {
+        return Ok(());
+    }
+
+    for table in ["songs", "releases"] {
+        let sql = format!(
+            "SELECT DISTINCT artwork FROM {} WHERE artwork NOT LIKE 'data:%' AND artwork != ''",
+            table
+        );
+        let mut stmt = db
+            .prepare(&sql)
+            .map_err(|e| format!("Failed to prepare thumb backfill ({}): {}", table, e))?;
+
+        let rows: Vec<String> = stmt
+            .query_map([], |row| row.get(0))
+            .map_err(|e| format!("Failed to query {} artwork paths: {}", table, e))?
+            .collect::<Result<_, _>>()
+            .map_err(|e| format!("Failed to collect {} artwork paths: {}", table, e))?;
+
+        for artwork in rows {
+            let full = PathBuf::from(artwork);
+            if !full.exists() {
+                continue;
+            }
+            let thumb = thumb_path_for(&full);
+            if !thumb.exists() {
+                if let Ok(bytes) = fs::read(&full) {
+                    write_thumbnail(&full, &bytes);
+                }
+            }
+        }
+    }
+
+    let _ = fs::write(&sentinel, "");
 
     Ok(())
 }
