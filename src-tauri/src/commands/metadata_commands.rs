@@ -53,7 +53,11 @@ fn extract_cover_bytes(tag: &lofty::tag::Tag) -> Option<(String, Vec<u8>)> {
 
 /// Writes the cover to `{app_data}/covers/{content_md5}.{ext}` (idempotent by
 /// content hash, so equal covers dedupe) and returns its absolute path.
-fn write_cover_file(app: &AppHandle, mime: &str, bytes: &[u8]) -> Result<Option<String>, String> {
+pub(crate) fn write_cover_file(
+    app: &AppHandle,
+    mime: &str,
+    bytes: &[u8],
+) -> Result<Option<String>, String> {
     let ext = match mime {
         "image/png" => "png",
         "image/bmp" => "bmp",
@@ -78,6 +82,28 @@ fn write_cover_file(app: &AppHandle, mime: &str, bytes: &[u8]) -> Result<Option<
     }
 
     Ok(Some(path.to_string_lossy().to_string()))
+}
+
+/// Parses a legacy `data:<mime>;base64,<payload>` artwork value, writes the
+/// decoded bytes to the covers dir and returns the absolute file path.
+///
+/// Returns `Ok(None)` when the value is not a base64 data URL, so the caller
+/// can leave the row untouched (idempotent migration).
+pub(crate) fn cover_path_from_data_url(
+    app: &AppHandle,
+    data_url: &str,
+) -> Result<Option<String>, String> {
+    let rest = data_url.strip_prefix("data:").unwrap_or(data_url);
+    let (mime, payload) = match rest.split_once(";base64,") {
+        Some((m, p)) => (m, p.trim()),
+        None => return Ok(None),
+    };
+
+    let bytes = general_purpose::STANDARD
+        .decode(payload)
+        .map_err(|e| format!("Failed to decode cover base64: {}", e))?;
+
+    write_cover_file(app, mime, &bytes)
 }
 
 #[tauri::command]

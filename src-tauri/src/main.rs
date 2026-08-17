@@ -24,7 +24,8 @@ use commands::database_commands::{
     get_all_artists, get_all_playlist_songs, get_all_playlists, get_all_releases, get_all_tracks,
     get_last_session, get_paths_from_library_paths, get_play_history, get_release_by_id,
     get_releases, get_settings, get_song_by_id, get_songs_by_release_id, hide_track,
-    initiate_last_session, initiate_settings, remove_song_from_history, remove_track_from_playlist,
+    initiate_last_session, initiate_settings, migrate_covers,
+    remove_song_from_history, remove_track_from_playlist,
     save_last_session, suggest_less_track, update_database, update_onboarding_settings,
     update_session_current_song, update_session_progress, update_session_volume,
 };
@@ -636,6 +637,13 @@ fn main() {
                     let _ = app.asset_protocol_scope().allow_directory(covers, true);
                 }
 
+                // Migrate legacy base64 artworks to cover files in the
+                // background (idempotent; no-op once every row is a path).
+                let migrate_handle = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    let _ = migrate_covers(migrate_handle).await;
+                });
+
                 Ok(())
             })
             .plugin(tauri_plugin_dialog::init())
@@ -647,6 +655,7 @@ fn main() {
                 add_path_to_library_paths,
                 get_paths_from_library_paths,
                 update_database,
+                migrate_covers,
                 get_releases,
                 get_release_by_id,
                 get_songs_by_release_id,

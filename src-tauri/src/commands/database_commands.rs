@@ -5,7 +5,7 @@ use rusqlite::{params, Connection, Result};
 use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 
-use super::metadata_commands::AudioMetadata;
+use super::metadata_commands::{cover_path_from_data_url, AudioMetadata};
 
 #[derive(Serialize, Clone, Debug)]
 pub struct LibraryPath {
@@ -660,6 +660,59 @@ pub async fn update_database(app: AppHandle, folder_path: String) -> Result<(), 
 
     for i in metadata {
         add_song(i).map_err(|e| format!("Failed to add song: {}", e))?;
+    }
+
+    Ok(())
+}
+
+/// Migrates any legacy `data:...` artwork values (songs and releases) to cover
+/// files on disk. Idempotent: only rows whose artwork starts with "data:" are
+/// processed; after the first pass they become absolute paths and are skipped.
+#[tauri::command]
+pub async fn migrate_covers(app: AppHandle) -> Result<(), String> {
+    let app = app.clone();
+    tokio::task::spawn_blocking(move || migrate_covers_blocking(&app))
+        .await
+        .map_err(|e| format!("Cover migration task panicked: {}", e))??;
+    Ok(())
+}
+
+fn migrate_covers_blocking(app: &AppHandle) -> Result<(), String> {
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+
+    migrate_table_artwork(&db, app, "songs", "song_id")?;
+    migrate_table_artwork(&db, app, "releases", "release_id")?;
+
+    Ok(())
+}
+
+fn migrate_table_artwork(
+    db: &Connection,
+    app: &AppHandle,
+    table: &str,
+    id_col: &str,
+) -> Result<(), String> {
+    let sql = format!(
+        "SELECT {}, artwork FROM {} WHERE artwork LIKE 'data:%'",
+        id_col, table
+    );
+    let mut stmt = db
+        .prepare(&sql)
+        .map_err(|e| format!("Failed to prepare {} migration: {}", table, e))?;
+
+    let rows: Vec<(i64, String)> = stmt
+        .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+        .map_err(|e| format!("Failed to query {} artworks: {}", table, e))?
+        .collect::<Result<_, _>>()
+        .map_err(|e| format!("Failed to collect {} artworks: {}", table, e))?;
+
+    for (id, artwork) in rows {
+        if let Some(path) = cover_path_from_data_url(app, &artwork)? {
+            let update = format!("UPDATE {} SET artwork = ?1 WHERE {} = ?2", table, id_col);
+            db.execute(&update, params![path, id])
+                .map_err(|e| format!("Failed to update {} artwork: {}", table, e))?;
+        }
     }
 
     Ok(())
