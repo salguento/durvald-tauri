@@ -203,6 +203,43 @@ async fn add_to_queue(
     Ok(())
 }
 
+#[derive(serde::Deserialize)]
+struct QueueEntry {
+    song_id: i64,
+    path: String,
+}
+
+#[command]
+async fn add_tracks_to_queue(
+    state: tauri::State<'_, AppState>,
+    items: Vec<QueueEntry>,
+) -> Result<(), String> {
+    let mut player = state.audio_player.lock().await;
+
+    // Enqueue every entry in memory first, then persist the queue a single
+    // time. Avoids the O(N^2) full table rewrite that calling add_to_queue
+    // once per track caused (DELETE + INSERT each time).
+    for entry in items {
+        player
+            .add_to_queue(entry.song_id, entry.path)
+            .await
+            .map_err(|e| e.to_string())?;
+    }
+
+    let db_pool = state.db_pool.clone();
+    let queue_data = player.get_queue_data_for_db();
+    drop(player);
+
+    tokio::task::spawn_blocking(move || {
+        let mut conn = db_pool.get().map_err(|e| e.to_string())?;
+        AudioPlayer::save_queue_to_db_blocking(&mut *conn, &queue_data).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    Ok(())
+}
+
 #[command]
 async fn play_next(state: tauri::State<'_, AppState>) -> Result<bool, String> {
     let mut player = state.audio_player.lock().await;
@@ -613,6 +650,7 @@ fn main() {
                 set_volume,
                 get_playback_state,
                 add_to_queue,
+                add_tracks_to_queue,
                 get_progress,
                 get_progress_percentage,
                 start_progress_tracking,

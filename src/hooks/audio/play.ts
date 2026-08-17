@@ -35,18 +35,19 @@ export default async function playBack(track: TrackType) {
       .filter((t) => t.release_id === track.release_id)
       .sort((a, b) => a.track_number - b.track_number);
 
-    const newQueueItems: TrackType[] = [];
+    const newQueueItems = trackList.filter(
+      (item) => item.track_number > track.track_number,
+    );
 
-    for (const item of trackList) {
-      // Skip tracks up to and including the current track
-      if (item.track_number <= track.track_number) continue;
-
-      // Add remaining tracks to queue
-      await invoke("add_to_queue", {
-        songId: item.song_id,
-        path: item.file_path,
+    // Enqueue the whole run in a single batched command so the queue table is
+    // persisted once instead of being fully rewritten per track (O(N^2)).
+    if (newQueueItems.length > 0) {
+      await invoke("add_tracks_to_queue", {
+        items: newQueueItems.map((item) => ({
+          songId: item.song_id,
+          path: item.file_path,
+        })),
       });
-      newQueueItems.push(item);
     }
 
     // Update frontend queue state
