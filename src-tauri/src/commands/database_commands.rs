@@ -191,18 +191,6 @@ pub fn create_tables() -> Result<(), String> {
     .map_err(|e| format!("Failed to create table: {}", e))?;
 
     db.execute(
-        "CREATE TABLE IF NOT EXISTS listening_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            song_id INTEGER NOT NULL,
-            played_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            play_duration INTEGER, -- Seconds actually listened (optional)
-            FOREIGN KEY (song_id) REFERENCES songs(song_id) ON DELETE CASCADE
-        )",
-        (),
-    )
-    .map_err(|e| format!("Failed to create table: {}", e))?;
-
-    db.execute(
         "CREATE TABLE IF NOT EXISTS genres (
             genre_id   INTEGER PRIMARY KEY,
             name TEXT,
@@ -347,18 +335,6 @@ pub fn create_tables() -> Result<(), String> {
             rate_your_music_url TEXT,
             FOREIGN KEY (artist_id) REFERENCES artists(artist_id) ON DELETE CASCADE,
             FOREIGN KEY (release_type_id) REFERENCES release_types(release_type_id) ON DELETE CASCADE
-        )",
-        (),
-    )
-    .map_err(|e| format!("Failed to create table: {}", e))?;
-
-    db.execute(
-        "CREATE TABLE IF NOT EXISTS artists_releases (
-            id   INTEGER PRIMARY KEY,
-            artist_id INTEGER NOT NULL,
-            release_id INTEGER NOT NULL,
-            FOREIGN KEY (artist_id) REFERENCES artists(artist_id) ON DELETE CASCADE,
-            FOREIGN KEY (release_id) REFERENCES releases(release_id) ON DELETE CASCADE
         )",
         (),
     )
