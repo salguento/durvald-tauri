@@ -26,7 +26,8 @@ use commands::database_commands::{
     get_releases, get_settings, get_song_by_id, get_songs_by_release_id, hide_track,
     initiate_last_session, initiate_settings, migrate_covers,
     remove_song_from_history, remove_track_from_playlist,
-    save_last_session, suggest_less_track, update_database, update_onboarding_settings,
+    save_last_session, suggest_less_track, start_library_scan, update_database,
+    update_onboarding_settings,
     update_session_current_song, update_session_progress, update_session_volume,
 };
 use commands::get_audio_metadata;
@@ -656,6 +657,7 @@ fn main() {
                 get_paths_from_library_paths,
                 update_database,
                 migrate_covers,
+                start_library_scan,
                 get_releases,
                 get_release_by_id,
                 get_songs_by_release_id,

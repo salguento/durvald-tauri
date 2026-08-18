@@ -128,6 +128,17 @@ function App() {
         }
       });
 
+      // ✅ LIBRARY SCAN (background, Étapa 3)
+      // updateLibrary() kicks off start_library_scan in the background; mirror
+      // again once it completes so newly scanned tracks appear without a reboot.
+      await listen("library-scan-done", async () => {
+        console.log("[Scan] Library scan finished, re-mirroring...");
+        await mirrorDB();
+      });
+      await listen("library-scan-progress", (event) => {
+        console.log("[Scan] Progress:", event.payload);
+      });
+
       getHistory();
     } catch (error) {
       console.log("Startup error:", error);

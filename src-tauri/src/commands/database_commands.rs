@@ -5,7 +5,7 @@ use rusqlite::{params, Connection, Result};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 
 use super::metadata_commands::{
     cover_path_from_data_url, extract_metadata, thumb_path_for, write_thumbnail, AudioMetadata,
@@ -707,6 +707,7 @@ pub async fn update_database(app: AppHandle, folder_path: String) -> Result<(), 
     let mut unchanged = db
         .prepare("SELECT COUNT(*) FROM songs WHERE file_path = ?1 AND file_mtime = ?2")
         .map_err(|e| format!("Failed to prepare scan filter: {}", e))?;
+    let total_files = all_files.len();
 
     let mut to_process: Vec<(FileInfo, i64)> = Vec::new();
     for file in all_files {
@@ -721,6 +722,18 @@ pub async fn update_database(app: AppHandle, folder_path: String) -> Result<(), 
         }
     }
     drop(unchanged);
+
+    // Report scan progress for this path so the UI can show it without
+    // blocking boot (background Étapa 3).
+    let _ = app.emit(
+        "library-scan-progress",
+        serde_json::json!({
+            "path": folder_path,
+            "phase": "scan",
+            "totalFiles": total_files,
+            "newFiles": to_process.len(),
+        }),
+    );
 
     if to_process.is_empty() {
         return Ok(()); // nothing new or changed — skip extraction entirely
@@ -779,6 +792,22 @@ fn file_mtime(path: &str) -> Result<i64, String> {
     sys.duration_since(std::time::UNIX_EPOCH)
         .map_err(|e| format!("Invalid mtime for {}: {}", path, e))
         .map(|d| d.as_millis() as i64)
+}
+
+/// Kicks off a full library scan in the background so boot isn't blocked.
+/// Emits `library-scan-progress` per path (from update_database) and
+/// `library-scan-done` once all configured paths have been scanned.
+#[tauri::command]
+pub async fn start_library_scan(app: AppHandle) -> Result<(), String> {
+    tauri::async_runtime::spawn(async move {
+        if let Ok(paths) = get_paths_from_library_paths() {
+            for item in paths {
+                let _ = update_database(app.clone(), item.path).await;
+            }
+        }
+        let _ = app.emit("library-scan-done", ());
+    });
+    Ok(())
 }
 
 /// Migrates any legacy `data:...` artwork values (songs and releases) to cover
