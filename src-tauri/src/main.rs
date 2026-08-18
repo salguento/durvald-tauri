@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use tauri::{Listener, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri_plugin_dialog::DialogExt;
 
 mod commands;
 
@@ -494,20 +495,27 @@ struct PlaybackStateInfo {
 }
 
 #[command]
-async fn select_folder() -> Result<String, String> {
-    let handle = tokio::spawn(async move {
-        if let Some(folder) = rfd::AsyncFileDialog::new()
-            .set_title("Select folder to scan")
-            .pick_folder()
-            .await
-        {
-            Ok(folder.path().to_string_lossy().to_string())
-        } else {
-            Err("No folder selected".to_string())
-        }
-    });
+async fn select_folder(app: tauri::AppHandle) -> Result<String, String> {
+    // tauri-plugin-dialog is callback-based; bridge the callback into a Future.
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    app.dialog()
+        .file()
+        .set_title("Select folder to scan")
+        .pick_folder(move |folder| {
+            let _ = tx.send(folder);
+        });
 
-    handle.await.unwrap()
+    let folder = rx
+        .await
+        .map_err(|_| "Dialog closed before a selection".to_string())?;
+
+    match folder {
+        Some(f) => match f.as_path() {
+            Some(p) => Ok(p.to_string_lossy().to_string()),
+            None => Err("Selected an unsupported (non-file) location".to_string()),
+        },
+        None => Err("No folder selected".to_string()),
+    }
 }
 
 #[command]
