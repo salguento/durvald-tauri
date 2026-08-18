@@ -1,7 +1,7 @@
 // Dependencies
 import { OverlayScrollbarsComponent } from "overlayscrollbars-solid";
-import { For } from "solid-js";
 import ReleaseItem from "../ui/Components/Release/ReleaseItem/ReleaseItem";
+import VirtualStrip from "../ui/Components/VirtualStrip";
 // Stores
 import { libraryStore } from "../stores/libraryStore";
 // Function
@@ -36,23 +36,14 @@ export default function Page() {
             </span>
           </div>
           <div class="w-full">
-            <OverlayScrollbarsComponent
-              element="div"
-              options={{ scrollbars: { autoHide: "scroll" } }}
-              events={{
-                scroll: () => {
-                  /* ... */
-                },
-              }}
-              defer
-              class="px-4"
-            >
-              <div class="flex gap-3 w-full">
-                <For each={releaseStore()}>
-                  {(release) => <ReleaseItem release={release} />}
-                </For>
-              </div>
-            </OverlayScrollbarsComponent>
+            <VirtualStrip
+              items={releaseStore()}
+              horizontal
+              estimateSize={140}
+              className="px-4 h-52"
+              itemClassName="pr-3"
+              renderItem={(release) => <ReleaseItem release={release} />}
+            />
           </div>
         </div>
       </OverlayScrollbarsComponent>
