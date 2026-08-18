@@ -719,31 +719,35 @@ pub fn group_releases(array: &Vec<AudioMetadata>) -> Vec<ReleaseGroup> {
 #[tauri::command]
 pub async fn update_database(app: AppHandle, folder_path: String) -> Result<(), String> {
     let state = app.state::<crate::AppState>();
-    let all_files: Vec<FileInfo> = scan_folder(folder_path)
+    let all_files: Vec<FileInfo> = scan_folder(folder_path.clone())
         .await
         .map_err(|e| format!("Failed to scan folder: {}", e))?;
 
-    // Incremental scan: skip files whose path + mtime already match the DB,
-    // so an unchanged library re-reads no metadata at boot.
-    let db = state.db_pool.get().map_err(|e| e.to_string())?;
-    let mut unchanged = db
-        .prepare("SELECT COUNT(*) FROM songs WHERE file_path = ?1 AND file_mtime = ?2")
-        .map_err(|e| format!("Failed to prepare scan filter: {}", e))?;
-    let total_files = all_files.len();
+    // Incremental scan: skip files whose path + mtime already match the DB.
+    // The pooled connection lives only inside this block so it is dropped
+    // BEFORE the awaits below (a rusqlite Connection is !Sync and would make
+    // the command future non-Send if held across `.await`).
+    let (to_process, total_files): (Vec<(FileInfo, i64)>, usize) = {
+        let db = state.db_pool.get().map_err(|e| e.to_string())?;
+        let mut unchanged = db
+            .prepare("SELECT COUNT(*) FROM songs WHERE file_path = ?1 AND file_mtime = ?2")
+            .map_err(|e| format!("Failed to prepare scan filter: {}", e))?;
+        let total = all_files.len();
 
-    let mut to_process: Vec<(FileInfo, i64)> = Vec::new();
-    for file in all_files {
-        let mtime = file_mtime(&file.path)?;
-        let is_unchanged: bool = unchanged
-            .query_row(params![&file.path, mtime], |row| {
-                Ok(row.get::<_, i64>(0)? > 0)
-            })
-            .map_err(|e| format!("Failed to check file status: {}", e))?;
-        if !is_unchanged {
-            to_process.push((file, mtime));
+        let mut tp: Vec<(FileInfo, i64)> = Vec::new();
+        for file in all_files {
+            let mtime = file_mtime(&file.path)?;
+            let is_unchanged: bool = unchanged
+                .query_row(params![&file.path, mtime], |row| {
+                    Ok(row.get::<_, i64>(0)? > 0)
+                })
+                .map_err(|e| format!("Failed to check file status: {}", e))?;
+            if !is_unchanged {
+                tp.push((file, mtime));
+            }
         }
-    }
-    drop(unchanged);
+        (tp, total)
+    };
 
     // Report scan progress for this path so the UI can show it without
     // blocking boot (background Étapa 3).
@@ -786,8 +790,10 @@ pub async fn update_database(app: AppHandle, folder_path: String) -> Result<(), 
         metadata.push(md);
     }
 
+    // Writes: acquire a fresh pooled connection now (no DB survives across an
+    // await, keeping the command future Send). Writes stay sequential.
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
     let all_artist = group_artists(&metadata);
-
     for artist in all_artist {
         add_artist(&db, artist).map_err(|e| format!("Failed to add artist: {}", e))?;
     }
@@ -1009,6 +1015,7 @@ pub fn get_release_by_id(
 #[tauri::command]
 pub fn get_songs_by_release_id(
     state: tauri::State<'_, crate::AppState>,
+    release_id: &str,
 ) -> Result<Vec<SongItem>, String> {
     let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
@@ -1056,6 +1063,7 @@ pub fn get_songs_by_release_id(
 #[tauri::command]
 pub fn get_song_by_id(
     state: tauri::State<'_, crate::AppState>,
+    song_id: &str,
 ) -> Result<Vec<SongItem>, String> {
     let db = state.db_pool.get().map_err(|e| e.to_string())?;
 

@@ -204,5 +204,5 @@ pub(crate) fn extract_metadata(
 pub async fn get_audio_metadata(app: AppHandle, path: String) -> Result<AudioMetadata, String> {
     tokio::task::spawn_blocking(move || extract_metadata(&app, &path))
         .await
-        .map_err(|e| format!("Metadata task panicked: {}", e))??
+        .map_err(|e| format!("Metadata task panicked: {}", e))?
 }
