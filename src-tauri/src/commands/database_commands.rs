@@ -1006,9 +1006,10 @@ pub fn get_release_by_id(release_id: &str) -> Result<Releases, String> {
 }
 
 #[tauri::command]
-pub fn get_songs_by_release_id(release_id: &str) -> Result<Vec<SongItem>, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_songs_by_release_id(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<Vec<SongItem>, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let mut stmt = db
         .prepare("SELECT * FROM songs WHERE release_id = ?1")
@@ -1052,9 +1053,10 @@ pub fn get_songs_by_release_id(release_id: &str) -> Result<Vec<SongItem>, String
 }
 
 #[tauri::command]
-pub fn get_song_by_id(song_id: &str) -> Result<Vec<SongItem>, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_song_by_id(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<Vec<SongItem>, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let mut stmt = db
         .prepare("SELECT * FROM songs WHERE song_id = ?1")
@@ -1114,9 +1116,10 @@ pub fn add_song_to_history(song_id: u64, duration: u64) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn get_play_history() -> Result<Vec<PlayHistory>, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_play_history(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<Vec<PlayHistory>, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let mut stmt = db
         .prepare("SELECT * FROM play_history")
@@ -1213,9 +1216,10 @@ pub fn suggest_less_track(song_id: u64) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn get_all_tracks() -> Result<Vec<SongItem>, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_all_tracks(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<Vec<SongItem>, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let mut tracks = db
         .prepare("SELECT * FROM songs")
@@ -1258,9 +1262,10 @@ pub fn get_all_tracks() -> Result<Vec<SongItem>, String> {
 }
 
 #[tauri::command]
-pub fn get_all_releases() -> Result<Vec<Releases>, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_all_releases(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<Vec<Releases>, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let mut releases = db
         .prepare("SELECT * FROM releases")
@@ -1296,9 +1301,10 @@ pub fn get_all_releases() -> Result<Vec<Releases>, String> {
 }
 
 #[tauri::command]
-pub fn get_all_artists() -> Result<Vec<ArtistItem>, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_all_artists(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<Vec<ArtistItem>, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let mut artists = db
         .prepare("SELECT * FROM artists")
@@ -1398,9 +1404,10 @@ pub fn create_playlist(
 }
 
 #[tauri::command]
-pub fn get_all_playlists() -> Result<Vec<Playlist>, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_all_playlists(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<Vec<Playlist>, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let mut playlists = db
         .prepare("SELECT * FROM playlists")
@@ -1445,9 +1452,10 @@ pub fn initiate_settings() -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn get_all_playlist_songs() -> Result<Vec<PlaylistSong>, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_all_playlist_songs(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<Vec<PlaylistSong>, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let mut playlist_song = db
         .prepare("SELECT * FROM playlist_songs")
@@ -1523,9 +1531,10 @@ pub fn remove_track_from_playlist(
 }
 
 #[tauri::command]
-pub fn get_settings() -> Result<Settings, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_settings(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<Settings, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let mut stmt = db
         .prepare("SELECT * FROM settings")
@@ -1596,9 +1605,10 @@ pub fn initiate_last_session() -> Result<(), String> {
 
 /// Returns the persisted session, or a sensible default if none exists yet.
 #[tauri::command]
-pub fn get_last_session() -> Result<LastSession, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_last_session(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<LastSession, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let session = db
         .query_row(
