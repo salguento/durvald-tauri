@@ -518,6 +518,14 @@ async fn select_folder(app: tauri::AppHandle) -> Result<String, String> {
     }
 }
 
+/// Returns the host OS name so the frontend can adapt its layout
+/// (e.g. macOS window-control placement). Values: "macos" | "windows" |
+/// "linux" (std::env::consts::OS).
+#[command]
+fn get_platform() -> &'static str {
+    std::env::consts::OS
+}
+
 #[command]
 async fn scan_folder(folder_path: String) -> Result<Vec<FileInfo>, String> {
     let path = PathBuf::from(folder_path);
@@ -667,6 +675,7 @@ fn main() {
             .plugin(tauri_plugin_shell::init())
             .invoke_handler(tauri::generate_handler![
                 select_folder,
+                get_platform,
                 scan_folder,
                 get_audio_metadata,
                 add_path_to_library_paths,
