@@ -19,14 +19,33 @@ export default function TopBar() {
   const { isFullscreen, toogleFullscreen } = useFullscreen();
   const { isMac } = usePlatform();
 
-  // Explicit drag handling. The `data-tauri-drag-region` attribute is unreliable
-  // on some platforms/macOS, so we drive the native drag ourselves, ignoring
-  // presses that land on interactive controls (buttons/inputs/menus).
+  // Runs a window op and surfaces any failure instead of swallowing it.
+  const runCmd = async (label: string, fn: () => Promise<unknown>) => {
+    try {
+      await fn();
+    } catch (err) {
+      console.error(`[TopBar] ${label} failed:`, err);
+    }
+  };
+
+  // Explicit drag handling. We avoid `data-tauri-drag-region` (unreliable on
+  // macOS + conflicts when placed on large containers) and drive the native
+  // drag ourselves: press the primary button on empty top-bar space only.
+  // `preventDefault` stops the browser from treating this as a text-selection
+  // / focus gesture so macOS hands the gesture to the window drag.
   const beginDrag = (e: MouseEvent) => {
     if (e.button !== 0) return;
     const t = e.target as HTMLElement;
     if (t.closest("button, input, a, select, textarea, [role]")) return;
-    appWindow.startDragging().catch(() => {});
+    e.preventDefault();
+    runCmd("startDragging", () => appWindow.startDragging());
+  };
+
+  // Stop the mousedown from bubbling to `beginDrag` so window-control presses
+  // never trigger a drag (belt-and-suspenders on top of beginDrag's exclusion).
+  const blockDrag = (e: MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
   };
 
   const renderControls = () => (
@@ -35,7 +54,8 @@ export default function TopBar() {
         id="titlebar-minimize"
         class={windowControlClass}
         title="Minimize"
-        onClick={async () => await appWindow.minimize()}
+        onMouseDown={blockDrag}
+        onClick={() => runCmd("minimize", () => appWindow.minimize())}
       >
         <span class="icon-[solar--square-top-up-linear] h-6 w-6"></span>
       </button>
@@ -43,7 +63,8 @@ export default function TopBar() {
         id="titlebar-maximize"
         class={windowControlClass}
         title={`${isFullscreen() ? "Windowed" : "Fullscreen"}`}
-        onClick={toogleFullscreen}
+        onMouseDown={blockDrag}
+        onClick={() => runCmd("toggleFullscreen", () => toogleFullscreen())}
       >
         <span
           class={`${isFullscreen() ? "icon-[solar--minimize-square-linear]" : "icon-[solar--maximize-square-linear]"} h-6 w-6`}
@@ -53,7 +74,8 @@ export default function TopBar() {
         id="titlebar-close"
         class={windowControlClass}
         title="Close"
-        onClick={async () => appWindow.close()}
+        onMouseDown={blockDrag}
+        onClick={() => runCmd("close", () => appWindow.close())}
       >
         <span class="icon-[solar--close-square-linear] h-6 w-6"></span>
       </button>
@@ -66,6 +88,7 @@ export default function TopBar() {
         <button
           class="text-zinc-200 hover:text-white flex items-center justify-center backdrop-blur-xl hover:bg-zinc-500/50 rounded-xl hover:cursor-pointer h-8 w-8"
           title="Menu"
+          onMouseDown={blockDrag}
         >
           <span class="icon-[solar--hamburger-menu-linear] h-6 w-6"></span>
         </button>
@@ -94,7 +117,7 @@ export default function TopBar() {
 
   return (
     <div
-      class="h-8 flex gap-2 justify-between items-center px-1"
+      class="h-8 flex gap-2 justify-between items-center px-1 select-none"
       onMouseDown={beginDrag}
     >
       {isMac() ? (

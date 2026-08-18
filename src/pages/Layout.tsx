@@ -16,11 +16,8 @@ const Layout: ParentComponent = (props) => {
   const [initializeLibrary] = libraryStore.initializeLibraryStore;
   return (
     <Show when={initializeLibrary()}>
-      <main class="overflow-hidden bg-zinc-950 w-screen h-screen rounded-[10px]">
-        <div
-          class="flex flex-col w-screen p-2 gap-2 h-screen relative"
-          data-tauri-drag-region
-        >
+      <main class="overflow-hidden bg-zinc-950 w-screen h-screen rounded-[16px]">
+        <div class="flex flex-col w-screen p-2 gap-2 h-screen relative">
           <Show when={!showOnboarding()} fallback={<Onboarding />}>
             <TopBar />
             <div class={`flex gap-4 flex-1 overflow-hidden relative`}>
