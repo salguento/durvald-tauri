@@ -242,7 +242,8 @@ pub fn create_tables() -> Result<(), String> {
             suggest_less BOOL DEFAULT FALSE,
             file_path TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            file_mtime INTEGER
         )",
         (),
     )
@@ -398,6 +399,29 @@ pub fn create_tables() -> Result<(), String> {
     )
     .map_err(|e| format!("Failed to create last_session table: {}", e))?;
 
+    // Databases created before the incremental-scan column existed need the
+    // column added; no-op when it is already present.
+    ensure_song_mtime_column(&db)?;
+
+    Ok(())
+}
+
+/// Adds the `file_mtime` column to `songs` on databases that predate it.
+/// No-op when the column already exists.
+fn ensure_song_mtime_column(db: &Connection) -> Result<(), String> {
+    let has: bool = db
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('songs') WHERE name = 'file_mtime'",
+            [],
+            |row| Ok(row.get::<_, i64>(0)? > 0),
+        )
+        .map_err(|e| format!("Failed to inspect songs schema: {}", e))?;
+
+    if !has {
+        db.execute("ALTER TABLE songs ADD COLUMN file_mtime INTEGER", [])
+            .map_err(|e| format!("Failed to add file_mtime column: {}", e))?;
+    }
+
     Ok(())
 }
 
@@ -516,54 +540,29 @@ pub fn add_release(release: ReleaseGroup) -> Result<(), String> {
     Ok(())
 }
 
-pub fn add_song(song: AudioMetadata) -> Result<(), String> {
+pub fn add_song(song: AudioMetadata, mtime: i64) -> Result<(), String> {
     let db =
         Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
 
-    // Get artist_id (artist must exist)
-    let artist_id: i64 = match db
-        .query_row(
-            "SELECT artist_id FROM artists WHERE name = ?1",
-            params![&song.artist],
-            |row| row.get(0),
-        )
-        .optional()
-        .map_err(|e| format!("Failed to query artist: {}", e))?
-    {
-        Some(id) => id,
-        None => return Err(format!("Artist '{:?}' not found", song.artist)),
-    };
-
-    // Get release_id (release must exist)
-    let release_id: i64 = match db
-        .query_row(
-            "SELECT release_id FROM releases WHERE title = ?1 AND artist_id = ?2",
-            params![&song.release, artist_id],
-            |row| row.get(0),
-        )
-        .optional()
-        .map_err(|e| format!("Failed to query release: {}", e))?
-    {
-        Some(id) => id,
-        None => return Err(format!("Release '{:?}' not found", song.release)),
-    };
-
-    // Check if song exists and insert if not
-    let exists: bool = db
-        .query_row(
-            "SELECT COUNT(*) FROM songs WHERE title = ?1 AND artist_id = ?2 AND release_id = ?3",
-            params![&song.title, artist_id, release_id],
-            |row| Ok(row.get::<_, i64>(0)? > 0),
-        )
-        .map_err(|e| format!("Failed to check song existence: {}", e))?;
-
-    // Prefer the extracted cover file; fall back to the embedded base64 for
-    // compatibility with rows metadata read before this change.
     let artwork = song.cover_path.as_deref().or(song.cover_image_base64.as_deref());
 
-    if !exists {
+    // This exact file is already tracked: refresh its metadata (tags may have
+    // changed since the last scan). The incremental filter only reaches here
+    // for new or modified files.
+    let existing_id: Option<i64> = db
+        .query_row(
+            "SELECT song_id FROM songs WHERE file_path = ?1",
+            params![&song.file_path],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(|e| format!("Failed to query song by path: {}", e))?;
+
+    if let Some(song_id) = existing_id {
+        let artist_id = lookup_artist_id(&db, &song)?;
+        let release_id = lookup_release_id(&db, &song, artist_id)?;
         db.execute(
-            "INSERT INTO songs (title, artwork, artist_id, artist_name, release_id, release_title, duration, track_number, disc_number, file_path) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            "UPDATE songs SET title=?1, artwork=?2, artist_id=?3, artist_name=?4, release_id=?5, release_title=?6, track_number=?7, disc_number=?8, duration=?9, file_mtime=?10, updated_at=CURRENT_TIMESTAMP WHERE song_id=?11",
             params![
                 &song.title,
                 artwork,
@@ -574,13 +573,75 @@ pub fn add_song(song: AudioMetadata) -> Result<(), String> {
                 &song.duration,
                 &song.track.unwrap_or(1),
                 &song.disc.unwrap_or(1),
-                &song.file_path
-            ]
+                mtime,
+                song_id,
+            ],
+        )
+        .map_err(|e| format!("Failed to update song: {}", e))?;
+        return Ok(());
+    }
+
+    // New file: keep the existing tag-based dedup and persist the mtime.
+    let artist_id = lookup_artist_id(&db, &song)?;
+    let release_id = lookup_release_id(&db, &song, artist_id)?;
+
+    let exists: bool = db
+        .query_row(
+            "SELECT COUNT(*) FROM songs WHERE title = ?1 AND artist_id = ?2 AND release_id = ?3",
+            params![&song.title, artist_id, release_id],
+            |row| Ok(row.get::<_, i64>(0)? > 0),
+        )
+        .map_err(|e| format!("Failed to check song existence: {}", e))?;
+
+    if !exists {
+        db.execute(
+            "INSERT INTO songs (title, artwork, artist_id, artist_name, release_id, release_title, duration, track_number, disc_number, file_path, file_mtime) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+            params![
+                &song.title,
+                artwork,
+                artist_id,
+                &song.artist,
+                release_id,
+                &song.release,
+                &song.duration,
+                &song.track.unwrap_or(1),
+                &song.disc.unwrap_or(1),
+                &song.file_path,
+                mtime,
+            ],
         )
         .map_err(|e| format!("Failed to insert song: {}", e))?;
     }
 
     Ok(())
+}
+
+fn lookup_artist_id(db: &Connection, song: &AudioMetadata) -> Result<i64, String> {
+    let id: Option<i64> = db
+        .query_row(
+            "SELECT artist_id FROM artists WHERE name = ?1",
+            params![&song.artist],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(|e| format!("Failed to query artist: {}", e))?;
+    id.ok_or_else(|| format!("Artist '{:?}' not found", song.artist))
+}
+
+fn lookup_release_id(
+    db: &Connection,
+    song: &AudioMetadata,
+    artist_id: i64,
+) -> Result<i64, String> {
+    let id: Option<i64> = db
+        .query_row(
+            "SELECT release_id FROM releases WHERE title = ?1 AND artist_id = ?2",
+            params![&song.release, artist_id],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(|e| format!("Failed to query release: {}", e))?;
+    id.ok_or_else(|| format!("Release '{:?}' not found", song.release))
 }
 
 pub fn group_artists(array: &Vec<AudioMetadata>) -> Vec<String> {
@@ -637,16 +698,43 @@ pub async fn update_database(app: AppHandle, folder_path: String) -> Result<(), 
         .await
         .map_err(|e| format!("Failed to scan folder: {}", e))?;
 
-    let metadata: Vec<AudioMetadata> = {
-        let mut vec = Vec::new();
-        for item in all_files {
-            let file_metadata: AudioMetadata = get_audio_metadata(app.clone(), item.path)
-                .await
-                .map_err(|e| format!("Failed to get audio metadata: {}", e))?;
-            vec.push(file_metadata)
+    // Incremental scan: skip files whose path + mtime already match the DB,
+    // so an unchanged library re-reads no metadata at boot.
+    let db =
+        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+    let mut unchanged = db
+        .prepare("SELECT COUNT(*) FROM songs WHERE file_path = ?1 AND file_mtime = ?2")
+        .map_err(|e| format!("Failed to prepare scan filter: {}", e))?;
+
+    let mut to_process: Vec<(FileInfo, i64)> = Vec::new();
+    for file in all_files {
+        let mtime = file_mtime(&file.path)?;
+        let is_unchanged: bool = unchanged
+            .query_row(params![&file.path, mtime], |row| {
+                Ok(row.get::<_, i64>(0)? > 0)
+            })
+            .map_err(|e| format!("Failed to check file status: {}", e))?;
+        if !is_unchanged {
+            to_process.push((file, mtime));
         }
-        vec
-    };
+    }
+    drop(unchanged);
+
+    if to_process.is_empty() {
+        return Ok(()); // nothing new or changed — skip extraction entirely
+    }
+
+    // Extract metadata only for new/changed files (serial here; Etapa 2
+    // parallelizes this with spawn_blocking + a thread pool).
+    let mut metadata: Vec<AudioMetadata> = Vec::with_capacity(to_process.len());
+    let mut mtimes: Vec<i64> = Vec::with_capacity(to_process.len());
+    for (file, mtime) in to_process {
+        let md = get_audio_metadata(app.clone(), file.path)
+            .await
+            .map_err(|e| format!("Failed to get audio metadata: {}", e))?;
+        mtimes.push(mtime);
+        metadata.push(md);
+    }
 
     let all_artist = group_artists(&metadata);
 
@@ -660,11 +748,22 @@ pub async fn update_database(app: AppHandle, folder_path: String) -> Result<(), 
         add_release(release).map_err(|e| format!("Failed to add release: {}", e))?;
     }
 
-    for i in metadata {
-        add_song(i).map_err(|e| format!("Failed to add song: {}", e))?;
+    for (i, md) in metadata.into_iter().enumerate() {
+        add_song(md, mtimes[i]).map_err(|e| format!("Failed to add song: {}", e))?;
     }
 
     Ok(())
+}
+
+/// Reads a file's modification time as epoch milliseconds.
+fn file_mtime(path: &str) -> Result<i64, String> {
+    let meta = std::fs::metadata(path).map_err(|e| format!("Failed to stat {}: {}", path, e))?;
+    let sys = meta
+        .modified()
+        .map_err(|e| format!("Failed to read mtime for {}: {}", path, e))?;
+    sys.duration_since(std::time::UNIX_EPOCH)
+        .map_err(|e| format!("Invalid mtime for {}: {}", path, e))
+        .map(|d| d.as_millis() as i64)
 }
 
 /// Migrates any legacy `data:...` artwork values (songs and releases) to cover
