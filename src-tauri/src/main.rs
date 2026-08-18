@@ -625,7 +625,6 @@ fn main() {
                 .title("Loading...")
                 .inner_size(1080.0, 800.0)
                 .resizable(false)
-                .decorations(false)
                 .center()
                 .visible(true)
                 .theme(Some(tauri::Theme::Dark))

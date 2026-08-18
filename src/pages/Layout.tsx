@@ -16,7 +16,7 @@ const Layout: ParentComponent = (props) => {
   const [initializeLibrary] = libraryStore.initializeLibraryStore;
   return (
     <Show when={initializeLibrary()}>
-      <main class="overflow-hidden bg-zinc-950 w-screen h-screen rounded-[16px]">
+      <main class="overflow-hidden bg-zinc-950 w-screen h-screen">
         <div class="flex flex-col w-screen p-2 gap-2 h-screen relative">
           <Show when={!showOnboarding()} fallback={<Onboarding />}>
             <TopBar />

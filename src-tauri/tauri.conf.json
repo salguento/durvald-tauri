@@ -15,8 +15,6 @@
         "title": "durvald",
         "width": 1080,
         "height": 800,
-        "decorations": false,
-        "transparent": true,
         "visible": false,
         "center": true,
         "theme": "Dark"
@@ -28,8 +26,7 @@
         "enable": true,
         "scope": ["$TEMP/**"]
       }
-    },
-    "macOSPrivateApi": true
+    }
   },
   "bundle": {
     "active": true,

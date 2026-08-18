@@ -51,12 +51,6 @@ html[data-runtime="tauri"] {
     font-family: "Adwaita Sans", sans-serif;
 }
 
-/* In the native app the webview must be transparent so the window corners can
-   be rounded (the visible surface is drawn by the app's rounded container). */
-html[data-runtime="tauri"] body {
-    background: transparent;
-}
-
 .titlebar {
     height: 30px;
     background: #329ea3;
