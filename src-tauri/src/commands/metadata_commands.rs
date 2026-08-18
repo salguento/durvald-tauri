@@ -142,9 +142,14 @@ pub(crate) fn cover_path_from_data_url(
     write_cover_file(app, mime, &bytes)
 }
 
-#[tauri::command]
-pub async fn get_audio_metadata(app: AppHandle, path: String) -> Result<AudioMetadata, String> {
-    let tagged_file = read_from_path(&path).map_err(|e| format!("Failed to read file: {}", e))?;
+/// Synchronous core of metadata extraction (lofty read + cover file write).
+/// Runs on a blocking thread (`spawn_blocking`) so the async runtime isn't
+/// blocked. This is the unit the incremental scan parallelizes.
+pub(crate) fn extract_metadata(
+    app: &AppHandle,
+    path: &str,
+) -> Result<AudioMetadata, String> {
+    let tagged_file = read_from_path(path).map_err(|e| format!("Failed to read file: {}", e))?;
 
     let properties = tagged_file.properties();
     let mut metadata = AudioMetadata {
@@ -162,7 +167,7 @@ pub async fn get_audio_metadata(app: AppHandle, path: String) -> Result<AudioMet
         cover_image_base64: None,
         cover_path: None,
         all_fields: HashMap::new(),
-        file_path: path,
+        file_path: path.to_string(),
     };
 
     if let Some(tag) = tagged_file.primary_tag() {
@@ -179,7 +184,7 @@ pub async fn get_audio_metadata(app: AppHandle, path: String) -> Result<AudioMet
         if let Some((mime, bytes)) = extract_cover_bytes(tag) {
             let base64 = general_purpose::STANDARD.encode(&bytes);
             metadata.cover_image_base64 = Some(format!("data:{};base64,{}", mime, base64));
-            metadata.cover_path = write_cover_file(&app, &mime, &bytes)?;
+            metadata.cover_path = write_cover_file(app, &mime, &bytes)?;
         }
 
         // All fields as key-value pairs
@@ -191,4 +196,13 @@ pub async fn get_audio_metadata(app: AppHandle, path: String) -> Result<AudioMet
     }
 
     Ok(metadata)
+}
+
+/// Command wrapper (used by the FolderSelector preview): offloads the sync
+/// extraction to a blocking thread so the async runtime stays responsive.
+#[tauri::command]
+pub async fn get_audio_metadata(app: AppHandle, path: String) -> Result<AudioMetadata, String> {
+    tokio::task::spawn_blocking(move || extract_metadata(&app, &path))
+        .await
+        .map_err(|e| format!("Metadata task panicked: {}", e))??
 }

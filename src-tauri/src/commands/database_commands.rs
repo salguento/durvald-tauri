@@ -1,4 +1,4 @@
-use crate::{commands::get_audio_metadata, scan_folder, FileInfo};
+use crate::{scan_folder, FileInfo};
 use chrono::Utc;
 use rusqlite::OptionalExtension;
 use rusqlite::{params, Connection, Result};
@@ -7,7 +7,9 @@ use std::fs;
 use std::path::PathBuf;
 use tauri::{AppHandle, Manager};
 
-use super::metadata_commands::{cover_path_from_data_url, thumb_path_for, write_thumbnail, AudioMetadata};
+use super::metadata_commands::{
+    cover_path_from_data_url, extract_metadata, thumb_path_for, write_thumbnail, AudioMetadata,
+};
 
 #[derive(Serialize, Clone, Debug)]
 pub struct LibraryPath {
@@ -724,14 +726,27 @@ pub async fn update_database(app: AppHandle, folder_path: String) -> Result<(), 
         return Ok(()); // nothing new or changed — skip extraction entirely
     }
 
-    // Extract metadata only for new/changed files (serial here; Etapa 2
-    // parallelizes this with spawn_blocking + a thread pool).
-    let mut metadata: Vec<AudioMetadata> = Vec::with_capacity(to_process.len());
-    let mut mtimes: Vec<i64> = Vec::with_capacity(to_process.len());
+    // Extract metadata for new/changed files in parallel on the blocking
+    // thread pool. Only the costly lofty read + cover write is parallelized;
+    // DB writes below stay sequential and coordinated.
+    let mut tasks: Vec<(tokio::task::JoinHandle<Result<AudioMetadata, String>>, i64)> =
+        Vec::with_capacity(to_process.len());
     for (file, mtime) in to_process {
-        let md = get_audio_metadata(app.clone(), file.path)
+        let app_clone = app.clone();
+        let path = file.path;
+        tasks.push((
+            tokio::task::spawn_blocking(move || extract_metadata(&app_clone, &path)),
+            mtime,
+        ));
+    }
+
+    let mut metadata: Vec<AudioMetadata> = Vec::with_capacity(tasks.len());
+    let mut mtimes: Vec<i64> = Vec::with_capacity(tasks.len());
+    for (handle, mtime) in tasks {
+        let inner = handle
             .await
-            .map_err(|e| format!("Failed to get audio metadata: {}", e))?;
+            .map_err(|e| format!("Metadata task panicked: {}", e))?;
+        let md = inner.map_err(|e| format!("Failed to get audio metadata: {}", e))?;
         mtimes.push(mtime);
         metadata.push(md);
     }
