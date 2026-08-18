@@ -151,9 +151,10 @@ pub struct SongItem {
 }
 
 #[tauri::command]
-pub fn create_tables() -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn create_tables(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     db.execute(
         "CREATE TABLE IF NOT EXISTS library_paths (
@@ -452,9 +453,11 @@ fn ensure_indexes(db: &Connection) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn add_path_to_library_paths(folder_path: String) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn add_path_to_library_paths(
+    state: tauri::State<'_, crate::AppState>,
+    folder_path: String,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let p = LibraryPath { path: folder_path };
 
@@ -480,9 +483,10 @@ pub fn add_path_to_library_paths(folder_path: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn get_paths_from_library_paths() -> Result<Vec<LibraryPath>, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_paths_from_library_paths(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<Vec<LibraryPath>, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let mut stmt = db
         .prepare("SELECT path_id, path FROM library_paths")
@@ -501,9 +505,7 @@ pub fn get_paths_from_library_paths() -> Result<Vec<LibraryPath>, String> {
     paths.map_err(|e| format!("Failed to collect results: {}", e))
 }
 
-pub fn add_artist(artist: String) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn add_artist(db: &Connection, artist: String) -> Result<(), String> {
 
     // First check if the artist already exists
     let exists: bool = db
@@ -524,9 +526,7 @@ pub fn add_artist(artist: String) -> Result<(), String> {
     Ok(())
 }
 
-pub fn add_release(release: ReleaseGroup) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn add_release(db: &Connection, release: ReleaseGroup) -> Result<(), String> {
 
     // First get the artist_id from the artists table
     let artist_id: Option<i64> = db
@@ -566,9 +566,7 @@ pub fn add_release(release: ReleaseGroup) -> Result<(), String> {
     Ok(())
 }
 
-pub fn add_song(song: AudioMetadata, mtime: i64) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn add_song(db: &Connection, song: AudioMetadata, mtime: i64) -> Result<(), String> {
 
     let artwork = song.cover_path.as_deref().or(song.cover_image_base64.as_deref());
 
@@ -720,14 +718,14 @@ pub fn group_releases(array: &Vec<AudioMetadata>) -> Vec<ReleaseGroup> {
 
 #[tauri::command]
 pub async fn update_database(app: AppHandle, folder_path: String) -> Result<(), String> {
+    let state = app.state::<crate::AppState>();
     let all_files: Vec<FileInfo> = scan_folder(folder_path)
         .await
         .map_err(|e| format!("Failed to scan folder: {}", e))?;
 
     // Incremental scan: skip files whose path + mtime already match the DB,
     // so an unchanged library re-reads no metadata at boot.
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
     let mut unchanged = db
         .prepare("SELECT COUNT(*) FROM songs WHERE file_path = ?1 AND file_mtime = ?2")
         .map_err(|e| format!("Failed to prepare scan filter: {}", e))?;
@@ -791,17 +789,17 @@ pub async fn update_database(app: AppHandle, folder_path: String) -> Result<(), 
     let all_artist = group_artists(&metadata);
 
     for artist in all_artist {
-        add_artist(artist).map_err(|e| format!("Failed to add artist: {}", e))?;
+        add_artist(&db, artist).map_err(|e| format!("Failed to add artist: {}", e))?;
     }
 
     let all_releases = group_releases(&metadata);
 
     for release in all_releases {
-        add_release(release).map_err(|e| format!("Failed to add release: {}", e))?;
+        add_release(&db, release).map_err(|e| format!("Failed to add release: {}", e))?;
     }
 
     for (i, md) in metadata.into_iter().enumerate() {
-        add_song(md, mtimes[i]).map_err(|e| format!("Failed to add song: {}", e))?;
+        add_song(&db, md, mtimes[i]).map_err(|e| format!("Failed to add song: {}", e))?;
     }
 
     Ok(())
@@ -824,7 +822,7 @@ fn file_mtime(path: &str) -> Result<i64, String> {
 #[tauri::command]
 pub async fn start_library_scan(app: AppHandle) -> Result<(), String> {
     tauri::async_runtime::spawn(async move {
-        if let Ok(paths) = get_paths_from_library_paths() {
+        if let Ok(paths) = get_paths_from_library_paths(app.state::<crate::AppState>()) {
             for item in paths {
                 let _ = update_database(app.clone(), item.path).await;
             }
@@ -847,8 +845,8 @@ pub async fn migrate_covers(app: AppHandle) -> Result<(), String> {
 }
 
 fn migrate_covers_blocking(app: &AppHandle) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+    let state = app.state::<crate::AppState>();
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     migrate_table_artwork(&db, app, "songs", "song_id")?;
     migrate_table_artwork(&db, app, "releases", "release_id")?;
@@ -939,9 +937,10 @@ fn migrate_table_artwork(
 }
 
 #[tauri::command]
-pub fn get_releases() -> Result<Vec<Releases>, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_releases(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<Vec<Releases>, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let mut stmt = db
         .prepare("SELECT * FROM releases")
@@ -975,9 +974,11 @@ pub fn get_releases() -> Result<Vec<Releases>, String> {
 }
 
 #[tauri::command]
-pub fn get_release_by_id(release_id: &str) -> Result<Releases, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn get_release_by_id(
+    state: tauri::State<'_, crate::AppState>,
+    release_id: &str,
+) -> Result<Releases, String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     db.query_row(
         "SELECT * FROM releases WHERE release_id = ?1",
@@ -1100,9 +1101,11 @@ pub fn get_song_by_id(
 }
 
 #[tauri::command]
-pub fn add_song_to_history(song_id: u64, duration: u64) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn add_song_to_history(
+    state: tauri::State<'_, crate::AppState>,
+    song_id: u64, duration: u64,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let played_at = Utc::now().to_rfc3339();
 
@@ -1146,9 +1149,11 @@ pub fn get_play_history(
 }
 
 #[tauri::command]
-pub fn remove_song_from_history(history_id: u64) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn remove_song_from_history(
+    state: tauri::State<'_, crate::AppState>,
+    history_id: u64,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     db.execute(
         "DELETE FROM play_history WHERE history_id = ?1 ",
@@ -1160,9 +1165,11 @@ pub fn remove_song_from_history(history_id: u64) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn favorite_track(song_id: u64) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn favorite_track(
+    state: tauri::State<'_, crate::AppState>,
+    song_id: u64,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     db.execute(
         "UPDATE songs SET is_favorite = NOT is_favorite, updated_at = CURRENT_TIMESTAMP WHERE song_id = ?1 ",
@@ -1174,9 +1181,11 @@ pub fn favorite_track(song_id: u64) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn favorite_release(release_id: u64) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn favorite_release(
+    state: tauri::State<'_, crate::AppState>,
+    release_id: u64,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     db.execute(
         "UPDATE releases SET is_favorite = NOT is_favorite, updated_at = CURRENT_TIMESTAMP WHERE release_id = ?1 ",
@@ -1188,9 +1197,11 @@ pub fn favorite_release(release_id: u64) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn hide_track(song_id: u64) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn hide_track(
+    state: tauri::State<'_, crate::AppState>,
+    song_id: u64,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     db.execute(
         "UPDATE songs SET is_hidden = NOT is_hidden, updated_at = CURRENT_TIMESTAMP WHERE song_id = ?1 ",
@@ -1202,9 +1213,11 @@ pub fn hide_track(song_id: u64) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn suggest_less_track(song_id: u64) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn suggest_less_track(
+    state: tauri::State<'_, crate::AppState>,
+    song_id: u64,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     db.execute(
         "UPDATE songs SET suggest_less = NOT suggest_less, updated_at = CURRENT_TIMESTAMP WHERE song_id = ?1 ",
@@ -1328,6 +1341,7 @@ pub fn get_all_artists(
 
 #[tauri::command]
 pub fn create_playlist(
+    state: tauri::State<'_, crate::AppState>,
     name: String,
     cover: String, // This is a full Data URL like "data:image/jpeg;base64,/9j/4AA..."
     description: String,
@@ -1336,8 +1350,7 @@ pub fn create_playlist(
     use base64::engine::general_purpose::STANDARD;
     use base64::Engine as _;
 
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let cover_blob = if !cover.is_empty() {
         // Extract base64 data from Data URL
@@ -1435,9 +1448,10 @@ pub fn get_all_playlists(
     Ok(results)
 }
 
-pub fn initiate_settings() -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn initiate_settings(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let count: i64 = db
         .query_row("SELECT COUNT(*) FROM settings", [], |row| row.get(0))
@@ -1481,12 +1495,12 @@ pub fn get_all_playlist_songs(
 
 #[tauri::command]
 pub fn add_track_to_playlist_songs(
+    state: tauri::State<'_, crate::AppState>,
     playlist_id: u64,
     song_id: u64,
     position: u64,
 ) -> Result<PlaylistSong, String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let added_at = Utc::now().to_rfc3339();
 
@@ -1514,12 +1528,12 @@ pub fn add_track_to_playlist_songs(
 
 #[tauri::command]
 pub fn remove_track_from_playlist(
+    state: tauri::State<'_, crate::AppState>,
     playlist_id: u64,
     song_id: u64,
     position: u64,
 ) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     db.execute(
         "DELETE FROM playlist_songs WHERE playlist_id = ?1 AND song_id = ?2 AND position = ?3",
@@ -1568,31 +1582,29 @@ pub fn get_settings(
 }
 
 #[tauri::command]
-pub async fn update_onboarding_settings(value: bool) -> Result<(), String> {
-    let result = std::thread::spawn(move || {
-        let db =
-            Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub async fn update_onboarding_settings(
+    state: tauri::State<'_, crate::AppState>,
+    value: bool,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
-        let sql = format!("UPDATE settings SET onboarding = ?1 WHERE settings_id = 1",);
+    db.execute(
+        "UPDATE settings SET onboarding = ?1 WHERE settings_id = 1",
+        params![value],
+    )
+    .map_err(|e| format!("Failed to update setting: {}", e))?;
 
-        db.execute(&sql, params![value])
-            .map_err(|e| format!("Failed to update setting: {}", e))?;
-
-        Ok::<(), String>(())
-    })
-    .join()
-    .map_err(|e| format!("Thread panicked: {:?}", e))?;
-
-    result
+    Ok(())
 }
 
 // ===== LAST SESSION COMMANDS =====
 
 /// Ensures a default session row exists (session_id = 1).
 /// Called once on startup alongside `initiate_settings`.
-pub fn initiate_last_session() -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn initiate_last_session(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     db.execute(
         "INSERT OR IGNORE INTO last_session (session_id) VALUES (1)",
@@ -1662,6 +1674,7 @@ pub fn get_last_session(
 /// volume, shuffle toggle, etc.) — it's a single cheap SQLite write.
 #[tauri::command]
 pub fn save_last_session(
+    state: tauri::State<'_, crate::AppState>,
     current_song_id: Option<i64>,
     progress_seconds: f64,
     volume: f64,
@@ -1671,8 +1684,7 @@ pub fn save_last_session(
     queue_position: i64,
     source_context: String,
 ) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let updated_at = chrono::Utc::now().to_rfc3339();
 
@@ -1712,9 +1724,11 @@ pub fn save_last_session(
 /// Convenience command: update only the playback position (called on seek / every N seconds).
 /// Avoids having to pass the full session state on every progress tick.
 #[tauri::command]
-pub fn update_session_progress(progress_seconds: f64) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn update_session_progress(
+    state: tauri::State<'_, crate::AppState>,
+    progress_seconds: f64,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let updated_at = chrono::Utc::now().to_rfc3339();
 
@@ -1731,9 +1745,11 @@ pub fn update_session_progress(progress_seconds: f64) -> Result<(), String> {
 
 /// Convenience command: update only the volume level.
 #[tauri::command]
-pub fn update_session_volume(volume: f64) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn update_session_volume(
+    state: tauri::State<'_, crate::AppState>,
+    volume: f64,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let updated_at = chrono::Utc::now().to_rfc3339();
 
@@ -1752,13 +1768,13 @@ pub fn update_session_volume(volume: f64) -> Result<(), String> {
 /// Call this when a track change happens so you never read stale progress for a new song.
 #[tauri::command]
 pub fn update_session_current_song(
+    state: tauri::State<'_, crate::AppState>,
     current_song_id: Option<i64>,
     queue_snapshot: String,
     queue_position: i64,
     source_context: String,
 ) -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let updated_at = chrono::Utc::now().to_rfc3339();
 
@@ -1786,9 +1802,10 @@ pub fn update_session_current_song(
 
 /// Clears the session back to defaults (e.g. user explicitly stops playback).
 #[tauri::command]
-pub fn clear_last_session() -> Result<(), String> {
-    let db =
-        Connection::open("music.db3").map_err(|e| format!("Failed to open database: {}", e))?;
+pub fn clear_last_session(
+    state: tauri::State<'_, crate::AppState>,
+) -> Result<(), String> {
+    let db = state.db_pool.get().map_err(|e| e.to_string())?;
 
     let updated_at = chrono::Utc::now().to_rfc3339();
 

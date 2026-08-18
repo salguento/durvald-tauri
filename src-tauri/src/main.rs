@@ -632,9 +632,9 @@ fn main() {
                     let _ = main_window_clone.set_focus();
                 });
 
-                create_tables().expect("failed to create tables");
-                initiate_settings().expect("failed to initiate settings");
-                initiate_last_session().expect("failed to initiate last session");
+                create_tables(app.state()).expect("failed to create tables");
+                initiate_settings(app.state()).expect("failed to initiate settings");
+                initiate_last_session(app.state()).expect("failed to initiate last session");
 
                 let app_handle = app.handle();
                 secure_store::init_secure_store(&app_handle);
