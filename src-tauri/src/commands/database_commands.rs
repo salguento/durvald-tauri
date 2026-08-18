@@ -405,6 +405,9 @@ pub fn create_tables() -> Result<(), String> {
     // column added; no-op when it is already present.
     ensure_song_mtime_column(&db)?;
 
+    // Indexes speed up the common queries on large libraries (idempotent).
+    ensure_indexes(&db)?;
+
     Ok(())
 }
 
@@ -422,6 +425,27 @@ fn ensure_song_mtime_column(db: &Connection) -> Result<(), String> {
     if !has {
         db.execute("ALTER TABLE songs ADD COLUMN file_mtime INTEGER", [])
             .map_err(|e| format!("Failed to add file_mtime column: {}", e))?;
+    }
+
+    Ok(())
+}
+
+/// Creates the indexes that back the common library queries. Idempotent
+/// (IF NOT EXISTS), so it safely applies to existing databases on next boot.
+fn ensure_indexes(db: &Connection) -> Result<(), String> {
+    const INDEXES: &[&str] = &[
+        "CREATE INDEX IF NOT EXISTS idx_songs_release ON songs(release_id)",
+        "CREATE INDEX IF NOT EXISTS idx_songs_artist ON songs(artist_id)",
+        "CREATE INDEX IF NOT EXISTS idx_songs_title ON songs(title)",
+        "CREATE INDEX IF NOT EXISTS idx_songs_dedupe ON songs(title, artist_id, release_id)",
+        "CREATE INDEX IF NOT EXISTS idx_releases_artist ON releases(artist_id)",
+        "CREATE INDEX IF NOT EXISTS idx_playlist_songs_playlist ON playlist_songs(playlist_id)",
+        "CREATE INDEX IF NOT EXISTS idx_play_history_song ON play_history(song_id)",
+    ];
+
+    for sql in INDEXES {
+        db.execute(sql, [])
+            .map_err(|e| format!("Failed to create index: {}", e))?;
     }
 
     Ok(())

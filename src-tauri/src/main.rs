@@ -580,7 +580,15 @@ fn is_audio_file(extension: &str) -> bool {
 fn main() {
     tauri::async_runtime::block_on(async {
         let player = AudioPlayer::new().expect("Failed to create audio player");
-        let manager = SqliteConnectionManager::file("music.db3");
+        let manager = SqliteConnectionManager::file("music.db3").with_init(|conn| {
+            // WAL persists to the DB file (helps all connections); busy_timeout
+            // and foreign_keys are set on each pooled connection.
+            conn.execute_batch(
+                "PRAGMA journal_mode = WAL;
+                 PRAGMA busy_timeout = 5000;
+                 PRAGMA foreign_keys = ON;",
+            )
+        });
         let pool = r2d2::Pool::new(manager).expect("Failed to create pool");
 
         // Create AppState
